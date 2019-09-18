@@ -1,0 +1,5 @@
+* Idea de capítulos
+** TODO Intro a Coq
+** TODO Intro a Mtac2
+** TODO Telescopios! 
+** TODO Aspectos técnicos

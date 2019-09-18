@@ -1,6 +1,33 @@
-Asumiendo que se ha hablado de Coq, es necesario hablar de Mtac2, y mencionar las diferentes estructuras que utilizamos (\code{M̀Tele_In}, etc.)
-Con todo eso en la bolsa, el verdadero desafio es el de explicar la forma en que nos aproximamos a esta solución.
+% En este archivo definimos la verdadera salsa!
+\section{Aspectos técnicos}
 
-Me gustaría hablar de como decidimos la heurística que estabamos utilizando, onda, cómo llegamos a que eso tenía sentido y en que casos se aplicaba. En el mejor de los casos estaría bueno poder idear un estilo de _syntax sugar_ para los telescopios. Tal vez sea una buena idea volver a las bases de los telescopios y repensar esto en papel para ver como lo pasamos una fórmula.
+Asumiendo que se ha hablado de Coq, es necesario hablar de Mtac2, y mencionar
+las diferentes estructuras que utilizamos (\mintinline{Coq}{MTele_in}, etc).
 
-Se puede mencionar que tuve que leer código de Mtac2 y tengo unos pull request \textbf{mínimos}.
+Con todo eso en la bolsa, el verdadero desafio es el de explicar la forma en que
+nos aproximamos a esta solución.
+
+
+Me gustaría hablar de como decidimos la heurística que estabamos utilizando,
+onda, cómo llegamos a que eso tenía sentido y en que casos se aplicaba.
+En el mejor de los casos estaría bueno poder idear un estilo de \textit{syntax
+  sugar} para los telescopios.
+Tal vez sea una buena idea volver a las bases de los telescopios y repensar esto
+en papel para ver como lo pasamos una fórmula.
+
+Se puede mencionar que tuve que leer código de Mtac2 y tengo unos pull request
+\textbf{mínimos}.
+
+\subsection{Bind}
+
+% TODO Definir todas las cosas de Telescopios! telescope.v
+
+Para comenzar a estudiar el problema es mejor centrarse en casos más simples que
+podamos razonar. La primera función interesante que podemos liftear es
+\mintinline{Coq}{bind}.
+$$ \forall A\, B : \text{Type}, \, M A \rightarrow (A \rightarrow M B)
+\rightarrow M B $$
+Ahora es el momento de decidir exactamente qué buscamos modificar de una
+función. El tipo que nos interesa tener para nuestro nuevo
+\mintinline{coq}{bind}, al cual llamaremos \mintinline{coq}{mbind} es
+$$\text{mbind} : \forall \, m : \text{Telescope},\, A\, B : \text{Telescope Type}$$
