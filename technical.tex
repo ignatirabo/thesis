@@ -21,13 +21,25 @@ Se puede mencionar que tuve que leer código de Mtac2 y tengo unos pull request
 \subsection{Bind}
 
 % TODO Definir todas las cosas de Telescopios! telescope.v
+% Se asume que se han explicado todas las cosas de MTele.v
 
 Para comenzar a estudiar el problema es mejor centrarse en casos más simples que
 podamos razonar. La primera función interesante que podemos liftear es
 \mintinline{Coq}{bind}.
-$$ \forall A\, B : \text{Type}, \, M A \rightarrow (A \rightarrow M B)
-\rightarrow M B $$
+\begin{center}
+  \begin{minted}{Coq}
+    forall A B : Type, M A -> (A -> M B) -> M B
+  \end{minted}
+\end{center}
+%$$ \forall A\, B : \text{Type}, \, M A \rightarrow (A \rightarrow M B)
+%\rightarrow M B $$
 Ahora es el momento de decidir exactamente qué buscamos modificar de una
 función. El tipo que nos interesa tener para nuestro nuevo
-\mintinline{coq}{bind}, al cual llamaremos \mintinline{coq}{mbind} es
-$$\text{mbind} : \forall \, m : \text{Telescope},\, A\, B : \text{Telescope Type}$$
+\mintinline{coq}{bind}, al cual llamaremos \mintinline{coq}{mbind}, es
+\begin{center}
+  \begin{minted}{Coq}
+    mbind : forall m : MTele, A B : MTele_ty, MFA A -> (A -> MFA B) -> MFA B
+  \end{minted}
+\end{center}
+$$\text{mbind} : \forall \, m : \text{MTele} , \, A\, B : \text{MTele\_ty}
+$$
