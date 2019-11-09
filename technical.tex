@@ -2,7 +2,7 @@
 \section{Aspectos técnicos}
 
 Asumiendo que se ha hablado de Coq, es necesario hablar de Mtac2, y mencionar
-las diferentes estructuras que utilizamos (\mintinline{Coq}{MTele_in}, etc).
+las diferentes estructuras que utilizamos (\code{MTele_in}, etc).
 
 Con todo eso en la bolsa, el verdadero desafio es el de explicar la forma en que
 nos aproximamos a esta solución.
@@ -18,28 +18,115 @@ en papel para ver como lo pasamos una fórmula.
 Se puede mencionar que tuve que leer código de Mtac2 y tengo unos pull request
 \textbf{mínimos}.
 
+\subsection{MFA}
+
+Para seguir trabajando, debemos poder representar los tipos monádicos que nos
+interesan.
+Para esto definiremos \code{MFA}.
+
+\begin{minted}{Coq}
+  Definition MFA {m} (T : MTele_Ty m) := (MTele_val (MTele_C SType SProp M T)).
+\end{minted}
+
+Dado un telescopio \code{m}, con $n$ tipos anidados y un tipo \code{T} de
+\code{m}, \code{MFA T} representa \code{forall t1 ... tn, M (T t1 ... tn)}
+
+
 \subsection{Bind}
 
-% TODO Definir todas las cosas de Telescopios! telescope.v
+% TODO Definir todas las cosas de Telescopios! tele.tex
 % Se asume que se han explicado todas las cosas de MTele.v
 
+\begin{figure}[h]
+  \centering
+  \begin{minted}{Coq}
+bind : forall A B : Type, M A -> (A -> M B) -> M B
+mbind : forall m : MTele, A B : MTele_Ty m, MFA A -> (A -> MFA B) -> MFA B
+  \end{minted}
+  \caption{Signaturas varias}
+  \label{fig:bind}
+\end{figure}
+
 Para comenzar a estudiar el problema es mejor centrarse en casos más simples que
-podamos razonar. La primera función interesante que podemos liftear es
-\mintinline{Coq}{bind}.
-\begin{center}
-  \begin{minted}{Coq}
-    forall A B : Type, M A -> (A -> M B) -> M B
-  \end{minted}
-\end{center}
-%$$ \forall A\, B : \text{Type}, \, M A \rightarrow (A \rightarrow M B)
-%\rightarrow M B $$
-Ahora es el momento de decidir exactamente qué buscamos modificar de una
-función. El tipo que nos interesa tener para nuestro nuevo
-\mintinline{coq}{bind}, al cual llamaremos \mintinline{coq}{mbind}, es
-\begin{center}
-  \begin{minted}{Coq}
-    mbind : forall m : MTele, A B : MTele_ty, MFA A -> (A -> MFA B) -> MFA B
-  \end{minted}
-\end{center}
-$$\text{mbind} : \forall \, m : \text{MTele} , \, A\, B : \text{MTele\_ty}
-$$
+podamos razonar. La primera función interesante que podemos \textit{liftear} es
+\code{bind} \ref{fig:bind}. 
+
+Es necesario poder entender cual es nuestro objetivo y decidir exactamente qué
+buscamos modificar de la función. No existe una forma correcta de pensar el
+tipo, sólo la que nos sirva. En nuestro caso, la idea más simple podemos verla
+en \ref{fig:bind}.
+
+En este caso, \code{(A -> MFA B)} es una función que podemos pensar tiene un
+tipo equivalente a \code{(A -> forall t1 ... tn, M (B t1 ... tn))}. Otra forma
+de pensarlo es con \code{MTele_In} y \code{accessor}. De esta forma, podemos
+expresar \code{forall t1 ... tn, (A -> M (B t1 ... tn))}. En la figura
+\ref{fig:mbind} se puede observar el último caso. 
+
+Ahora es momento de definir nuestra nueva función. El primer punto importante es
+que en el caso de que \code{m} sea vacío, \code{mbind} se debe comportar justo
+como \code{bind}. El verdadero desafío está en la recursión. Dada la naturaleza
+recursiva de los telescopios, cada paso recursivo se trata de pelar un tipo,
+como una cebolla.
+
+\begin{figure}[h]
+\centering
+\begin{minted}{coq}
+Fixpoint mbind {m : MTele} : forall {A B : MTele_Ty m},
+  MFA A ->
+    (MTele_val
+      (MTele_In SType (fun a => let A' := a.(acc_sort) A in
+                                let B' := a.(acc_sort) B in
+                                (A' -> M B')
+    ))) -> MFA B :=
+  match m with
+  | mBase =>
+    fun A B ma f => @bind A B ma f
+  | @mTele X F =>
+      fun A B ma f x => @mbind (F x) (A x) (B x) (ma x) (f x)
+  end.
+\end{minted}
+\caption{El programa \code{mbind}}
+\label{fig:mbind}
+\end{figure}
+
+Lo importante de esta definición es que funciona para cualquier telescopio y
+cualquier tipo \code{A} y \code{B}. Claramente, nos interesa que \code{B}
+efectivamente sea dependiente de todos los argumentos de \code{m}, mientras
+tanto, para \code{A} no es necesariamente importarte, dado que el valor de
+retorno no lo menciona.
+
+\subsection{La Heurística}
+% TODO: Hacer un estilo de reglas enumeradas para cada caso.
+% TODO: Después de esto tengo que mencionar como se hace esto, entre eso que es
+% RETURN y que es UNCURRY.
+
+En el caso de \code{mbind}, nosotros decidimos cual sería el tipo y adaptamos el
+código en función de este. Pero nuestro objetivo va más allá. Queremos que
+cualquier función sea automáticamente \textit{lifteada}. Esto nos obliga a
+diseñar una \textbf{heurística} que determine el tipo final.
+
+A continuación analizaremos todos los casos que nos interesan.
+\begin{itemize}
+\item \code{forall A : Type}:
+  \begin{itemize}
+    \item Si \code{A} se encuentra bajo la mónada en algún punto lo
+      reemplazaremos por \code{forall A : MTele_ty m} con  un \code{m : MTele}
+      cualquiera.
+    \item Si no, no haremos nada al tipo \code{A}.
+  \end{itemize}
+\item \code{forall x : X} donde \code{X : Type}: \code{X} puede seguir siendo el
+  tipo original o haber sido reemplazado por la primera regla, dado que el tipo
+  se introduce antes que los valores de este mismo. En ambos casos operamos de
+  la misma forma y simplemente seguimos lifteando.
+% TODO: En el implica es complicado porque usa a contains_u. No sé bien que hace
+% esta función. Parece que al abstraer se utiliza un U : ArgsOf m. Si falla la
+% abstracción devolvemos true. Creo que es un estilo de truco que se le ocurrió
+% a Janno.
+\item \code{X -> Y}:
+
+\item 
+\end{itemize}
+
+Para empezar, notamos que los tipos \code{A} y \code{B} eran tipos primitivos de
+Coq, y se convirtieron en \code{MTele_Ty}, pero ambos tipos aparecían bajo la
+mónada en la función.

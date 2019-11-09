@@ -508,7 +508,7 @@ Eval cbn in fun m => mprojT1 (m_mmatch' m).
 Let R := tyTree_FAType (fun A : Type => (tyTree_imp (tyTree_base A) (tyTree_M A))).
 Let r : to_ty R := @ret.
 Definition mret (m : MTele): m:{T : TyTree & to_ty T} := ltac:(mrun (lift' r m)).
-Eval cbn in fun m => mprojT2 (mret m).
+Eval cbn in fun m => to_ty (mprojT1 (mret m)).
 
 (** random nat function *)
 Let T := tyTree_imp (tyTree_base nat) (tyTree_imp (tyTree_base nat) (tyTree_base nat)).

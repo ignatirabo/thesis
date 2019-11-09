@@ -9,7 +9,9 @@
 \usepackage{amsmath}
 
 \usepackage{fontspec}
-\setmonofont{Source Code Pro}
+\setmonofont[Mapping=tex-text, Scale=0.8]{Source Code Pro}
+
+\newcommand{\code}[1]{\mintinline{Coq}{#1}}
 
 \author{Ignacio Tiraboschi}
 \title{Meta-programación tipada de meta-programas tipados en Coq}
@@ -18,6 +20,7 @@
 
 \maketitle
 
+\input{tele}
 \input{technical}
 
 \end{document}
