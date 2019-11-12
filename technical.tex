@@ -122,7 +122,11 @@ A continuación analizaremos todos los casos que nos interesan.
 % esta función. Parece que al abstraer se utiliza un U : ArgsOf m. Si falla la
 % abstracción devolvemos true. Creo que es un estilo de truco que se le ocurrió
 % a Janno.
-\item \code{X -> Y}:
+\item \code{X -> Y}: este es el caso más complicado porque requiere utilizar
+  \code{MTele_In}. Maneja implicaciones sin dependecia entre tipos, mientras
+  existe un caso más general para las dependencias.
+  % Por qué el caso más general es más fácil? Tecnicamente debería ser más
+  % difícil.
 
 \item 
 \end{itemize}
