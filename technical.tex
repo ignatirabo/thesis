@@ -103,33 +103,52 @@ retorno no lo menciona.
 En el caso de \code{mbind}, nosotros decidimos cual sería el tipo y adaptamos el
 código en función de este. Pero nuestro objetivo va más allá. Queremos que
 cualquier función sea automáticamente \textit{lifteada}. Esto nos obliga a
-diseñar una \textbf{heurística} que determine el tipo final.
+diseñar al programa a través de analisis de tipos, según yo una
+\textbf{heurística} que determine el tipo final.
 
-A continuación analizaremos todos los casos que nos interesan.
-\begin{itemize}
-\item \code{forall A : Type}:
-  \begin{itemize}
-    \item Si \code{A} se encuentra bajo la mónada en algún punto lo
-      reemplazaremos por \code{forall A : MTele_ty m} con  un \code{m : MTele}
-      cualquiera.
-    \item Si no, no haremos nada al tipo \code{A}.
-  \end{itemize}
-\item \code{forall x : X} donde \code{X : Type}: \code{X} puede seguir siendo el
-  tipo original o haber sido reemplazado por la primera regla, dado que el tipo
-  se introduce antes que los valores de este mismo. En ambos casos operamos de
-  la misma forma y simplemente seguimos lifteando.
+Podriamos tratar de definir \code{lift} primero o podríamos tratar de definir el
+resultado de cada tipo.
+
+A continuación haremos un análisis de como reemplazar cada parte del tipo. Es
+importante notar que el orden en que esto se define puede cambiar el resultado
+final, se debe leer este listado asumiendo que se matchea de manera secuencial.
+Esto se debe a que varios tipos resultan más generales que otros. A nosotros nos
+interesa poder dividirlos de esta forma por conveniencia.
+
+\begin{enumerate}
+% X
+\item \code{tyTree_base X} wot
+% M X
+\item \code{tyTree_M X} yep
 % TODO: En el implica es complicado porque usa a contains_u. No sé bien que hace
 % esta función. Parece que al abstraer se utiliza un U : ArgsOf m. Si falla la
 % abstracción devolvemos true. Creo que es un estilo de truco que se le ocurrió
 % a Janno.
-\item \code{X -> Y}: este es el caso más complicado porque requiere utilizar
-  \code{MTele_In}. Maneja implicaciones sin dependecia entre tipos, mientras
+% X → Y
+\item \code{tyTree_imp X Y}: este es el caso más complicado porque requiere utilizar
+  \code{lift_in}. Maneja implicaciones sin dependecia entre tipos, mientras
   existe un caso más general para las dependencias.
   % Por qué el caso más general es más fácil? Tecnicamente debería ser más
   % difícil.
+% forall x : X, F
+\item \code{tyTree_FA X F} donde \code{X : Type}, \code{X} puede seguir siendo el
+  tipo original o haber sido reemplazado por un caso anterior, dado que el tipo
+  se introduce antes que los valores de este mismo. En ambos casos operamos de
+  la misma forma, retornando el tipo \code{tyTree_FATele1 m F'} donde \code{F'}
+  es el lifteo de \code{F}.
+% forall A : Type, F
+\item \code{tyTree_FAType F}
+  \begin{itemize}
+  \item Si \code{A} se encuentra bajo la mónada, es decir, hay una mención de
+    \code{A} que se encuentra dentro de \code{M}, lo reemplazaremos por un
+    \code{A : MTele_Ty m} para algún \code{m : MTele} cualquiera.
+  \item Si no, \code{A} seguira siendo un \code{Type}.
+  \end{itemize}
+\end{enumerate}
 
-\item 
-\end{itemize}
+Otro aspecto de esto es que este tipo de análisis por casos solo puede
+realizarse en Mtac2 gracias a \code{mmatch}, el \code{match} monádico. Esto es
+debido a la capacidad de analizar sintacticamente a los tipos.
 
 Para empezar, notamos que los tipos \code{A} y \code{B} eran tipos primitivos de
 Coq, y se convirtieron en \code{MTele_Ty}, pero ambos tipos aparecían bajo la
