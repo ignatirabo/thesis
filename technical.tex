@@ -117,9 +117,18 @@ interesa poder dividirlos de esta forma por conveniencia.
 
 \begin{enumerate}
 % X
-\item \code{tyTree_base X} wot
+\item \code{tyTree_base X}: este es uno de los casos bases, no debemos realizar
+  cambio alguno.
 % M X
-\item \code{tyTree_M X} yep
+\item \code{tyTree_M X}: este caso solo va a ser utilizado con el tipo de
+  retorno del programa. Se divide en dos casos: el primero refleja \code{M X}
+  donde \code{X} fue reemplazado por \code{lift}, en el otro caso \code{X} no
+  fue reemplazado y por lo tanto lo llamaremos el caso constante.
+  \begin{itemize}
+  \item \code{tyTree_M (apply_sort A U)}: 
+  \item \code{tyTree_M X}: retornamos un \code{tyTree_MFA T} donde \code{T} es
+    el tipo telescopico constante.
+  \end{itemize}
 % TODO: En el implica es complicado porque usa a contains_u. No sé bien que hace
 % esta función. Parece que al abstraer se utiliza un U : ArgsOf m. Si falla la
 % abstracción devolvemos true. Creo que es un estilo de truco que se le ocurrió
