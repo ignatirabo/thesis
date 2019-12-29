@@ -1,0 +1,57 @@
+INTRO
+1. Coq
+2. Mtac2
+3. Tipos Dependientes
+TRABAJO
+4. Concepto de lifteo: que es liftear algo, que lifteamos y por qué
+5. Gran ejemplo: un ejemplo full donde se vea la cosa
+6. Aspectos técnicos: cómo funciona el lifteo
+7. Conclusión
+8. Trabajo futuro
+9. Referencias?
+
+--- PRIMER AUDIO
+La idea es, lo que te permite el mtmmatch es la posibiliad de que hagas pattern matching y devuelvas algo del estilo forall algo forall algo forall algo M de lo que sea, entonces eso te permite agarrar y tener un fixpoint como tenemos ahora en mtac, fix1 fix2 fix3 simplemente agarras y decis fix de 1, solo el argumento que te interesa, y todo el resto de las cosas las tenes como parte de tu tipo que devuelve el mtmmatch en cuestión. Entonces podés agarrar cualquier ejemplo que sea de tipos dependientes, cualquier fixpoint cuyo valor de retorno dependa de lo que estás matcheando, y eso ya tendría que andar. Que tome más de un argumento pq no tendría sentido. Entonces el primer argumento es el que vos tomás recursivo y el segundo lo tenés como parte de tu tipo embebido.
+
+La diferencia entre `mmatch` y `mtmmatch` es que en el retorno `mtmmatch` puede tener `forall x..z M (T x..z)` mientras que `mmatch` solo devuelve `M T`.
+Es decir, `mtmmatch` retorna funciones nativas de Coq que retornan mónadas. Entonces Beta plantea que con `mtmmatch` es fácil crear un fix_n, es decir que tome n argumentos.
+
+Beta plantea crear un fixpoint con al menos 1 argumento del cual dependa el retorno, algo así:
+`Fixpoint omega : forall (X : Type) (T : X -> Type) (r : X) (x : X), M (T x)`
+Necesitamos tener todo en el forall para permitir las dependencias de tipos. En este caso nos interesa tener a `r` como argumento recursivo del fixpoint y a `x` como un valor fijo.
+Tecnicamente, si entendí bien, esta función `omega` es de nuestro interés para mostrar `lift`.
+
+El ejemplo de Janno:
+mfix f (n : nat) (p : P n) : M (...) :=
+   M.print_term n;;
+   (mtmmatch n as n return P n -> M (...) with ... end) p
+
+Esto es parecido al ejemplo que encontré en `lift`:
+  | tyTree_imp X Y =>
+    print "hola";;
+    fun f => ...
+Esto falla. El tipo de `bind : forall A B : Type, M A -> (A -> M B) -> M B` no lo permite, `A` se instancia como `unit` pero `M B` no se corresponde con `forall ...`. Necesitamos un nuevo `bind` que nos permita hacer esto.
+
+  mbind : forall A B : Type, M A -> (A -> MFA B) -> MFA B
+
+Nos interesaría tener un mbind_1
+
+  mbind_1 : forall A B : Type, MFA A -> ((A x .. z) -> MFA B) -> MFA B
+
+Como sabemos `MFA A` es equivalente a `forall x .. z, M (A x .. z) 
+
+Ahora mismo lift hace esto:
+
+fun m : MTele =>
+       forall T T0 : MTele_Ty m,
+       MTele_val (MTele_In SType (fun a : accessor m => M (acc_sort a T))) ->
+       MTele_val (MTele_In SType (fun a : accessor m => acc_sort a T -> M (acc_sort a T0))) ->
+       MFA T0
+
+forall T T0 : nat -> Type,
+       (forall a : nat, M (T a)) ->
+       (forall a : nat, T a -> M (T0 a)) ->
+       forall a : nat, M (T0 a)
+
+--- SEGUNDO AUDIO
+No se bien si entiendo cual es el problema, en el sentido que veo el tipo de bind lifteado y para mi tiene sentido. O sea es, tanto el argumento de bind como la función de continuación, todo queda lifteado por ese forall en cuestión y los tipos dependen de ese valor. El valor intermedio que tiene que tomar la función de bind pide un T a. Para mi está bien. No sé tampoco a qué te referís con peligroso.
