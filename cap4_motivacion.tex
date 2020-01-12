@@ -1,0 +1,47 @@
+Mtac2 nos permite definir funciones mónadicas. Estas cuentan con ciertas ventajas. Un ejemplo de un meta-programa es el siguiente.
+
+\begin{coq}
+Definition list_max_nat :=
+  mfix f (l: list nat) : l <> nil -> M nat :=
+    mtmmatch l as l' return l' <> nil -> M nat with
+    | [? e] [e] =m> fun nonE => M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') =m> fun nonE =>
+      m <- Nat.max e1 e2;
+      f (m :: l') cons_not_nil
+    | [? l' r'] l' ++ r' => (* cualquier cosa *) 
+    end.
+\end{coq}
+
+Esta función calcula el máximo de una lista de números de \nat. Dado que en el último caso del \code{match} monádico analiza una expresión
+con una función, y no un constructor, es imposible implementar esto sin Mtac2.
+
+Ahora supongamos que deseamos parametrizar \nat y tener una función que acepte conjuntos. Sea
+\begin{coq}
+Definition max (S: Set) : M (S -> S -> S) :=
+  mmatch S in Set as S' return M (S' -> S' -> S') with
+  | nat => M.ret Nat.max
+  end.
+\end{coq}
+
+la función que retorna la relación máximo en un conjunto $S$. A primera vista nuestra idea podría fucionar.
+
+\begin{coq}
+Definition list_max (S: Set)  :=
+  max <- max S; (* error! *)
+  mfix f (l: list S) : l' <> nil -> M S :=
+    mtmmatch l as l' return l' <> nil -> M S with
+    | [? e] [e] =m> fun nonE=>M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') =m> fun nonE =>
+      m <- max e1 e2;
+      f (m :: l') cons_not_nil
+    end.
+\end{coq}
+
+Al intentar interpreatar esto veremos que Coq no lo acepta. Esto es debido a la signatura de \coq{bind}. Nuestro \coq{mfix} no puede
+unificarse a \coq{M B}, ya que tiene tipo \coq{f : forall (l: list S) : l' <> nil -> M S }.
+
+\begin{coq}
+bind : forall A B, M A -> (A -> M B) -> M B.
+\end{coq}
+
+Una de las formas en 

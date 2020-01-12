@@ -1,10 +1,10 @@
 INTRO
 1. Coq
 2. Mtac2
-3. Tipos Dependientes
+3. Telescopios y Tipos Dependientes: Debería hablar de MFA acá?
 TRABAJO
-4. Concepto de lifteo: que es liftear algo, que lifteamos y por qué
-5. Gran ejemplo: un ejemplo full donde se vea la cosa
+4. Gran ejemplo: un ejemplo full para motivar
+5. Concepto de lifteo: que es liftear algo, que lifteamos y por qué
 6. Aspectos técnicos: cómo funciona el lifteo
 7. Conclusión
 8. Trabajo futuro
@@ -26,11 +26,6 @@ mfix f (n : nat) (p : P n) : M (...) :=
    M.print_term n;;
    (mtmmatch n as n return P n -> M (...) with ... end) p
 
-Esto es parecido al ejemplo que encontré en `lift`:
-  | tyTree_imp X Y =>
-    print "hola";;
-    fun f => ...
-Esto falla. El tipo de `bind : forall A B : Type, M A -> (A -> M B) -> M B` no lo permite, `A` se instancia como `unit` pero `M B` no se corresponde con `forall ...`. Necesitamos un nuevo `bind` que nos permita hacer esto.
 
   mbind : forall A B : Type, M A -> (A -> MFA B) -> MFA B
 
@@ -55,3 +50,28 @@ forall T T0 : nat -> Type,
 
 --- SEGUNDO AUDIO
 No se bien si entiendo cual es el problema, en el sentido que veo el tipo de bind lifteado y para mi tiene sentido. O sea es, tanto el argumento de bind como la función de continuación, todo queda lifteado por ese forall en cuestión y los tipos dependen de ese valor. El valor intermedio que tiene que tomar la función de bind pide un T a. Para mi está bien. No sé tampoco a qué te referís con peligroso.
+
+1 Enero, 2020.
+El ejemplo de Beta es un buen punto de partida, a continuación trato de analizar como sería mi l_bind, basado en los tipos de las cosas.
+
+```
+Definition list_max (S: Set)  :=
+  max <- max S; (* error, the types clearly do not allow this *)
+  (* the mfix has tipe forall ... *)
+  (* with l_bind it should be possible? *)
+  mfix f (l: list S) : l' <> nil -> M S :=
+```
+
+Acá `max <- max S` tiene tipo `M (S -> S -> S)` mientras que `mfix ...` tiene tipo `forall (l : list S), l <> nil -> M S` donde `S : Set`.
+Mientras tanto, `bind` tiene tipo `forall A B : Type, M A -> (A -> M B) -> M B`. Claramente `M B` <> `forall (l : list S), l <> nil -> M S` por lo que no podemos usarlo.
+Ahora, si lifteamos a `bind` con un telescopio [list S;> l <> nil] conseguimos:
+
+forall T T0 : list S -> l <> nil -> Type,
+       (forall (l : list S) (p : l <> nil), M (T l p)) ->
+       (forall (l : list S) (p : l <> nil), T l p -> M (T0 l p)) ->
+       forall (l : list S) (p : l <> nil), M (T0 l p)
+
+
+20/01/09: Preguntar a Beta por qué no queremos meter `mmax <- mmax S` dentro del `mfix`, es decir, en cada caso del `mtmmatch`.
+Cuando Matthieu dijo esto, después remarcó que en ese caso, en cada paso iterativo, deberiamos volver a calcular el mismo valor,
+pero no sé si eso es necesariamente malo.
