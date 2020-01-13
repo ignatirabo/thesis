@@ -4,13 +4,13 @@
 En Mtac2 llamamos \textit{telescopios} a una estructura de datos inductiva
 que permite expresar una cantidad arbitraria de tipos.
 
-\begin{minted}{Coq}
+\begin{coqe}
 Inductive MTele : Type :=
 | mBase : MTele
 | mTele {X : Type} (F : X -> MTele) : MTele.
-\end{minted}
+\end{coqe}
 
-El tipo \code{MTele} crea una cadena de abstracciones que toma valores de tipos
+El tipo \coqi{MTele} crea una cadena de abstracciones que toma valores de tipos
 específicos.
 Los telescopios, junto con las funciones que lo acompañan será la base para nuestro
 trabajo.
@@ -19,20 +19,20 @@ Eeste tipo puede pensarse en varias jerarquías.
 La primera sería el telescopio mismo.
 Un ejemplo puede ser:
 
-\begin{minted}{Coq}
+\begin{coqe}
 Let m := @mTele nat (fun _ : nat => mBase)
-\end{minted}
+\end{coqe}
 
-Este telescopio lleva un único tipo, \code{nat}.
-Luego existen una infinita cantidad de tipos que dependen de \code{m}, para
+Este telescopio lleva un único tipo, \coqi{nat}.
+Luego existen una infinita cantidad de tipos que dependen de \coqi{m}, para
 continuar el ejemplo elegimos uno.
 
-\begin{minted}{Coq}
+\begin{coqe}
 Let A : MTele_Sort SProp m := fun x => x = x.
-\end{minted}
+\end{coqe}
 
 Finalmente, nos interesa un valor de ese tipo, es decir, una prueba.
 
-\begin{minted}{Coq}
+\begin{coqe}
 Let a : MTele_val (MTele_C SProp SProp M A) := fun x => ret (eq_refl).
-\end{minted}
+\end{coqe}

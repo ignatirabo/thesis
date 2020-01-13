@@ -11,16 +11,15 @@
 \usepackage{fontspec}
 \setmonofont[Mapping=tex-text, Scale=0.8]{Source Code Pro}
 
-\newcommand{\code}[1]{\mintinline{Coq}{#1}}
+\usepackage{listings}
+\newcommand{\code}[1]{\mintinline{coq}{#1}}
+\newcommand{\coqi}[1]{\texttt{#1}}
+
+\newenvironment{coqe}
+    { \begin{center}
+      \begin{lstlisting} }
+    { \end{lstlisting} 
+      \end{center} }
 
 \author{Ignacio Tiraboschi}
-\title{Meta-programación tipada de meta-programas tipados en Coq}
-
-\begin{document}
-
-\maketitle
-
-\input{tele}
-\input{technical}
-
-\end{document}
+\title{Meta-programación Tipada de Meta-programas Tipados en Coq}

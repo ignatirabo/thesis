@@ -1,8 +1,8 @@
 % En este archivo definimos la verdadera salsa!
 \section{Aspectos técnicos}
 
-Asumiendo que se ha hablado de Coq, es necesario hablar de Mtac2, y mencionar
-las diferentes estructuras que utilizamos (\code{MTele_in}, etc).
+Asumiendo que se ha hablado de coqe, es necesario hablar de Mtac2, y mencionar
+las diferentes estructuras que utilizamos (\\coqi{MTele_in}, etc).
 
 Con todo eso en la bolsa, el verdadero desafio es el de explicar la forma en que
 nos aproximamos a esta solución.
@@ -22,14 +22,14 @@ Se puede mencionar que tuve que leer código de Mtac2 y tengo unos pull request
 
 Para seguir trabajando, debemos poder representar los tipos monádicos que nos
 interesan.
-Para esto definiremos \code{MFA}.
+Para esto definiremos \\coqi{MFA}.
 
-\begin{minted}{Coq}
+\begin{minted}{coqe}
   Definition MFA {m} (T : MTele_Ty m) := (MTele_val (MTele_C SType SProp M T)).
 \end{minted}
 
-Dado un telescopio \code{m}, con $n$ tipos anidados y un tipo \code{T} de
-\code{m}, \code{MFA T} representa \code{forall t1 ... tn, M (T t1 ... tn)}
+Dado un telescopio \\coqi{m}, con $n$ tipos anidados y un tipo \\coqi{T} de
+\\coqi{m}, \\coqi{MFA T} representa \\coqi{forall t1 ... tn, M (T t1 ... tn)}
 
 
 \subsection{Bind}
@@ -39,7 +39,7 @@ Dado un telescopio \code{m}, con $n$ tipos anidados y un tipo \code{T} de
 
 \begin{figure}[h]
   \centering
-  \begin{minted}{Coq}
+  \begin{minted}{coqe}
 bind : forall A B : Type, M A -> (A -> M B) -> M B
 mbind : forall m : MTele, A B : MTele_Ty m, MFA A -> (A -> MFA B) -> MFA B
   \end{minted}
@@ -49,28 +49,28 @@ mbind : forall m : MTele, A B : MTele_Ty m, MFA A -> (A -> MFA B) -> MFA B
 
 Para comenzar a estudiar el problema es mejor centrarse en casos más simples que
 podamos razonar. La primera función interesante que podemos \textit{liftear} es
-\code{bind} \ref{fig:bind}. 
+\\coqi{bind} \ref{fig:bind}. 
 
 Es necesario poder entender cual es nuestro objetivo y decidir exactamente qué
 buscamos modificar de la función. No existe una forma correcta de pensar el
 tipo, sólo la que nos sirva. En nuestro caso, la idea más simple podemos verla
 en \ref{fig:bind}.
 
-En este caso, \code{(A -> MFA B)} es una función que podemos pensar tiene un
-tipo equivalente a \code{(A -> forall t1 ... tn, M (B t1 ... tn))}. Otra forma
-de pensarlo es con \code{MTele_In} y \code{accessor}. De esta forma, podemos
-expresar \code{forall t1 ... tn, (A -> M (B t1 ... tn))}. En la figura
+En este caso, \\coqi{(A -> MFA B)} es una función que podemos pensar tiene un
+tipo equivalente a \\coqi{(A -> forall t1 ... tn, M (B t1 ... tn))}. Otra forma
+de pensarlo es con \\coqi{MTele_In} y \\coqi{accessor}. De esta forma, podemos
+expresar \\coqi{forall t1 ... tn, (A -> M (B t1 ... tn))}. En la figura
 \ref{fig:mbind} se puede observar el último caso. 
 
 Ahora es momento de definir nuestra nueva función. El primer punto importante es
-que en el caso de que \code{m} sea vacío, \code{mbind} se debe comportar justo
-como \code{bind}. El verdadero desafío está en la recursión. Dada la naturaleza
+que en el caso de que \\coqi{m} sea vacío, \\coqi{mbind} se debe comportar justo
+como \\coqi{bind}. El verdadero desafío está en la recursión. Dada la naturaleza
 recursiva de los telescopios, cada paso recursivo se trata de pelar un tipo,
 como una cebolla.
 
 \begin{figure}[h]
 \centering
-\begin{minted}{coq}
+\begin{minted}{coqe}
 Fixpoint mbind {m : MTele} : forall {A B : MTele_Ty m},
   MFA A ->
     (MTele_val
@@ -85,14 +85,14 @@ Fixpoint mbind {m : MTele} : forall {A B : MTele_Ty m},
       fun A B ma f x => @mbind (F x) (A x) (B x) (ma x) (f x)
   end.
 \end{minted}
-\caption{El programa \code{mbind}}
+\caption{El programa \\coqi{mbind}}
 \label{fig:mbind}
 \end{figure}
 
 Lo importante de esta definición es que funciona para cualquier telescopio y
-cualquier tipo \code{A} y \code{B}. Claramente, nos interesa que \code{B}
-efectivamente sea dependiente de todos los argumentos de \code{m}, mientras
-tanto, para \code{A} no es necesariamente importarte, dado que el valor de
+cualquier tipo \\coqi{A} y \\coqi{B}. Claramente, nos interesa que \\coqi{B}
+efectivamente sea dependiente de todos los argumentos de \\coqi{m}, mientras
+tanto, para \\coqi{A} no es necesariamente importarte, dado que el valor de
 retorno no lo menciona.
 
 \subsection{La Heurística}
@@ -100,13 +100,13 @@ retorno no lo menciona.
 % TODO: Después de esto tengo que mencionar como se hace esto, entre eso que es
 % RETURN y que es UNCURRY.
 
-En el caso de \code{mbind}, nosotros decidimos cual sería el tipo y adaptamos el
+En el caso de \\coqi{mbind}, nosotros decidimos cual sería el tipo y adaptamos el
 código en función de este. Pero nuestro objetivo va más allá. Queremos que
 cualquier función sea automáticamente \textit{lifteada}. Esto nos obliga a
 diseñar al programa a través de analisis de tipos, según yo una
 \textbf{heurística} que determine el tipo final.
 
-Podriamos tratar de definir \code{lift} primero o podríamos tratar de definir el
+Podriamos tratar de definir \\coqi{lift} primero o podríamos tratar de definir el
 resultado de cada tipo.
 
 A continuación haremos un análisis de como reemplazar cada parte del tipo. Es
@@ -117,16 +117,16 @@ interesa poder dividirlos de esta forma por conveniencia.
 
 \begin{enumerate}
 % X
-\item \code{tyTree_base X}: este es uno de los casos bases, no debemos realizar
+\item \\coqi{tyTree_base X}: este es uno de los casos bases, no debemos realizar
   cambio alguno.
 % M X
-\item \code{tyTree_M X}: este caso solo va a ser utilizado con el tipo de
-  retorno del programa. Se divide en dos casos: el primero refleja \code{M X}
-  donde \code{X} fue reemplazado por \code{lift}, en el otro caso \code{X} no
+\item \\coqi{tyTree_M X}: este caso solo va a ser utilizado con el tipo de
+  retorno del programa. Se divide en dos casos: el primero refleja \\coqi{M X}
+  donde \\coqi{X} fue reemplazado por \\coqi{lift}, en el otro caso \\coqi{X} no
   fue reemplazado y por lo tanto lo llamaremos el caso constante.
   \begin{itemize}
-  \item \code{tyTree_M (apply_sort A U)}: 
-  \item \code{tyTree_M X}: retornamos un \code{tyTree_MFA T} donde \code{T} es
+  \item \\coqi{tyTree_M (apply_sort A U)}: 
+  \item \\coqi{tyTree_M X}: retornamos un \\coqi{tyTree_MFA T} donde \\coqi{T} es
     el tipo telescopico constante.
   \end{itemize}
 % TODO: En el implica es complicado porque usa a contains_u. No sé bien que hace
@@ -134,31 +134,31 @@ interesa poder dividirlos de esta forma por conveniencia.
 % abstracción devolvemos true. Creo que es un estilo de truco que se le ocurrió
 % a Janno.
 % X → Y
-\item \code{tyTree_imp X Y}: este es el caso más complicado porque requiere utilizar
-  \code{lift_in}. Maneja implicaciones sin dependecia entre tipos, mientras
+\item \\coqi{tyTree_imp X Y}: este es el caso más complicado porque requiere utilizar
+  \\coqi{lift_in}. Maneja implicaciones sin dependecia entre tipos, mientras
   existe un caso más general para las dependencias.
   % Por qué el caso más general es más fácil? Tecnicamente debería ser más
   % difícil.
 % forall x : X, F
-\item \code{tyTree_FA X F} donde \code{X : Type}, \code{X} puede seguir siendo el
+\item \\coqi{tyTree_FA X F} donde \\coqi{X : Type}, \\coqi{X} puede seguir siendo el
   tipo original o haber sido reemplazado por un caso anterior, dado que el tipo
   se introduce antes que los valores de este mismo. En ambos casos operamos de
-  la misma forma, retornando el tipo \code{tyTree_FATele1 m F'} donde \code{F'}
-  es el lifteo de \code{F}.
+  la misma forma, retornando el tipo \\coqi{tyTree_FATele1 m F'} donde \\coqi{F'}
+  es el lifteo de \\coqi{F}.
 % forall A : Type, F
-\item \code{tyTree_FAType F}
+\item \\coqi{tyTree_FAType F}
   \begin{itemize}
-  \item Si \code{A} se encuentra bajo la mónada, es decir, hay una mención de
-    \code{A} que se encuentra dentro de \code{M}, lo reemplazaremos por un
-    \code{A : MTele_Ty m} para algún \code{m : MTele} cualquiera.
-  \item Si no, \code{A} seguira siendo un \code{Type}.
+  \item Si \\coqi{A} se encuentra bajo la mónada, es decir, hay una mención de
+    \\coqi{A} que se encuentra dentro de \\coqi{M}, lo reemplazaremos por un
+    \\coqi{A : MTele_Ty m} para algún \\coqi{m : MTele} cualquiera.
+  \item Si no, \\coqi{A} seguira siendo un \\coqi{Type}.
   \end{itemize}
 \end{enumerate}
 
 Otro aspecto de esto es que este tipo de análisis por casos solo puede
-realizarse en Mtac2 gracias a \code{mmatch}, el \code{match} monádico. Esto es
+realizarse en Mtac2 gracias a \\coqi{mmatch}, el \\coqi{match} monádico. Esto es
 debido a la capacidad de analizar sintacticamente a los tipos.
 
-Para empezar, notamos que los tipos \code{A} y \code{B} eran tipos primitivos de
-Coq, y se convirtieron en \code{MTele_Ty}, pero ambos tipos aparecían bajo la
+Para empezar, notamos que los tipos \\coqi{A} y \\coqi{B} eran tipos primitivos de
+coqe, y se convirtieron en \\coqi{MTele_Ty}, pero ambos tipos aparecían bajo la
 mónada en la función.

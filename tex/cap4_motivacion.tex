@@ -1,6 +1,6 @@
 Mtac2 nos permite definir funciones mónadicas. Estas cuentan con ciertas ventajas. Un ejemplo de un meta-programa es el siguiente.
 
-\begin{coq}
+\begin{coqe}
 Definition list_max_nat :=
   mfix f (l: list nat) : l <> nil -> M nat :=
     mtmmatch l as l' return l' <> nil -> M nat with
@@ -10,22 +10,22 @@ Definition list_max_nat :=
       f (m :: l') cons_not_nil
     | [? l' r'] l' ++ r' => (* cualquier cosa *) 
     end.
-\end{coq}
+\end{coqe}
 
-Esta función calcula el máximo de una lista de números de \nat. Dado que en el último caso del \code{match} monádico analiza una expresión
+Esta función calcula el máximo de una lista de números de \nat. Dado que en el último caso del \coqi{match} monádico analiza una expresión
 con una función, y no un constructor, es imposible implementar esto sin Mtac2.
 
 Ahora supongamos que deseamos parametrizar \nat y tener una función que acepte conjuntos. Sea
-\begin{coq}
+\begin{coqe}
 Definition max (S: Set) : M (S -> S -> S) :=
   mmatch S in Set as S' return M (S' -> S' -> S') with
   | nat => M.ret Nat.max
   end.
-\end{coq}
+\end{coqe}
 
 la función que retorna la relación máximo en un conjunto $S$. A primera vista nuestra idea podría fucionar.
 
-\begin{coq}
+\begin{coqe}
 Definition list_max (S: Set)  :=
   max <- max S; (* error! *)
   mfix f (l: list S) : l' <> nil -> M S :=
@@ -35,17 +35,17 @@ Definition list_max (S: Set)  :=
       m <- max e1 e2;
       f (m :: l') cons_not_nil
     end.
-\end{coq}
+\end{coqe}
 
-Al intentar interpreatar esto veremos que Coq no lo acepta. Esto es debido a la signatura de \coq{bind}. Nuestro \coq{mfix} no puede
-unificarse a \coq{M B}, ya que tiene tipo \coq{f : forall (l: list S) : l' <> nil -> M S }.
+Al intentar interpreatar esto veremos que coqe no lo acepta. Esto es debido a la signatura de \coqi{bind}. Nuestro \coqi{mfix} no puede
+unificarse a \coqi{M B}, ya que tiene tipo \coqi{f : forall (l: list S) : l' <> nil -> M S }.
 
-\begin{coq}
+\begin{coqe}
 bind : forall A B, M A -> (A -> M B) -> M B.
-\end{coq}
+\end{coqe}
 
 Solucionar este problema específico no es un problema. Podemos codificar un nuevo bind que solucione el problema con un poco de esfuerzo.
-El problema será que este solo soluciona el problema actual, y ante cualquier variación necesitaremos crear otro \coq{bind} más.
+El problema será que este solo soluciona el problema actual, y ante cualquier variación necesitaremos crear otro \coqi{bind} más.
 
-Es por eso que nuestro proyecto es la codificación de un nuevo meta-programa \coq{lift} que automaticamente puede generalizar meta-programas
+Es por eso que nuestro proyecto es la codificación de un nuevo meta-programa \coqe{lift} que automaticamente puede generalizar meta-programas
 con las dependencias necesarias para que sea utilizado en cualquier contexto.

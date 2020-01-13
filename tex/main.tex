@@ -1,0 +1,38 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+
+\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{minted}
+\usepackage{amsmath}
+
+\usepackage{fontspec}
+\setmonofont[Mapping=tex-text, Scale=0.8]{Source Code Pro}
+
+\usepackage{listings}
+\newcommand{\code}[1]{\mintinline{coq}{#1}}
+\newcommand{\coqi}[1]{\texttt{#1}}
+
+\newenvironment{coqe}
+    { \begin{center}
+      \begin{lstlisting} }
+    { \end{lstlisting} 
+      \end{center} }
+
+\author{Ignacio Tiraboschi}
+\title{Meta-programación Tipada de Meta-programas Tipados en Coq}
+
+\begin{document}
+
+\maketitle
+
+% INTRO
+\input{tele}
+
+% LIFT
+\input{cap4_motivacion.tex}
+\input{technical}
+
+\end{document}
