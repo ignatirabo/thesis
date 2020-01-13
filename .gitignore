@@ -21,6 +21,8 @@
 *.v.d
 *.vio
 *.vo
+*.pyg
+*.synctex.gz
 .coq-native/
 .csdp.cache
 .lia.cache
