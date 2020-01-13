@@ -1,0 +1,15 @@
+Mtac2 nos permite definir funciones monádicas. Estas cuentan con ciertas ventajas. Un ejemplo de un meta-programa es el siguiente.
+
+\begin{coqe}
+Definition list_max_nat :=
+  mfix f (l: list nat) : l <> nil -> M nat :=
+    mtmmatch l as l' return l' <> nil -> M nat with
+    | [? e] [e] =m> fun nonE => M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') =m> fun nonE =>
+      let m := Nat.max e1 e2 in (* let pq nada de esto es monadico *)
+      f (m :: l') cons_not_nil
+    | [? l' r'] l' ++ r' => (* cualquier cosa *) 
+    end.
+\end{coqe}
+
+Esta funcion calcula el maximo de una lista de numeros de $\natural$.

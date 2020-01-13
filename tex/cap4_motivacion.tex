@@ -1,4 +1,4 @@
-Mtac2 nos permite definir funciones mónadicas. Estas cuentan con ciertas ventajas. Un ejemplo de un meta-programa es el siguiente.
+Mtac2 nos permite definir funciones monádicas. Estas cuentan con ciertas ventajas. Un ejemplo de un meta-programa es el siguiente.
 
 \begin{coqe}
 Definition list_max_nat :=
@@ -6,14 +6,16 @@ Definition list_max_nat :=
     mtmmatch l as l' return l' <> nil -> M nat with
     | [? e] [e] =m> fun nonE => M.ret e
     | [? e1 e2 l'] (e1 :: e2 :: l') =m> fun nonE =>
-      let m := Nat.max e1 e2 in (* let pq nada de esto es monádco *)
+      let m := Nat.max e1 e2 in (* let pq nada de esto es monadico *)
       f (m :: l') cons_not_nil
     | [? l' r'] l' ++ r' => (* cualquier cosa *) 
     end.
 \end{coqe}
 
-Esta función calcula el máximo de una lista de números de \nat. Dado que en el último caso del \coqi{match} monádico analiza una expresión
-con una función, y no un constructor, es imposible implementar esto sin Mtac2.
+Esta función calcula el máximo de una lista de numeros de \nat.
+
+Dado que en el ultimo caso del \coqi{match} monadico analiza una expresion
+con una funcion, y no un constructor, es imposible implementar esto sin Mtac2.
 
 Ahora supongamos que deseamos parametrizar \nat y tener una función que acepte conjuntos. Sea
 \begin{coqe}
