@@ -6,7 +6,7 @@ Definition list_max_nat :=
     mtmmatch l as l' return l' <> nil -> M nat with
     | [? e] [e] =m> fun nonE => M.ret e
     | [? e1 e2 l'] (e1 :: e2 :: l') =m> fun nonE =>
-      m <- Nat.max e1 e2;
+      let m := Nat.max e1 e2 in (* let pq nada de esto es monádco *)
       f (m :: l') cons_not_nil
     | [? l' r'] l' ++ r' => (* cualquier cosa *) 
     end.
@@ -44,4 +44,8 @@ unificarse a \coq{M B}, ya que tiene tipo \coq{f : forall (l: list S) : l' <> ni
 bind : forall A B, M A -> (A -> M B) -> M B.
 \end{coq}
 
-Una de las formas en 
+Solucionar este problema específico no es un problema. Podemos codificar un nuevo bind que solucione el problema con un poco de esfuerzo.
+El problema será que este solo soluciona el problema actual, y ante cualquier variación necesitaremos crear otro \coq{bind} más.
+
+Es por eso que nuestro proyecto es la codificación de un nuevo meta-programa \coq{lift} que automaticamente puede generalizar meta-programas
+con las dependencias necesarias para que sea utilizado en cualquier contexto.
