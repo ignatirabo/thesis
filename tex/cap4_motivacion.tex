@@ -1,6 +1,9 @@
 \section{Motivación}
 
-Mtac2 nos permite definir funciones monádicas. Estas cuentan con ciertas ventajas. Un ejemplo de un meta-programa es el siguiente.
+% Se asume que se explicó que es Mtac2 en la introducción y todas las cosas que
+% se pueden hacer.
+\textbf{Mtac2} nos permite definir funciones monádicas. Estas cuentan con
+ciertas ventajas. Un ejemplo de un meta-programa es el siguiente.
 
 \begin{lstlisting}
 Definition list_max_nat :=
@@ -14,12 +17,12 @@ Definition list_max_nat :=
     end.
 \end{lstlisting}
 
-Esta función calcula el máximo de una lista de numeros de $\natural$.
+Esta función calcula el máximo de una lista de números \lstinline{$\nat$ : Set}.
+Dado que en el último caso del \lstinline{match} monádico analiza una expresión
+con una función, y no un constructor, es imposible implementar esto sin Mtac2.
 
-Dado que en el ultimo caso del \lstinline{match} monadico analiza una expresion
-con una funcion, y no un constructor, es imposible implementar esto sin Mtac2.
-
-Ahora supongamos que deseamos parametrizar $\natural$ y tener una función que acepte conjuntos. Sea
+Ahora supongamos que deseamos parametrizar $\nat$ y tener una función que acepte
+múltiples conjuntos. Sea
 \begin{lstlisting}
 Definition max (S: Set) : M (S -> S -> S) :=
   mmatch S in Set as S' return M (S' -> S' -> S') with
@@ -27,7 +30,8 @@ Definition max (S: Set) : M (S -> S -> S) :=
   end.
 \end{lstlisting}
 
-la función que retorna la relación máximo en un conjunto $S$. A primera vista nuestra idea podría fucionar.
+la función que retorna la relación máximo en un conjunto $S$.
+A primera vista nuestra idea podría fucionar.
 
 \begin{lstlisting}
 Definition list_max (S: Set)  :=
@@ -41,15 +45,21 @@ Definition list_max (S: Set)  :=
     end.
 \end{lstlisting}
 
-Al intentar interpreatar esto veremos que lstlisting no lo acepta. Esto es debido a la signatura de \lstinline{bind}. Nuestro \lstinline{mfix} no puede
-unificarse a \lstinline{M B}, ya que tiene tipo \lstinline{f : forall (l: list S) : l' <> nil -> M S }.
+Al intentar que Coq interprete la función veremos que lstlisting no lo acepta.
+Esto es debido a la signatura de \lstinline{bind}.
+Nuestro \lstinline{mfix} no puede unificarse a \lstinline{M B}, ya que tiene
+tipo \lstinline{f : forall (l: list S)  l' <> nil -> M S }.
 
 \begin{lstlisting}
 bind : forall A B, M A -> (A -> M B) -> M B.
 \end{lstlisting}
 
-Solucionar este problema específico no es un problema. Podemos codificar un nuevo bind que solucione el problema con un poco de esfuerzo.
-El problema será que este solo soluciona el problema actual, y ante cualquier variación necesitaremos crear otro \lstinline{bind} más.
+Solucionar esta situación específica no es un problema. Una alternativa es
+introducir los parámetros de la función y beta-expandir la definición del fixpoint.
+Otra es codificar un nuevo bind que tenga el tipo necesario.
+El problema será que este solo soluciona el problema actual, y ante cualquier
+variación necesitaremos volver a solucionarlo.
 
-Es por eso que nuestro proyecto es la codificación de un nuevo meta-programa \lstinline{lift} que automaticamente puede generalizar meta-programas
-con las dependencias necesarias para que sea utilizado en cualquier contexto.
+Es por eso que nuestro proyecto es la codificación de un nuevo meta-programa
+\lstinline{lift} que automaticamente puede generalizar meta-programas con las
+dependencias necesarias para que sea utilizado en cualquier contexto.
