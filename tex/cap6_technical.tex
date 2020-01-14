@@ -1,21 +1,73 @@
-\section{Aspect os técnicos}
+\section{Aspectos Técnicos}
 
-Asumiendo que se ha hablado de coqe, es necesario hablar de Mtac2, y mencionar
-las diferentes estructuras que utilizamos (\lstinline{MTele_in}, etc).
-Con todo eso en la bolsa, el verdadero desafio es el de explicar la forma en que
-nos aproximamos a esta solución.
+En esta sección discutiremos los aspectos técnicos de Lift. Comenzaremos discutiendo su funcionamiento básico y de ahí
+escalaremos a los detalles más profundos. 
 
-% No utilizamos heurística ni nada, no tiene sentido hablar de eso.
-Me gustaría hablar de como decidimos la heurística que estabamos utilizando,
-onda, cómo llegamos a que eso tenía sentido y en que casos se aplicaba.
-En el mejor de los casos estaría bueno poder idear un estilo de \textit{syntax
-  sugar} para los telescopios.
-Tal vez sea una buena idea volver a las bases de los telescopios y repensar esto
-en papel para ver como lo pasamos una fórmula.
+\subsection{TyTree}
 
-Se puede mencionar que tuve que leer código de Mtac2 y tengo unos pull request
-\textbf{mínimos}.
+En terminos generales Lift es fixpoint sobre un telescopio con un gran análisis por casos sobre los tipos.
+Entonces surge un problema: ¿Cómo podemos hacer pattern matching en los tipos de manera sintáctica?
+La solución es utilizar un reflejo de los mismos, de manera de que podamos expresarlos de manera inductiva.
 
+\begin{lstlisting}
+Inductive TyTree : Type :=
+| tyTree_val {m : MTele} (T : MTele_Ty m) : TyTree
+| tyTree_M (T : Type) : TyTree
+| tyTree_MFA {m : MTele} (T : MTele_Ty m) : TyTree
+| tyTree_In (s : Sort) {m : MTele} (F : accessor m -> s) : TyTree
+| tyTree_imp (T : TyTree) (R : TyTree) : TyTree
+| tyTree_FATele {m : MTele} (T : MTele_Ty m)
+  (F : \forall t : MTele_val T, TyTree) : TyTree
+| tyTree_FATele1 (m : MTele) (F : \forall (T : MTele_Ty m), TyTree) : TyTree
+| tyTree_FAValue (T : Type) (F : T -> TyTree) : TyTree
+| tyTree_FAType (F : Type -> TyTree) : TyTree
+| tyTree_base (T : Type) : TyTree
+.
+\end{lstlisting}
+
+Con este tipo podemos reescribir todas las signaturas de funciones. Varios de los constructores, como por ejemplo
+\lstinline{tyTree_MFA} o \lstinline{tyTree_FATele}, tendrán sentido más adelante, dado que reflejan elementos en
+funciones lifteadas.
+
+Una de las propiedades principales de este reflejo es que a primera vista parece que un tipo puede escribirse de
+múltiples formas en \lstinline{TyTree}, pero los tratamos de manera distinta y por eso podemos plantear una biyección
+entre \lstinline{Type} y \lstinline{TyTree}.
+
+Ahora tomaremos una función \lstinline{f} e iremos modificando si signatura para mostrar esta reflección de tipos.
+Para simplificar escribiremos \lstinline{P $\equiv$ Q} para expresar que un tipo es equivalente a un \lstinline{TyTree}.
+
+\begin{lstlisting}
+f : nat -> nat -> nat
+\end{lstlisting}
+
+Su tipo traducido es
+
+\begin{lstlisting}
+f : \tyTree_imp (\tyTree_base nat) (\tyTree_imp (\tyTree_base nat) (\tyTree_base nat))
+\end{lstlisting}
+
+Dado que no hay dependencias de tipos, podemos utilizar \lstinline{\tyTree_imp}. Ahora si parametrizamos
+$\nat$ por cualquier tipo.
+
+\begin{lstlisting}
+\forall A, A -> A -> A
+$\equiv$
+\tyTree_FAType (fun A => \tyTree_imp (\tyTree_base A) (\tyTree_imp (\tyTree_base A) (\tyTree_base A))
+\end{lstlisting}
+
+Con \lstinline{\tyTree_FAType} podemos observar claramente la dependencia de \lstinline{A}.
+
+Para expresar la dependencia de un valor utilizamos \lstinline{\tyTree_FAValue}.
+
+\begin{lstlisting}
+\forall A (B : A -> Type) (a : A), (B a)
+$\equiv$
+\tyTree_FAType (fun A => \tyTree_FAType (fun B : A -> Type => \tyTree_FAValue A (fun a => \tyTree_base (B a))))
+\end{lstlisting}
+
+% Dejo los otros para después? Leer comentarios de la agenda del 14 de enero.
+
+% Parte vieja ?
 \subsection{MFA}
 
 Para seguir trabajando, debemos poder representar los tipos monádicos que nos
@@ -32,7 +84,8 @@ Dado un telescopio \lstinline{m}, con $n$ tipos anidados y un tipo \lstinline{T}
 
 \subsection{Bind}
 
-% TODO Definir todas las cosas de Telescopios! tele.tex
+% TODO Definir todas las cosas de Telescopios! tele.te
+
 % Se asume que se han explicado todas las cosas de MTele.v
 
 \begin{figure}[h]
@@ -138,7 +191,7 @@ interesa poder dividirlos de esta forma por conveniencia.
   % Por qué el caso más general es más fácil? Tecnicamente debería ser más
   % difícil.
 % forall x : X, F
-\item \lstinline{tyTree_FA X F} donde \lstinline{X : Type}, \lstinline{X} puede seguir siendo el
+\item \lstinline{tyTree_FAValue X F} donde \lstinline{X : Type}, \lstinline{X} puede seguir siendo el
   tipo original o haber sido reemplazado por un caso anterior, dado que el tipo
   se introduce antes que los valores de este mismo. En ambos casos operamos de
   la misma forma, retornando el tipo \lstinline{tyTree_FATele1 m F'} donde \lstinline{F'}
@@ -158,5 +211,5 @@ realizarse en Mtac2 gracias a \lstinline{mmatch}, el \lstinline{match} monádico
 debido a la capacidad de analizar sintacticamente a los tipos.
 
 Para empezar, notamos que los tipos \lstinline{A} y \lstinline{B} eran tipos primitivos de
-coqe, y se convirtieron en \lstinline{MTele_Ty}, pero ambos tipos aparecían bajo la
+Coq, y se convirtieron en \lstinline{MTele_Ty}, pero ambos tipos aparecían bajo la
 mónada en la función.

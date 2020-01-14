@@ -27,7 +27,7 @@ morekeywords=[2]{forall, exists, exists2, fun, fix, cofix, struct,
   nosimpl, when},
 %
 % Sorts
-morekeywords=[3]{Type, Prop, Set, true, false, option},
+morekeywords=[3]{Type, Prop, Set, true, false, option, TyTree},
 %
 % Various tactics, some are std Coq subsumed by ssr, for the manual purpose
 morekeywords=[4]{pose, set, move, case, elim, apply, clear, hnf,
@@ -44,6 +44,10 @@ morekeywords=[5]{by, done, exact, reflexivity, tauto, romega, omega,
 %
 % Control
 morekeywords=[6]{do, last, first, try, idtac, repeat},
+%
+% TyTree
+morekeywords=[7]{tyTree_base, tyTree_M, tyTree_imp, tyTree_MFA, tyTree_In, tyTree_val, tyTree_FATele,  tyTree_FATele1,
+  tyTree_FAValue, tyTree_FAType},
 %
 % Comments delimiters, we do turn this off for the manual
 morecomment=[s]{(*}{*)},
@@ -81,7 +85,7 @@ identifierstyle={\ttfamily\color{black}},
 % Style for declaration keywords
 keywordstyle=[1]{\ttfamily\color{antiquefuchsia}},
 % Style for gallina keywords
-keywordstyle=[2]{\ttfamily\color{asparagus}},
+keywordstyle=[2]{\ttfamily\color{ao}},
 % Style for sorts keywords
 keywordstyle=[3]{\ttfamily\color{cerulean}},
 % Style for tactics keywords
@@ -90,14 +94,16 @@ keywordstyle=[4]{\ttfamily\color{blue}},
 keywordstyle=[5]{\ttfamily\color{red}},
 %Style for iterators
 %keywordstyle=[6]{\ttfamily\color{dkpink}},
+% Style for TyTree
+keywordstyle=[7]{\ttfamily\color{brightmaroon}},
 % Style for strings
 stringstyle=\ttfamily,
 % Style for comments
-commentstyle={\ttfamily\color{airforceblue}},
+commentstyle={\ttfamily\color{auburn}},
 %
 %moredelim=**[is][\ttfamily\color{red}]{/&}{&/},
 literate=
-    {\\forall}{{\color{green}{$\forall\;$}}}1
+    {\\forall}{{\color{applegreen}{$\forall\;$}}}1
     {\\exists}{{$\exists\;$}}1
     {<-}{{$\leftarrow\;$}}1
     {=>}{{$\Rightarrow\;$}}1
@@ -107,6 +113,13 @@ literate=
     {->}{{$\rightarrow\;$}}1
     {<->}{{$\leftrightarrow\;$}}1
     {<==}{{$\leq\;$}}1
+    {nat}{{$\mathbb{N}$\;}}1
+    {fun}{{$\lambda$}}1
+    {\\tyTree_imp}{{\color{brightmaroon}{$\text{imp}_{tT}\;$}}}1
+    {\\tyTree_base}{{\color{brightmaroon}{$\text{base}_{tT}\;$}}}1
+    {\\tyTree_M}{{\color{brightmaroon}{$\text{M}_{tT}\;$}}}1
+    {\\tyTree_FAType}{{\color{brightmaroon}{$\text{FAType}_{tT}\;$}}}1
+    {\\tyTree_FAValue}{{\color{brightmaroon}{$\text{FAValue}_{tT}\;$}}}1
     {\#}{{$^\star$}}1 
     {\\o}{{$\circ\;$}}1 
     {\@}{{$\cdot$}}1 
