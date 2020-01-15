@@ -1,42 +1,39 @@
 \section{Lift}
 
 Denominamos \lstinline{lift} a la función desarrollada en este trabajo.
-La misma tiene la tarea de agregar dependencias a meta-programas de manera quasi automática: solo requiere un
-telescopio.
+La misma tiene la tarea de agregar dependencias a meta-programas de manera quasi automática: solo requiere un telescopio.
 
-Lift se basa en analizar los tipos de las funciones y modificarlos a voluntad, generando así nuevos meta-programas que
-añaden los tipos del telescopio como dependencias. El signficado real de esto va ser trabajado en este capítulo a través
-de ejemplos que mostrarán el comportamiento de lift.
+Lift se basa en analizar los tipos de las funciones y modificarlos añadiendo dependencias triviales en los tipos que se encuentran bajo la mónada, generando así nuevos meta-programas más generales.
+El signficado real de este funcionamiento será trabajado en este capítulo a través de ejemplos que mostrarán el comportamiento de lift.
 
-\subsection[]{Lifteando funciones simples} 
+\subsection[]{Lifteando funciones simples}
 
-La función monádica más simple es \lstinline{ret : \forall A, A -> M A}, uno de los operadores monádicos. Supongamos que
-nos interesa tener
+Una de las funciones monádica más simples es \lstinline{ret : \forall A, A -> M A}, uno de los operadores monádicos.
+Supongamos que nos interesa tener
 \begin{lstlisting}
 ret^ : \forall (A : nat -> nat -> Type), (\forall n n', A n n') -> (\forall n n', M (A n n'))
 \end{lstlisting}
-Ahora, nuestro trabajo es poder definir un telescopio que se amolde a la información que necesitamos agregar. En este
-caso el telescopio es el siguiente: \lstinline{t := [n : nat ;> n' : nat]} dado que queremos que \lstinline{}{A} dependa
-de dos $\nat$. Efectivamente \lstinline{ret^ := lift ret t}.
 
-Este ejemplo es simple porque no involucra funciones. Pero en ese caso, estudiemos que sucede con bind.
+Ahora, nuestro trabajo es poder definir un telescopio que se amolde a la información que necesitamos agregar.
+En este caso el telescopio es el siguiente: \lstinline{t := [n : nat ;> n' : nat]$_t$} dado que queremos que \lstinline{}{A} dependa de dos $\nat$. Efectivamente \lstinline{ret^ := lift ret t}.
+
+Este ejemplo es simple porque no involucra funciones. Pero en ese caso, estudiemos que sucede con \lstinline{bind}.
 \begin{lstlisting}
 bind : \forall A B, M A -> (A -> M B) -> M B
 \end{lstlisting}
 
-\textit{Bind} es el operador monádico más importante y es central en estos problemas.
-Supongamos que queremos utilizamos el telescopio \lstinline{t := [T : Type ;> l : list T]} donde \lstinline{list T} es
-el tipo de las listas con elementos de $T$. Al momento de liftearlo, no es obvio cual debería ser el resultado, así que
-veamoslo.
+Bind es el operador monádico más importante y es central en estos problemas.
+Supongamos que queremos utilizamos el telescopio \lstinline{t := [T : Type ;> l : list T]$_t$} donde \lstinline{list T} es el tipo de las listas con elementos de tipo $T$.
+Al momento de liftearlo, no es obvio cual debería ser el resultado, así que veamoslo.
 
 \begin{lstlisting}
 bind^ : \forall A B : \forall T : Type, list T -> Type,
-         (\forall (T : Type) (l : list a), M (A T l)) ->
-         (\forall (T : Type) (l : list a), A T l -> M (B T l)) ->
-         (\forall (T : Type) (l : list a), M (B T l))
+         (\forall (T : Type) (l : list T), M (A T l)) ->
+         (\forall (T : Type) (l : list T), A T l -> M (B T l)) ->
+         (\forall (T : Type) (l : list T), M (B T l))
 \end{lstlisting}
 
-Lo interesante es que si miramos la definición de esta función es sumamente simple.
+Lo más imporante es que si observamos la definición de esta función es sumamente simple.
 
 \begin{lstlisting}
 fun (A B : \forall T : Type, list T -> Type)
@@ -46,5 +43,5 @@ fun (A B : \forall T : Type, list T -> Type)
     bind (A T l) (B T l) (ma T l) (f T l)
 \end{lstlisting}
 
-Esta definición es efectivamente la que buscabamos y funciona perfectamente. El otro aspecto que seguiremos observando
-es que Lift no genera información necesaria en la función destino, lo que es bueno en cuanto a rendimiento.
+Esta definición es efectivamente la que buscabamos y funciona perfectamente.
+El otro aspecto que seguiremos observando es que Lift no genera información innecesaria en la función destino.

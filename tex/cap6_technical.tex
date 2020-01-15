@@ -29,9 +29,11 @@ Con este tipo podemos reescribir todas las signaturas de funciones. Varios de lo
 \lstinline{tyTree_MFA} o \lstinline{tyTree_FATele}, tendrán sentido más adelante, dado que reflejan elementos en
 funciones lifteadas.
 
-Una de las propiedades principales de este reflejo es que a primera vista parece que un tipo puede escribirse de
-múltiples formas en \lstinline{TyTree}, pero los tratamos de manera distinta y por eso podemos plantear una biyección
+Una de las propiedades principales de este reflejo es que a primera vista parece que un tipo puede escribirse de múltiples formas en \lstinline{TyTree}, pero los tratamos de manera distinta y por eso podemos plantear una biyección
 entre \lstinline{Type} y \lstinline{TyTree}.
+% TODO: Igual la función to_tree es monádica y no funciona bien.
+
+Utilizaremos \lstinline{Const$_t$} para expresar \lstinline{tyTree_Const}, donde \lstinline{Const} representa alguno de los nombres de los constructores de la definición de \lstinline{TyTree}. 
 
 Ahora tomaremos una función \lstinline{f} e iremos modificando si signatura para mostrar esta reflección de tipos.
 Para simplificar escribiremos \lstinline{P $\equiv$ Q} para expresar que un tipo es equivalente a un \lstinline{TyTree}.
@@ -65,4 +67,8 @@ $\equiv$
 \tyTree_FAType (fun A => \tyTree_FAType (fun B : A -> Type => \tyTree_FAValue A (fun a => \tyTree_base (B a))))
 \end{lstlisting}
 
-% Dejo los otros para después? Leer comentarios de la agenda del 14 de enero.
+% TODO: dejo los otros para después? Leer comentarios de la agenda del 14 de enero.
+
+% TODO: el tipo de lift.
+
+% TODO: hablar de funciones lifteadas y sus tipos, es decir, TyTree's.

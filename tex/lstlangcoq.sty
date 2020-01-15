@@ -24,7 +24,7 @@ morekeywords=[1]{Section, Module, End, Require, Import, Export,
 % Gallina
 morekeywords=[2]{forall, exists, exists2, fun, fix, cofix, struct,
   match, with, end, as, in, return, let, if, is, then, else, for, of,
-  nosimpl, when},
+  nosimpl, when, mmatch, mtmmatch, mfix, mfix1, mfix2, mfix3},
 %
 % Sorts
 morekeywords=[3]{Type, Prop, Set, true, false, option, TyTree},
@@ -107,6 +107,7 @@ literate=
     {\\exists}{{$\exists\;$}}1
     {<-}{{$\leftarrow\;$}}1
     {=>}{{$\Rightarrow\;$}}1
+    {=m>}{{$\Rightarrow_m\;$}}1
     {==}{{\code{==}\;}}1
     {==>}{{\code{==>}\;}}1
 %    {:>}{{\code{:>}\;}}1
@@ -114,7 +115,7 @@ literate=
     {<->}{{$\leftrightarrow\;$}}1
     {<==}{{$\leq\;$}}1
     {nat}{{$\mathbb{N}$\;}}1
-    {fun}{{$\lambda$}}1
+    {fun}{{$\lambda\;$}}1
     {\\tyTree_imp}{{\color{brightmaroon}{$\text{imp}_{tT}\;$}}}1
     {\\tyTree_base}{{\color{brightmaroon}{$\text{base}_{tT}\;$}}}1
     {\\tyTree_M}{{\color{brightmaroon}{$\text{M}_{tT}\;$}}}1
@@ -125,7 +126,7 @@ literate=
     {\@}{{$\cdot$}}1 
     {\/\\}{{$\wedge\;$}}1
     {\\\/}{{$\vee\;$}}1
-    {++}{{\code{++}}}1
+    {++}{{\code{++}$\;\;$}}1
     {~}{{\ }}1
     {\@\@}{{$@$}}1
     {\\mapsto}{{$\mapsto\;$}}1

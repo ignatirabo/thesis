@@ -1,7 +1,7 @@
 INTRO
 1. Coq
 2. Mtac2
-3. Telescopios y Tipos Dependientes: Debería hablar de MFA acá?
+3. Telescopios y Tipos Dependientes: Debería hablar de MFA acá? No
 TRABAJO
 4. Gran ejemplo: un ejemplo full para motivar
 5. Concepto de lifteo: que es liftear algo, que lifteamos y por qué

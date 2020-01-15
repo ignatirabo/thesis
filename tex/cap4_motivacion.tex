@@ -17,9 +17,10 @@ Definition list_max_nat :=
     end.
 \end{lstlisting}
 
-Esta función calcula el máximo de una lista de números \lstinline{$\nat$ : Set}.
-Dado que en el último caso del \lstinline{match} monádico analiza una expresión
-con una función, y no un constructor, es imposible implementar esto sin Mtac2.
+Esta función calcula el máximo de una lista de números \lstinline{nat : Set}.
+Dado que en el último caso de \lstinline{mtmmatch}, \lstinline{match} monádico generalizado, analiza una expresión
+con una función, y no un constructor, es imposible implementar esto sin Mtac2. Notar que tampoco podemos utilizar
+\lstinline{mmatch} ya que el tipo que retornamos es \lstinline{l' <> nil -> M nat}.
 
 Ahora supongamos que deseamos parametrizar $\nat$ y tener una función que acepte
 múltiples conjuntos. Sea
@@ -31,7 +32,7 @@ Definition max (S: Set) : M (S -> S -> S) :=
 \end{lstlisting}
 
 la función que retorna la relación máximo en un conjunto $S$.
-A primera vista nuestra idea podría fucionar.
+A primera vista nuestra idea podría fucionar, es decir, conceptualmente no es incorrecta.
 
 \begin{lstlisting}
 Definition list_max (S: Set)  :=
@@ -45,21 +46,19 @@ Definition list_max (S: Set)  :=
     end.
 \end{lstlisting}
 
-Al intentar que Coq interprete la función veremos que lstlisting no lo acepta.
+Al intentar que Coq interprete la función veremos que esta función no tipa.
 Esto es debido a la signatura de \lstinline{bind}.
 Nuestro \lstinline{mfix} no puede unificarse a \lstinline{M B}, ya que tiene
-tipo \lstinline{f : forall (l: list S)  l' <> nil -> M S }.
+tipo \lstinline{f : forall (l: list S)  l' <> nil -> M S}.
 
 \begin{lstlisting}
 bind : forall A B, M A -> (A -> M B) -> M B.
 \end{lstlisting}
 
-Solucionar esta situación específica no es un problema. Una alternativa es
-introducir los parámetros de la función y beta-expandir la definición del fixpoint.
+Solucionar esta situación específica no es un problema.
+Una alternativa es introducir los parámetros de la función y beta-expandir la definición del fixpoint.
 Otra es codificar un nuevo bind que tenga el tipo necesario.
-El problema será que este solo soluciona el problema actual, y ante cualquier
-variación necesitaremos volver a solucionarlo.
+El problema será que ambas soluciones son específicas al problema, entonces en cada situación debemos volver a implementar alguno de estos recursos.
 
-Es por eso que nuestro proyecto es la codificación de un nuevo meta-programa
-\lstinline{lift} que automaticamente puede generalizar meta-programas con las
-dependencias necesarias para que sea utilizado en cualquier contexto.
+Es por eso que nuestro proyecto es la codificación de un nuevo meta-programa \textbf{Lift} que automaticamente puede generalizar meta-programas con las dependencias necesarias para que sea utilizado en el contexto.
+En nuestro ejemplo, con Lift podemos generalizar \lstinline{bind} consiguiendo un nuevo meta-programa que se comporta como la función original pero con una signatura distinta, permitiendo su uso.
