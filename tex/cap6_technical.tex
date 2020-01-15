@@ -5,8 +5,8 @@ Comenzaremos discutiendo su funcionamiento básico y de ahí escalaremos a los d
 
 \subsection{TyTree}
 
-En términos generales Lift es un fixpoint sobre un telescopio con un gran análisis por casos sobre los tipos.
-Entonces surge un problema: ¿Cómo podemos hacer pattern matching en los tipos de manera sintáctica?
+En términos generales \lift\ es un fixpoint sobre un telescopio con un gran análisis por casos sobre los tipos.
+Entonces surge un problema: ¿Cómo podemos hacer \textit{pattern matching} en los tipos de manera sintáctica?
 La solución es utilizar un reflejo de los mismos, de manera de que podamos expresarlos de manera inductiva.
 
 \begin{lstlisting}
@@ -75,7 +75,7 @@ $\equiv$
 ret : \tyTree_FAType (fun A => \tyTree_imp (\tyTree_base A) (\tyTree_M A))
 \end{lstlisting}
 
-Es importante notar que podemos encontrar usos de \lstinline{\tyTree_M} en múltiples secciones de la signatura, solo se matcheará \lstinline{\tyTree_M} en \lift con el retorno de la función. 
+Es importante notar que podemos encontrar usos de \lstinline{\tyTree_M} en múltiples secciones de la signatura, solo se matcheará \lstinline{\tyTree_M} en \lift\ con el retorno de la función. 
 
 % TODO: dejo los otros para después? Leer comentarios de la agenda del 14 de enero.
 % TODO: hablar de to_ty y to_tree, ya que con to_ty expresamos cosas importantes.
@@ -118,5 +118,12 @@ Por eso, con \lstinline{U} y otras funciones de telescopios podemos conseguir es
 % TODO: hablar de funciones lifteadas y sus tipos, es decir, TyTree's.
 \subsection{TyTrees monádicos}
 
-Ahora que ya vimos los comportamientos de \lift debemos centrarnos en cómo representamos con \lstinline{TyTree} las funciones lifteadas.
+Ahora que ya vimos los comportamientos de \lift{} debemos centrarnos en cómo representamos con \lstinline{TyTree} las funciones lifteadas.
 Esto significa entender aún más detalles de los tipos que dependen de telescopios.
+
+\begin{lstlisting}
+fun m : MTele =>
+  \tyTree_FATeleType m
+    (fun A : MTele_Ty m =>
+      \tyTree_imp (\tyTree_In \Type_sort (fun a : accessor m => acc_sort a A)) (\tyTree_MFA A))
+\end{lstlisting}
