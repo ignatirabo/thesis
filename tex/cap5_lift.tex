@@ -1,4 +1,4 @@
-\section{Lift}
+\section{\lift}
 
 Denominamos \lstinline{lift} a la función desarrollada en este trabajo.
 La misma tiene la tarea de agregar dependencias a meta-programas de manera quasi automática: solo requiere un telescopio.
@@ -6,7 +6,7 @@ La misma tiene la tarea de agregar dependencias a meta-programas de manera quasi
 Lift se basa en analizar los tipos de las funciones y modificarlos añadiendo dependencias triviales en los tipos que se encuentran bajo la mónada, generando así nuevos meta-programas más generales.
 El signficado real de este funcionamiento será trabajado en este capítulo a través de ejemplos que mostrarán el comportamiento de lift.
 
-\subsection[]{Lifteando funciones simples}
+\subsection{Lifteando funciones simples}
 
 Una de las funciones monádica más simples es \lstinline{ret : \forall A, A -> M A}, uno de los operadores monádicos.
 Supongamos que nos interesa tener
