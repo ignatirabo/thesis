@@ -16,17 +16,17 @@ Inductive TyTree : Type :=
 | tyTree_MFA {m : MTele} (T : MTele_Ty m) : TyTree
 | tyTree_In (s : Sort) {m : MTele} (F : accessor m -> s) : TyTree
 | tyTree_imp (T : TyTree) (R : TyTree) : TyTree
-| tyTree_FATele {m : MTele} (T : MTele_Ty m)
+| tyTree_FATeleVal {m : MTele} (T : MTele_Ty m)
   (F : \forall t : MTele_val T, TyTree) : TyTree
-| tyTree_FATele1 (m : MTele) (F : \forall (T : MTele_Ty m), TyTree) : TyTree
-| tyTree_FAValue (T : Type) (F : T -> TyTree) : TyTree
+| tyTree_FATeleType (m : MTele) (F : \forall (T : MTele_Ty m), TyTree) : TyTree
+| tyTree_FAVal (T : Type) (F : T -> TyTree) : TyTree
 | tyTree_FAType (F : Type -> TyTree) : TyTree
 | tyTree_base (T : Type) : TyTree
 .
 \end{lstlisting}
 
 Con este tipo podemos reescribir todas las signaturas de funciones. Varios de los constructores, como por ejemplo
-\lstinline{tyTree_MFA} o \lstinline{tyTree_FATele}, tendrán sentido más adelante, dado que reflejan elementos en
+\lstinline{tyTree_MFA} o \lstinline{tyTree_FATeleVal}, tendrán sentido más adelante, dado que reflejan elementos en
 funciones lifteadas.
 
 Una de las propiedades principales de este reflejo es que a primera vista parece que un tipo puede escribirse de múltiples formas en \lstinline{TyTree}, pero los tratamos de manera distinta y por eso podemos plantear una biyección
@@ -59,12 +59,12 @@ $\equiv$
 
 Con \lstinline{\tyTree_FAType} podemos observar claramente la dependencia de \lstinline{A}.
 
-Para expresar la dependencia de un valor utilizamos \lstinline{\tyTree_FAValue}.
+Para expresar la dependencia de un valor utilizamos \lstinline{\tyTree_FAVal}.
 
 \begin{lstlisting}
 \forall A (B : A -> Type) (a : A), (B a)
 $\equiv$
-\tyTree_FAType (fun A => \tyTree_FAType (fun B : A -> Type => \tyTree_FAValue A (fun a => \tyTree_base (B a))))
+\tyTree_FAType (fun A => \tyTree_FAType (fun B : A -> Type => \tyTree_FAVal A (fun a => \tyTree_base (B a))))
 \end{lstlisting}
 
 El centro de nuestro trabajo son las funciones monádicas, esto significa utilizar \lstinline{\tyTree_M}.
@@ -116,7 +116,7 @@ En el caso de estarlo está en nuestro interés modificarlo, es decir, que deje 
 Por eso, con \lstinline{U} y otras funciones de telescopios podemos conseguir este comportamiento.
 
 % TODO: hablar de funciones lifteadas y sus tipos, es decir, TyTree's.
-\lstinline{TyTrees monádicos}
+\subsection{TyTrees monádicos}
 
 Ahora que ya vimos los comportamientos de \lift debemos centrarnos en cómo representamos con \lstinline{TyTree} las funciones lifteadas.
 Esto significa entender aún más detalles de los tipos que dependen de telescopios.

@@ -122,10 +122,10 @@ interesa poder dividirlos de esta forma por conveniencia.
   % Por qué el caso más general es más fácil? Tecnicamente debería ser más
   % difícil.
 % forall x : X, F
-\item \lstinline{tyTree_FAValue X F} donde \lstinline{X : Type}, \lstinline{X} puede seguir siendo el
+\item \lstinline{tyTree_FAVal X F} donde \lstinline{X : Type}, \lstinline{X} puede seguir siendo el
   tipo original o haber sido reemplazado por un caso anterior, dado que el tipo
   se introduce antes que los valores de este mismo. En ambos casos operamos de
-  la misma forma, retornando el tipo \lstinline{tyTree_FATele1 m F'} donde \lstinline{F'}
+  la misma forma, retornando el tipo \lstinline{tyTree_FATeleType m F'} donde \lstinline{F'}
   es el lifteo de \lstinline{F}.
 % forall A : Type, F
 \item \lstinline{tyTree_FAType F}
