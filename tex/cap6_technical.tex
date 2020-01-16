@@ -121,9 +121,66 @@ Por eso, con \lstinline{U} y otras funciones de telescopios podemos conseguir es
 Ahora que ya vimos los comportamientos de \lift{} debemos centrarnos en cómo representamos con \lstinline{TyTree} las funciones lifteadas.
 Esto significa entender aún más detalles de los tipos que dependen de telescopios.
 
+En este caso observamos el tipo de \lstinline{ret} lifteado.
+Es importante notar que está parametrizado a cualquier telescopio, lo que significa que liftear una función no necesariamente necesita de un telescopio específico.
+
 \begin{lstlisting}
 fun m : MTele =>
   \tyTree_FATeleType m
     (fun A : MTele_Ty m =>
-      \tyTree_imp (\tyTree_In \Type_sort (fun a : accessor m => acc_sort a A)) (\tyTree_MFA A))
+      \tyTree_imp (\tyTree_In \Type_sort (fun a : accessor m => acc_sort a A))
+      (\tyTree_MFA A))
 \end{lstlisting}
+
+En este podemos observa el uso de \lstinline{\tyTree_FATeleType}, \lstinline{\tyTree_In} y \lstinline{\tyTree_MFA}
+
+Con \lstinline{\tyTree_FATeleType} podemos introducir tipos telescopios, se comporta de igual manera que \lstinline{\tyTree_FAType}.
+
+% TODO: que representa tyTree_In?
+\lstinline{MTele_In} nos permite adentrarnos a un tipo telescópico, momentaneamente introduciendo todos los argumentos con un \lstinline{accessor} y trabajando sobre el tipo de manera directa.
+Dado que no tenemos interés real es usar estos argumentos del telescopio, no tenemos que hacer demasiado trabajo, simplemente generamos tipos de manera trivial, es decir, ignorando los argumentos.
+
+Utilizamos \lstinline{\tyTree_MFA} para representar tipos monádicos cuantificados. Definimos \lstinline{MFA} en Mtac2 de la siguiente manera.
+
+\begin{lstlisting}
+Local Definition MFA {t} (T : MTele_Ty t) := (MTele_val
+  (MTele_C Type_sort Prop_sort M T)).
+\end{lstlisting}
+
+Sea \lstinline{t} un telescopio cualquiera de largo $n$, un \lstinline{MFA T} representará
+
+\begin{lstlisting}
+\forall x$_1$ ... x$_n$, M (T x$_1$ ... x$_n$)
+\end{lstlisting}
+
+Finalmente, en el caso anterior, interpretando los tipos de una manera más matemática, tomamos un valor \lstinline{\forall x$_1$ ... x$_n$, A x$_1$ ... x$_n$} y retornamos \lstinline{\forall x$_1$ ... x$_n$, M (T x$_1$ ... x$_n$)}.
+Si concretizamos el telescopio conseguiremos una signatura más parecida a la matemática y la función resultante será muy simple.
+Para mostrar esto supongamos que tenemos un telescopio \lstinline{t := [x$_1$ : T$_1$;> x$_2$ : T$_2$;> x$_3$ : T$_3$]$_t$}. Luego,
+
+\begin{lstlisting}
+ret^ :=
+fun (A : T$_1$ -> T$_2$ -> T$_3$ -> Type)
+  (x : \forall (t$_1$ : T$_1$) (t$_2$ : T$_2$) (t$_3$ : T$_3$), A t$_1$ t$_2$ t$_3$) 
+  (x$_1$ : T$_1$) (x$_2$ : T$_2$) (x$_3$ : T$_3$) => r (A x$_1$ x$_2$ x$_3$) (A x$_1$ x$_2$ x$_3$)
+: \forall T : T$_1$ -> T$_2$ -> T$_3$ -> Type,
+  (\forall (t$_1$ : T$_1$) (t$_2$ : T$_2$) (t$_3$ : T$_3$), T t$_1$ t$_2$ t$_3$) ->
+  \forall (t$_1$ : T$_1$) (t$_2$ : T$_2$) (t$_3$ : T$_3$), M (T t$_1$ t$_2$ t$_3$)
+\end{lstlisting}
+
+Solo nos falta hablar de \lstinline{\tyTree_FATeleVal}. Tomemos una función de ejemplo con la siguiente signatura.
+
+\begin{lstlisting}
+\forall (T : Type) (R : T -> Type) (t : T), M (R t)
+$\equiv$
+\tyTree_FAType (fun T => \tyTree_FAType (fun R : T -> Type => \tyTree_FAVal T (fun t => \tyTree_M (R t))))
+\end{lstlisting}
+
+La traducción será muy directa.
+
+\begin{lstlisting}
+\tyTree_FAType (fun T => \tyTree_FATeleType (fun R : T -> Type => \tyTree_FATeleVal T (fun t => \tyTree_M (R t))))
+\end{lstlisting}
+
+Notar que el primer constructor no es reemplazado ya que \lstinline{T} no se encuentra bajo la mónada en ningún momento.
+
+% TODO: hablar de contains_m para explicar como vemos estas cosas como el T de arriba.
