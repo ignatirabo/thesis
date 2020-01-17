@@ -1,8 +1,7 @@
-% En este archivo definimos la verdadera salsa!
 \section{Telescopios}
 
 En Mtac2 llamamos \textit{telescopios} a una estructura de datos inductiva
-que permite expresar una cantidad arbitraria de tipos.
+que permite expresar una secuencia de tipos posiblemente dependientes de largo arbitrario.
 
 \begin{lstlisting}
 Inductive MTele : Type :=
@@ -10,29 +9,32 @@ Inductive MTele : Type :=
 | mTele {X : Type} (F : X -> MTele) : MTele.
 \end{lstlisting}
 
-El tipo \lstinline{MTele} crea una cadena de abstracciones que toma valores de tipos específicos.
+% TODO: Para que se usa MTele en general?
 
-Los telescopios, junto con las funciones que lo acompañan será la base para nuestro
-trabajo.
+El tipo \lstinline{MTele} crea una cadena de abstracciones.
+Este se codifica a través de funciones, lo que permite que sean dependientes, es decir, un telescopio puede tener elementos que dependan de elementos anteriores.
 
-Eeste tipo puede pensarse en varias jerarquías.
-La primera sería el telescopio mismo.
-Un ejemplo puede ser:
+Los telescopios, junto con las funciones que lo acompañan, serán claves a la hora de poder expresar nuestro problema y nuestra solución.
 
-\begin{lstlisting}
-Let m := @mTele nat (fun _ : nat => mBase)
-\end{lstlisting}
-
-Este telescopio lleva un único tipo, \lstinline{nat}.
-Luego existen una infinita cantidad de tipos que dependen de \lstinline{m}, para
-continuar el ejemplo elegimos uno.
+Los telescopios no se caracterizan por su simpleza.
+Para comenzar a estudiarlos podemos pensarlos en jerarquías.
+La primera jerarquía serían los telescopios en sí, elementos de tipo \lstinline{MTele}. Definiremos la siguiente notación para poder referirnos a estos de manera más simple.
 
 \begin{lstlisting}
-Let A : MTele_Sort SProp m := fun x => x = x.
+mBase $\equiv$ [$\;$]$_t$
+mTele (fun T : Type => mTele R : T -> Type) $\equiv$ [T : Type;> R : (T -> Type)]$_t$
+mTele (fun T : Type => mTele t : T) $\equiv$ [T : Type;> t : T]$_t$
 \end{lstlisting}
 
-Finalmente, nos interesa un valor de ese tipo, es decir, una prueba.
+Las otras jerarquías entran en juego cuando utilizamos las distintas funciones telescopicas.
 
-\begin{lstlisting}
-Let a : MTele_val (MTele_C SProp SProp M A) := fun x => ret (eq_refl).
-\end{lstlisting}
+La principal función es \lstinline{MTele_Sort}.
+Dado un telescopio \lstinline{t} de largo $n$ y un \lstinline{s : Sort}, esta función computa \lstinline{\forall x$_1$ ... x$_n$, s}, es decir, retorna el tipo expresado por ese telescopio y el \lstinline{Sort} dado.
+% TODO: Explicar que es Sort y stype_of
+Utilizaremos \lstinline{MTele_Ty} y \lstinline{MTele_Prop} para expresar \lstinline{MTele_Sort Type$_s$} y \lstinline{MTele_Sort Prop$_s$} respectivamente. Elementos de este tipo serán de la segunda jerarquía.
+
+También debemos poder referirnos a valores de estos tipos telescópicos. Esto signfica que dado un elemento de tipo \lstinline{MTele_Sort s t}, podamos conseguir un elemento de tipo \lstinline{s}. En terminos matemáticos, \lstinline{fun x$_1$ ... x$_n$ => T x$_1$ ... x$_n$} con \lstinline{T : MTele_Sort s t}. Consideraremos que estos elementos pertenecen a la tercera y última jerarquía.
+
+% TODO: faltaría hablar de MTele_C que es el que nos permite definir MFA.
+Deseriamos que este fuera el final de los telescopios, pero nos falta el último ingrediente que nos proveerá del poder que buscamos. Con \lstinline{MTele_In} podemos ganar acceso a múltiples tipos y valores telescopios al mismo tiempo, así siendo capaces de computar un nuevo tipo telescópico.
+% TODO: más sobre esto, no explico nada. Se puede rellenar con muchos ejemplos?

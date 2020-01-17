@@ -87,7 +87,7 @@ Analicemos la definición de \lift.
 
 \begin{lstlisting}
 Fixpoint lift (m : MTele) (U : ArgsOf m) (p l : bool) (T : TyTree) :
-  forall (f : to_ty T), M m:{ T : TyTree & to_ty T} := ...
+  \forall (f : to_ty T), M m:{ T : TyTree & to_ty T} := ...
 \end{lstlisting}
 
 Dentro de esta signatura vemos elementos conocidos como el telescopio \lstinline{m : MTele} que anuncia las dependencias, un \lstinline{T : TyTree} que representa el tipo de la función a \textit{liftear} y la \lstinline{f : to_ty T} de tipo \lstinline{T}.
