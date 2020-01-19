@@ -1,0 +1,66 @@
+\section{Coq}
+
+En este capitulo introduciremos las características más relevantes del asistente de pruebas Coq. El objetivo de este capitulo es introducir todos los conceptos que utilizaremos más adelante, pero esto significa que no es una introducción completa.
+
+\subsection{La historia de Coq}
+
+El desarrollo de Coq comenzó en 1984 con el apoyo de INRIA como el trabajo de Gérard Huet y Thierry Coquand. En ese momento Coquand estaba implementado un lenguaje llamado \textit{Calculus of Constructions} cuando el 1991 una nueva implementación basada en un Calculus of Inductive Constructions extendido comenzó a ser desarrollado tomando el nombre de Coq.
+
+Ahora mismo Coq es desarrollado por más de 40 desarrolladores activos y es reconocido como unos de los asistentes de prueba principales.
+
+\subsection{Los lenguajes Coq}
+
+Coq no es técnicamente un lenguaje de programación, si no un asistente de pruebas. Pero podemos encontrar múltiples lenguajes dentro de Coq que nos permiten expresarnos. 
+\begin{itemize}
+    % TODO: cita Gallina?
+    \item \textit{Gallina}: este es el lenguaje de especificación de Coq. Permite desarrollar teorías matemáticas y probar especificaciones de programas. Utilizaremos extensivamente este lenguaje para definir nuestros programas en Mtac2.
+    % TODO: cita Ltac?
+    % TODO: donde hablo de tácticas?
+    \item \textit{Ltac}: este el lenguaje en que se definen las \textit{tácticas} de Coq. Dado que Coq está centrado en las tácticas, Ltac es una de las partes centrales de Coq.
+    \item \textit{Vernacular}.
+\end{itemize}
+
+Aunque Coq no es un lenguaje de programación propiamente dicho, este puede ser utilizado como un lenguaje de programación funcional. Estos programas serán especificados en Gallina. Dada la naturaleza de Coq como provador de teoremas, estos programas son funciones puras, es decir, no producen efectos secundarios y siempre terminan.
+
+\subsection{La teoría de Coq}
+
+\textit{Calculus of Inductive Constructions} es la base de Coq. Este es un cálculo lambda tipado de alto orden y puede ser interpretado como una extensión de la correspendencia Curry-Howard.
+
+Llamaremos \textit{Terms} (o términos) a los elementos básicos de esta teoría. Terms incluye \textit{Type}, \textit{Prop}, variables, tuplas, funciones, entre otros. Estás son algúnas de las herramientas que utilizaremos para escribir nuestros programas.
+
+\subsection{Set vs. Prop vs. Type}
+
+\subsection{Tipos de datos y Funciones}
+
+Ahora aprenderemos a codificar nuestros programas funcionales en Coq. Lo primero que debemos entender es que operamos sobre \textit{términos} y algo es un término si tiene tipo. Coq viene con muchos tipos predefinidos, por ejemplo \lstinline{unit : Type} es un tipo, y a su vez es un término. También lo es \lstinline{true : bool}, etcetera.
+
+Veamos cómo se define el tipo \lstinline{bool}:
+\begin{lstlisting}
+Inductive bool : Set :=
+  | true : bool
+  | false : bool.
+\end{lstlisting}
+Como vemos, es un tipo inductivo, especificado por la keyword \lstinline{Inductive}, con dos constructores \lstinline{true} y \lstinline{false}.
+
+Ahora, veamos un ejemplo un poco más complicado, \lstinline{nat}.
+\begin{lstlisting}
+Inductive nat : Set :=
+  | O : nat
+  | S : nat -> nat.
+\end{lstlisting}
+Notemos que el constructor \lstinline{S} es una función que recibe un término de tipo {nat}, es decir, \lstinline{nat} es un tipo recursivo. Por ejemplo el término \lstinline{S (S O)} es de tipo \lstinline{nat} y representa al número 2.
+
+Para complicar la situación un poco más, veamos el tipo de \lstinline{list}.
+\begin{lstlisting}
+Inductive list (A : Type) : Type :=
+  | nil : list A
+  | cons : A ⟶ list A ⟶ list .
+\end{lstlisting}
+Este tipo es un tipo polimórfico dado que requiere de un \lstinline{A : Type} para ser un término. Por ejemplo, un posible elemento es \lstinline{cons (S O) nil : list nat} que representa a la lista con un único elemento 1.
+
+% \subsection{Definition vs. Fixpoint}
+
+% De esta manera, con la correspendencia Curry-Howard, un programa funcional puede ser una prueba de un teorema. Esta correspondecia está 
+% gracias a Gallina podemos utilizarlo como uno. Gallina está fuertemente inspirado en OCaml, el lenguaje base de Coq y nuestros meta-programas estarán codificados en este. Esta programación en Coq es 
+
+% TODO: mencionar metaprogramación, o sea Ltac2 pq no? o Meta-coq etc.

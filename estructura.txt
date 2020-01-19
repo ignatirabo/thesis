@@ -1,14 +1,19 @@
-INTRO
-1. Coq
-2. Mtac2
-3. Telescopios y Tipos Dependientes: Debería hablar de MFA acá? No
+UNA INTRODUCCIÓN
+1. Introducción
+  1.1 Estructura de la tésis
+2. Coq
+3. Mtac2
+4. Telescopios y Tipos Dependientes
 TRABAJO
-4. Gran ejemplo: un ejemplo full para motivar
-5. Concepto de lifteo: que es liftear algo, que lifteamos y por qué
-6. Aspectos técnicos: cómo funciona el lifteo
-7. Conclusión
-8. Trabajo futuro
-9. Referencias?
+5. Gran ejemplo: un ejemplo full para motivar
+6. Concepto de lifteo: que es liftear algo, que lifteamos y por qué
+7. Aspectos técnicos: cómo funciona el lifteo
+CONCLUSIÓN
+8. Conclusión
+  8.1. Trabajo futuro: la famosa notación
+APÉNDICE
+10. Apéndice: un montón de definiciones de Coq
+11. Bibliografía
 
 --- PRIMER AUDIO
 La idea es, lo que te permite el mtmmatch es la posibiliad de que hagas pattern matching y devuelvas algo del estilo forall algo forall algo forall algo M de lo que sea, entonces eso te permite agarrar y tener un fixpoint como tenemos ahora en mtac, fix1 fix2 fix3 simplemente agarras y decis fix de 1, solo el argumento que te interesa, y todo el resto de las cosas las tenes como parte de tu tipo que devuelve el mtmmatch en cuestión. Entonces podés agarrar cualquier ejemplo que sea de tipos dependientes, cualquier fixpoint cuyo valor de retorno dependa de lo que estás matcheando, y eso ya tendría que andar. Que tome más de un argumento pq no tendría sentido. Entonces el primer argumento es el que vos tomás recursivo y el segundo lo tenés como parte de tu tipo embebido.
