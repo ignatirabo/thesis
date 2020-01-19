@@ -30,8 +30,7 @@ Con este tipo podemos reescribir todas las signaturas de funciones. Varios de lo
 funciones lifteadas.
 
 Una de las propiedades principales de este reflejo es que a primera vista parece que un tipo puede escribirse de múltiples formas en \lstinline{TyTree}, pero los tratamos de manera distinta y por eso podemos plantear una biyección
-entre \lstinline{Type} y \lstinline{TyTree}.
-% TODO: Igual la función to_tree es monádica y no funciona bien.
+entre \lstinline{Type} y \lstinline{TyTree}. Utilizamos la función \lstinline{to_ty : TyTree -> Type} para transformar un \lstinline{TyTree} en su \lstinline{Type} correspondiente. Notar que esta función no es monádica, y eso es principal, ya que nos permite utilizar la función en las signaturas que definimos. En cambio, la función \lstinline{to_tree : Type -> M TyTree} necesariamente es monádica ya que debemos hacer un analisis sintáctico en los tipos de Coq. Haremos uso extensivo de \lstinline{to_ty}.
 
 Utilizaremos \lstinline{Const$_t$} para expresar \lstinline{tyTree_Const}, donde \lstinline{Const} representa alguno de los nombres de los constructores de la definición de \lstinline{TyTree}. 
 
@@ -78,7 +77,6 @@ ret : \tyTree_FAType (fun A => \tyTree_imp (\tyTree_base A) (\tyTree_M A))
 Es importante notar que podemos encontrar usos de \lstinline{\tyTree_M} en múltiples secciones de la signatura, solo se matcheará \lstinline{\tyTree_M} en \lift\ con el retorno de la función. 
 
 % TODO: dejo los otros para después? Leer comentarios de la agenda del 14 de enero.
-% TODO: hablar de to_ty y to_tree, ya que con to_ty expresamos cosas importantes.
 
 % TODO: el tipo de lift.
 \subsection{El tipo de \lift}
@@ -99,7 +97,7 @@ M m:{ T : TyTree & to_ty T}
 
 En el retorno conseguimos un nuevo \lstinline{T' : TyTree} que representa la signatura de la función \lstinline{f} lifteada, y un elemento de tipo \lstinline{T'}, es decir, la nueva función.
 
-Ahora, ¿que representan los argumentos que no mencionamos? Es \textbf{fácil} comprender quienes son \lstinline{p} y \lstinline{l}.
+Ahora, ¿qué representan los argumentos que no mencionamos? Es \textbf{fácil} comprender quienes son \lstinline{p} y \lstinline{l}.
 \begin{itemize}
     \item \lstinline{p}: la polaridad. Comienza con valor \lstinline{true}. Este solo se modifica cuando matcheamos \lstinline{\tyTree_imp} en \lift. No es útil para \lstinline{lift_in} y representa...
     % TODO: que mierda hace p? En lift_in no veo ningún lugar donde influya
@@ -113,7 +111,7 @@ Ahora, ¿que representan los argumentos que no mencionamos? Es \textbf{fácil} c
 En cuanto a \lstinline{U : ArgsOf m}, \lstinline{U} representa los argumentos que el telescopio añade, y es nuestro truco para poder hacer funcionar \lift, ya que nos permite transportar argumentos de manera descurrificada.
 Esto quiere decir que transporta a los argumentos en un ``contenedor''.
 Lo que sucede es que cuando encontremos un tipo \lstinline{A} cualquiera en nuestra función, este tipo puede o no estar bajo la mónada.
-En el caso de estarlo está en nuestro interés modificarlo, es decir, reemplazar el \lstinline{Type} por un \lstinline{MTele_Ty} que dependa de los argumentos t elescopicos.
+En el caso de estarlo debemos modificarlo, es decir, reemplazar \lstinline{A : Type} por \lstinline{A : MTele_Ty t} con \lstinline{t : MTele}.
 % Con \lstinline{U} y otras funciones de telescopios podemos conseguir este comportamiento.
 
 % TODO: hablar de funciones lifteadas y sus tipos, es decir, TyTree's.
@@ -206,9 +204,22 @@ F (apply_sort A U) $\equiv$
     % TODO: Hablar del tipo de lift_in
     \item Tendremos una llamada \lstinline{lift_in U (\tyTree_base \; (apply_sort A U))} matcheando el caso correspondiente.
     \lstinline{lift_in} retornará una $\Sigma$-Type con un valor \lstinline{F : accessor t -> \Type_sort} y una prueba de que el tipo \lstinline{\tyTree_base \; (apply_sort A U)} es igual a \lstinline{F (uncurry_in_acc U)}. \lstinline{uncurry_in_acc U} nos retorna el accessor trivial de \lstinline{U}. Lo importante es que sabemos que \lstinline{F (uncurry_in_acc U)} es igual al lado izquierdo de la implicación de \lstinline{ret}.
-    \item Ahora volvemos a \lift{} y generamos un valor \lstinline{x : X'} donde
+    \item Ahora volvemos a \lift{} y generamos un valor \lstinline{x : X'} con
     \begin{lstlisting}
 X' := MTele_val (MTele_In \Type_sort F)
     \end{lstlisting}
-    , o sea, un valor \lstinline{x} de el resultante de liftear \lstinline{X} en el paso anterior. Lo que resta es tomar nuestra función de tipo \lstinline{f} de tipo \lstinline{X' -> Y} y liftear. Esto signfica liftear \lstinline{f x}. No entraremos en los detalles específicos de como exprezar \lstinline{f x} ya que son meros métodos de escribirlo y no portan un valor real.
+    Es decir, un valor \lstinline{x} del tipo resultante de liftear \lstinline{X} en el paso anterior. Lo que resta es tomar nuestra función \lstinline{f} de tipo \lstinline{X' -> Y} y liftear. Esto signfica liftear \lstinline{f x}. No entraremos en los detalles específicos de como expresar \lstinline{f x} ya que son meros métodos de escribirlo y no portan un valor real.
+    \item El último paso es \lstinline{lift t U Y (f x)} sabiendo que \lstinline{Y = \tyTree_M (apply_sort A U)}, entonces matcheamos con el caso correspondiente. Primero, lo que hacemos es abstraer a \lstinline{U} de \lstinline{f} obteniendo
+    \begin{lstlisting}
+f = (fun U => to_ty (tyTree_M (apply_sort A U)))
+    \end{lstlisting}
+    % TODO: quien es curry?
+    y luego aplicamos \lstinline{f} a \lstinline{curry}, de esa manera, la función pasa a tener tipo \lstinline{to_ty (\tyTree_MFA A)}.
+    \begin{lstlisting}
+f : \forall x$_1$ x$_n$ => \tyTree_MFA (A x$_1$ ... x$_n$)
+    \end{lstlisting}
+    \item Finalmente, \lift{} retorna una \lstinline{T' : TyTree} y \lstinline{ret^ : to_ty (T')} con
+    \begin{lstlisting}
+T' = \tyTree_FATeleType (fun A => \tyTree_imp (\tyTree_val A) (\tyTree_MFA A)).
+    \end{lstlisting}
 \end{enumerate}
