@@ -54,7 +54,7 @@ Para complicar la situación un poco más, veamos el tipo de \lstinline{list}.
 \begin{lstlisting}
 Inductive list (A : Type) : Type :=
   | nil : list A
-  | cons : A ⟶ list A ⟶ list .
+  | cons : A -> list A -> list .
 \end{lstlisting}
 Este tipo es un tipo polimórfico dado que requiere de un \lstinline{A : Type} para ser un término. Por ejemplo, un posible elemento es \lstinline{cons (S O) nil : list nat} que representa a la lista con un único elemento 1.
 
