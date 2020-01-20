@@ -50,15 +50,84 @@ Inductive nat : Set :=
 \end{lstlisting}
 Notemos que el constructor \lstinline{S} es una función que recibe un término de tipo {nat}, es decir, \lstinline{nat} es un tipo recursivo. Por ejemplo el término \lstinline{S (S O)} es de tipo \lstinline{nat} y representa al número 2.
 
-Para complicar la situación un poco más, veamos el tipo de \lstinline{list}.
+Para continuar con este desarrollo, veamos el tipo de \lstinline{list}.
 \begin{lstlisting}
 Inductive list (A : Type) : Type :=
   | nil : list A
   | cons : A -> list A -> list .
 \end{lstlisting}
-Este tipo es un tipo polimórfico dado que requiere de un \lstinline{A : Type} para ser un término. Por ejemplo, un posible elemento es \lstinline{cons (S O) nil : list nat} que representa a la lista con un único elemento 1.
+Este tipo es un tipo polimórfico dado que requiere de un \lstinline{A : Type}. Por ejemplo, una posible lista es \lstinline{cons (S O) nil : list nat} que representa a la lista con un único elemento 1.
 
-% \subsection{Definition vs. Fixpoint}
+Ahora que entendemos como definir tipos en Coq, veamos cómo podemos utilizarlos para especificar funciones y finalmente teoremas.
+
+Definiremos una función que añade un elemento a una lista.
+\begin{lstlisting}
+Definition add_list {A} (x : A) (l : list A) : list A :=
+  cons x l.
+\end{lstlisting}
+Las definiciones de funciones no recursivas comienzan con el keyword \lstinline{Definition}. En este caso, dado que el tipo \lstinline{A} puede ser inferido facilmente por Coq, utilizamos llaves a su alrededor para expresar que sea un argumento implícito. En el cuerpo de la función solo utilizamos \lstinline{cons}, uno de los constructores de \lstinline{list}, para añadir un elemento delante de \lstinline{l}.
+
+Ahora nos interesa definir la función \lstinline{length} que retorna el largo de una lista.
+\begin{lstlisting}
+Fixpoint len {A} (l : list A) : nat :=
+match l with
+| [] => O
+| x :: xs => S (len xs)
+end.
+\end{lstlisting}
+Coq está diseñado de forma que necesitamos utilizar el keyword \lstinline{Fixpoint} para poder definir funciones recursiva. Aquí Coq está encontrando el argumento decreciente de la función \lstinline{len} y por eso acepta nuestra definición. El cuerpo de \lstinline{len} inspecciona a \lstinline{l} y lo \textit{matchea} con el caso correspondiente. Utilizamos \lstinline{S} y \lstinline{O}, los constructores de \lstinline{nat} para expresar el valor de retorno.
+
+\subsection{Tipos dependientes}
+
+Una de las herramientas más importantes que hay en Coq son los tipos dependientes. Estos nos permiten hablar de elementos que dependen de otros anteriores. Por ejemplo, puede ser de nuestro interés hablar de números positivos, en otras palabras, \lstinline{x : nat} tal que \lstinline{x <> O}. En este caso, \lstinline{x <> O} es una prueba que depende de \lstinline{x} y solo existirá cuando \lstinline{x} sea mayor a 0.
+
+Para hablar de un ejemplo práctico de tipos dependientes, hemos elegido la función \lstinline{head} que retorna la cabeza de una lista. Comencemos con la versión más simple, donde utilizamos un valor default \lstinline{d} para el caso en que la lista es vacía.
+\begin{lstlisting}
+Definition head_d {A} (l : list A) (d : A) : A :=
+  match l with
+  | [] => d
+  | x :: xs => x
+  end.
+\end{lstlisting}
+El problema de esta solución es que a excepción de que \lstinline{d} sea un valor único, no hay manera de saber si la función retornó realmente la cabeza de la lista.
+
+La segunda opción es utilizar el tipo \lstinline{option}.
+\begin{lstlisting}
+Inductive option A : Type :=
+| None : option A
+| Some : A -> option A.
+\end{lstlisting}
+Con este tipo auxiliar podemos reescribir \lstinline{hd}.
+\begin{lstlisting}
+Definition head_o {A} (l : list A) : option A :=
+  match l with
+  | [] => None
+  | x :: xs => Some x
+  end.
+\end{lstlisting}
+Esta solución es mejor que la anterior pero sigue sufriendo de una deficiencia. Dado que \lstinline{head_o} retorna un \lstinline{option} no sabemos si el resultado de esta función será realmente un elemento o si será el constructor vacío, por lo que todas las funciones que utilicen a \lstinline{head_o} deben también utilizar \lstinline{option}.
+% TODO: failure is not an option
+
+Esto nos lleva a nuestra última solución. Esta requiere que nos aseguremos que la lista \lstinline{l} no es vacia, es decir, \lstinline{l <> []}. Pero para entenderla debemos ver dos cosas más: $\Sigma$\textit{-types} y \lstinline{Program}.
+% TODO: sigma types.
+Intuitivamente, los $\Sigma$\textit{-types} son tuplas donde el argumento de la derecha es dependiente del de la izquierda. A continuación, la definición.
+\begin{lstlisting}
+Inductive sig (A : Type) (P : A -> Prop) : Type :=
+  exist : \forall x : A, P x -> {x : A | P x}
+\end{lstlisting}
+Se utiliza la notación \lstinline|{x : A \| P x}| para expresar \lstinline{sig A (fun x => P)}.
+% TODO: está bien la notación?
+
+\lstinline{Program} es una libreria que permite progamar en Coq como si fuera un lenguaje de programación funcional mientras que se utiliza una especificación tan rica como se desee y probando que el codigo cumple la especificación utilizando todo el mecanizmo de Coq. En nuestro caso utilizaremos \lstinline{Program} para codificar \lstinline{head} de una manera casi transparente.
+\begin{lstlisting}
+Program Definition head {A}
+(l : list A | [] <> l ) : A :=
+  match l with
+  | [] => !
+  | x :: xs => x
+  end.
+\end{lstlisting}
+Como podemos observar, la única diferencia es que la signatura de \lstinline{head} especificamos que \lstinline{l} es una lista junto con una prueba que muestra que no es vacía.
 
 % De esta manera, con la correspendencia Curry-Howard, un programa funcional puede ser una prueba de un teorema. Esta correspondecia está 
 % gracias a Gallina podemos utilizarlo como uno. Gallina está fuertemente inspirado en OCaml, el lenguaje base de Coq y nuestros meta-programas estarán codificados en este. Esta programación en Coq es 
