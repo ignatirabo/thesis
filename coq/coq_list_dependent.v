@@ -1,5 +1,6 @@
 Require Import Program.
 Require Import Coq.Lists.List.
+Require Import Coq.Bool.Bool.
 
 Definition add_list {A} (x : A) (l : list A) : list A :=
   cons x l.
@@ -37,6 +38,7 @@ Program Definition head {A}
   | [] => !
   | x :: xs => x
   end.
-sigT
 
 Eval compute in head (exist _ (2 :: []) (@nil_cons nat 2 [])).
+
+Print Is_true.

@@ -16,7 +16,7 @@ Coq no es técnicamente un lenguaje de programación, si no un asistente de prue
     \item \textit{Gallina}: este es el lenguaje de especificación de Coq. Permite desarrollar teorías matemáticas y probar especificaciones de programas. Utilizaremos extensivamente este lenguaje para definir nuestros programas en Mtac2.
     % TODO: cita Ltac?
     % TODO: donde hablo de tácticas?
-    \item \textit{Ltac}: este el lenguaje en que se definen las \textit{tácticas} de Coq. Dado que Coq está centrado en las tácticas, Ltac es una de las partes centrales de Coq.
+    \item \textit{Ltac}: este el lenguaje en que se definen las \textit{tácticas} de Coq. Dado que Coq está centrado en las tácticas, Ltac es una de las partes centrales del aparato.
     \item \textit{Vernacular}.
 \end{itemize}
 
@@ -32,7 +32,7 @@ Llamaremos \textit{Terms} (o términos) a los elementos básicos de esta teoría
 
 \subsection{Tipos de datos y Funciones}
 
-Ahora aprenderemos a codificar nuestros programas funcionales en Coq. Lo primero que debemos entender es que operamos sobre \textit{términos} y algo es un término si tiene tipo. Coq viene con muchos tipos predefinidos, por ejemplo \lstinline{unit : Type} es un tipo, y a su vez es un término. También lo es \lstinline{true : bool}, etcetera.
+Ahora aprenderemos a codificar nuestros programas funcionales en Coq. Lo primero que debemos entender es que operamos sobre \textit{términos} y algo es un término si tiene tipo. Coq provee muchos tipos predefinidos, por ejemplo \lstinline{unit}, \lstinline{bool}, \lstinline{nat}, \lstinline{list}, entre otros. A continuación estudiaremos cómo definir tipos y funciones.
 
 Veamos cómo se define el tipo \lstinline{bool}:
 \begin{lstlisting}
@@ -40,9 +40,23 @@ Inductive bool : Set :=
   | true : bool
   | false : bool.
 \end{lstlisting}
-Como vemos, es un tipo inductivo, especificado por la keyword \lstinline{Inductive}, con dos constructores \lstinline{true} y \lstinline{false}.
+Como podemos observar, es un tipo inductivo, especificado por la keyword \lstinline{Inductive}, con dos constructores \lstinline{true} y \lstinline{false}. De por sí, el tipo \lstinline{bool} no posee un significado hasta que nosotros lo proveamos de uno. Podemos ahora intentar definir algunos operadores booleanos.
+\begin{lstlisting}
+Definition andb (b1 b2:bool) : bool := if b1 then b2 else false.
+Definition orb (b1 b2:bool) : bool := if b1 then true else b2.
+Definition implb (b1 b2:bool) : bool := if b1 then b2 else true.
+Definition negb (b:bool) := if b then false else true.
+\end{lstlisting}
+Las definiciones de funciones no recursivas comienzan con el keyword \lstinline{Definition}. La primera se llama \lstinline{andb} y toma dos booleanos como argumentos y retorna un booleano. Se utiliza la notación \lstinline{if b then x else y} para matchear sobre los booleanos de manera más fácil. Finalmente podemos definir una función más interesante.
+\begin{lstlisting}
+Definition Is_true (b:bool) :=
+  match b with
+    | true => True
+    | false => False
+  end.
+\end{lstlisting}
 
-Ahora, veamos un ejemplo un poco más complicado, \lstinline{nat}.
+Ahora, veamos un tipo con un ingrediente un poco más complicado, \lstinline{nat}.
 \begin{lstlisting}
 Inductive nat : Set :=
   | O : nat
@@ -50,22 +64,20 @@ Inductive nat : Set :=
 \end{lstlisting}
 Notemos que el constructor \lstinline{S} es una función que recibe un término de tipo {nat}, es decir, \lstinline{nat} es un tipo recursivo. Por ejemplo el término \lstinline{S (S O)} es de tipo \lstinline{nat} y representa al número 2.
 
-Para continuar con este desarrollo, veamos el tipo de \lstinline{list}.
+Para continuar con este desarrollo, veamos el tipo de \lstinline{list} que es polimórfico.
 \begin{lstlisting}
 Inductive list (A : Type) : Type :=
   | nil : list A
   | cons : A -> list A -> list .
 \end{lstlisting}
-Este tipo es un tipo polimórfico dado que requiere de un \lstinline{A : Type}. Por ejemplo, una posible lista es \lstinline{cons (S O) nil : list nat} que representa a la lista con un único elemento 1.
-
-Ahora que entendemos como definir tipos en Coq, veamos cómo podemos utilizarlos para especificar funciones y finalmente teoremas.
+Este tipo es un tipo polimórfico dado que requiere de un \lstinline{A : Type}. Por ejemplo, una posible lista es \lstinline{cons (S O) nil : list nat} que representa a la lista con un único elemento 1 de tipo \lstinline{nat}.
 
 Definiremos una función que añade un elemento a una lista.
 \begin{lstlisting}
 Definition add_list {A} (x : A) (l : list A) : list A :=
   cons x l.
 \end{lstlisting}
-Las definiciones de funciones no recursivas comienzan con el keyword \lstinline{Definition}. En este caso, dado que el tipo \lstinline{A} puede ser inferido facilmente por Coq, utilizamos llaves a su alrededor para expresar que sea un argumento implícito. En el cuerpo de la función solo utilizamos \lstinline{cons}, uno de los constructores de \lstinline{list}, para añadir un elemento delante de \lstinline{l}.
+Dado que el tipo \lstinline{A} puede ser inferido facilmente por Coq, utilizamos llaves a su alrededor para expresar que sea un argumento implícito. En el cuerpo de la función solo utilizamos \lstinline{cons}, uno de los constructores de \lstinline{list}, para añadir un elemento delante de \lstinline{l}.
 
 Ahora nos interesa definir la función \lstinline{length} que retorna el largo de una lista.
 \begin{lstlisting}
@@ -128,6 +140,8 @@ Program Definition head {A}
   end.
 \end{lstlisting}
 Como podemos observar, la única diferencia es que la signatura de \lstinline{head} especificamos que \lstinline{l} es una lista junto con una prueba que muestra que no es vacía.
+
+Este trabajo se centra en modificar meta-programas añadiendo tipos dependientes donde sea necesario, por eso sumamente importante ejercitar este concepto.
 
 % De esta manera, con la correspendencia Curry-Howard, un programa funcional puede ser una prueba de un teorema. Esta correspondecia está 
 % gracias a Gallina podemos utilizarlo como uno. Gallina está fuertemente inspirado en OCaml, el lenguaje base de Coq y nuestros meta-programas estarán codificados en este. Esta programación en Coq es 
