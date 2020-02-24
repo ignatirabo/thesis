@@ -28,7 +28,8 @@ Aunque Coq no es un lenguaje de programación propiamente dicho, este puede ser 
 
 Llamaremos \textit{Terms} (o términos) a los elementos básicos de esta teoría. Terms incluye \textit{Type}, \textit{Prop}, variables, tuplas, funciones, entre otros. Estás son algúnas de las herramientas que utilizaremos para escribir nuestros programas.
 
-\subsection{Set vs. Prop vs. Type}
+% TODO: Set vs. Prop vs. Type??? Creo que no
+% \subsection{Set vs. Prop vs. Type}
 
 \subsection{Tipos de datos y Funciones}
 
@@ -141,7 +142,7 @@ Program Definition head {A}
 \end{lstlisting}
 Como podemos observar, la única diferencia es que la signatura de \lstinline{head} especificamos que \lstinline{l} es una lista junto con una prueba que muestra que no es vacía.
 
-Este trabajo se centra en modificar meta-programas añadiendo tipos dependientes donde sea necesario, por eso sumamente importante ejercitar este concepto.
+Este trabajo se centra en modificar meta-programas añadiendo tipos dependientes donde sea necesario, por eso es sumamente importante ejercitar este concepto.
 
 % De esta manera, con la correspendencia Curry-Howard, un programa funcional puede ser una prueba de un teorema. Esta correspondecia está 
 % gracias a Gallina podemos utilizarlo como uno. Gallina está fuertemente inspirado en OCaml, el lenguaje base de Coq y nuestros meta-programas estarán codificados en este. Esta programación en Coq es 
