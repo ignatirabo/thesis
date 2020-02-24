@@ -13,7 +13,7 @@ Ahora mismo Coq es desarrollado por más de 40 desarrolladores activos y es reco
 Coq no es técnicamente un lenguaje de programación, si no un asistente de pruebas. Pero podemos encontrar múltiples lenguajes dentro de Coq que nos permiten expresarnos. 
 \begin{itemize}
     % TODO: cita Gallina?
-    \item \textit{Gallina}: este es el lenguaje de especificación de Coq. Permite desarrollar teorías matemáticas y probar especificaciones de programas. Utilizaremos extensivamente este lenguaje para definir nuestros programas en Mtac2.
+    \item \textit{Gallina}: este es el lenguaje de especificación de Coq. Permite desarrollar teorías matemáticas y probar especificaciones de programas. Utilizaremos extensivamente un lenguaje muy similar a este para definir nuestros programas en Mtac2.
     % TODO: cita Ltac?
     % TODO: donde hablo de tácticas?
     \item \textit{Ltac}: este el lenguaje en que se definen las \textit{tácticas} de Coq. Dado que Coq está centrado en las tácticas, Ltac es una de las partes centrales del aparato.
@@ -119,7 +119,7 @@ Definition head_o {A} (l : list A) : option A :=
   end.
 \end{lstlisting}
 Esta solución es mejor que la anterior pero sigue sufriendo de una deficiencia. Dado que \lstinline{head_o} retorna un \lstinline{option} no sabemos si el resultado de esta función será realmente un elemento o si será el constructor vacío, por lo que todas las funciones que utilicen a \lstinline{head_o} deben también utilizar \lstinline{option}.
-% TODO: failure is not an option
+% TODO: citar? failure is not an option
 
 Esto nos lleva a nuestra última solución. Esta requiere que nos aseguremos que la lista \lstinline{l} no es vacia, es decir, \lstinline{l <> []}. Pero para entenderla debemos ver dos cosas más: $\Sigma$\textit{-types} y \lstinline{Program}.
 % TODO: sigma types.
@@ -142,9 +142,12 @@ Program Definition head {A}
 \end{lstlisting}
 Como podemos observar, la única diferencia es que la signatura de \lstinline{head} especificamos que \lstinline{l} es una lista junto con una prueba que muestra que no es vacía.
 
-Este trabajo se centra en modificar meta-programas añadiendo tipos dependientes donde sea necesario, por eso es sumamente importante ejercitar este concepto.
+% Este trabajo se centra en modificar meta-programas añadiendo tipos dependientes donde sea necesario, por eso es sumamente importante ejercitar este concepto.
 
 % De esta manera, con la correspendencia Curry-Howard, un programa funcional puede ser una prueba de un teorema. Esta correspondecia está 
 % gracias a Gallina podemos utilizarlo como uno. Gallina está fuertemente inspirado en OCaml, el lenguaje base de Coq y nuestros meta-programas estarán codificados en este. Esta programación en Coq es 
 
-% TODO: mencionar metaprogramación, o sea Ltac2 pq no? o Meta-coq etc.
+% TODO: mencionar metaprogramación, o sea Ltac2 pq no? o Meta-coq etc. Lo planeamos hacer en la parte de Mtac2, después de hablar de Mtac2.
+
+\subsection{Tácticas}
+% TODO: Cómo escribir tácticas de Coq, o sea Ltac. De esta forma se pueden comparar las metatacticas de Mtac2 con una referencia previa.

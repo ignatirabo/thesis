@@ -1,12 +1,43 @@
 \section{Mtac2}
 
 % TODO: qué es mtac2?
+\textit{Mtac2} es un meta-lenguaje de programación para Coq. Esto quiere decir que complementa a Coq, permitiendo ``hacer Coq'' de una manera distinta. En el trabajo, nos centramos en ampliar Mtac2 y por eso es importante que veamos que nos permite hacer y cómo.
+
+\subsection{Meta-tácticas}
+% TODO: cómo hacer meta-tácticas y cómo usarlas. Diferencias con tácticas normales. Hacer después de escribir tácticas de Coq.
 
 \subsection{Mónadas}
 % TODO: qué son las mónadas, como se operan y por qué las queremos.
+Las mónadas son uno de los temas esotéricos de programación funcional y son una implementación del concepto de teoría de categorías. Según el libro X son ...
+%TODO: citar el libro que me pasó miguel de teoría de categorías?
+Por esto nos limitaremos a hablar de mónadas a un nivel más computacional. Dentro de este contexto, utilizamos la función \lstinline{M : Type -> Prop} para referirnos a la versión monádica de un tipo cualquiera. A partir de los tipos monádicos pasamos a tener elementos monádicos. Estos elementos efectivamente reflejan pasos computacionales y se construyen a través de dos funciones: \lstinline{bind} compone pasos computacionales y \lstinline{return} o \lstinline{ret} los envuelve en la mónada. Por ejemplo, podemos tener el tipo \lstinline{M nat} que expresa posibles valores naturales, y uno de estos elementos es \lstinline{ret 5}. Lo importante de las mónadas es que nos permiten expresar programas con efectos secundarios de una manera funcional.
+Esto también es lo que nos permite tener tacticas tipadas, pero no nos interesan los detalles de la implementación.
+
 \subsection{Confección de Meta-programas}
+Ya habiendo mencionado meta-tátcias, ahora hablaremos de meta-programas. Estos son la base de las meta-tácticas y podemos escribir programas que luego serán tácticas. Estos programas se caracterizan por ser monádicos, es decir, que tienen efectos secundarios. Esto se amplia a muchas caracteristicas útiles, pero nada es gratis, entonces debemos comprender las limitaciones impuestas por el meta-lenguaje.
+
 % TODO: acá hablamos de mmatch, mtmmatch, mfix y las nuevas meta-cosas: sigmas, etc.
-\subsection{Meta-tácticas}
-% TODO: cómo hacer meta-tácticas y cómo usarlas. Diferencias con tácticas normales.
+Comenzaremos analizando \lstinline{mmatch}. Como ya vimos en Gallina, el \lstinline{match} es puro, o sea, necesitamos matchear todos los casos del constructor y a su vez no podemos matchear en terminos que no sean constructores del tipo. Mientras tanto, \lstinline{mmatch} nos permite matchear libremente. Esto significa que podemos matchear en expresiones sintácticas de manera de separarlas muy especificamente para nuestra conveniencia. Un ejemplo puede ser el siguiente.
+
+Imaginemos un programa que a todo número le suma uno, pero especificamente no modifica el número original si este está exprezado como una suma. Esto se puede exprezar de la siguiente forma en \lstinline{Mtac2}.
+\begin{lstlisting}
+Definition test_match (n : nat) : M nat :=
+  mmatch n with
+  | [? x y] add x y => ret n
+  | O => ret (S O)
+  | [? n']S n' => ret (S (S n'))
+  end.
+\end{lstlisting}
+
+El único detalle extraño que podemos encontrar es que en dos de los casos tenemos unos corchetes antes de la expresión. Esto se utiliza para decirle a Mtac2 que esas variables están siendo introducidas en ese momento.
+
+% mfix
+Para hacer programas recursivos utilizaremos \lstinline{mfix}. Existen multiples variantes para una cantidad distinta de argumentos recursivos: \lstinline{mfix1}, \lstinline{mfix2}, e
+tcetera.
+Un ejemplo puede ser un \lstinline{map}.
+\begin{lstlisting}
+TEST
+\end{lstlisting}
+
 \subsection{Alternativas}
 % TODO: ltac2, meta-coq.
