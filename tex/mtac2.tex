@@ -34,10 +34,31 @@ El único detalle extraño que podemos encontrar es que en dos de los casos tene
 % mfix
 Para hacer programas recursivos utilizaremos \lstinline{mfix}. Existen multiples variantes para una cantidad distinta de argumentos recursivos: \lstinline{mfix1}, \lstinline{mfix2}, e
 tcetera.
-Un ejemplo puede ser un \lstinline{map}.
+Un ejemplo puede ser \lstinline{map}.
 \begin{lstlisting}
-TEST
+Definition map {A} {B} (t : A -> B) : \forall (l : list A), M (list B) :=
+mfix1 m (l : list A) : M list B :=
+  mmatch l with
+  | nil => ret nil
+  | [? x xs] x::xs => xs' <- m xs;
+                      ret ((t x)::xs')
+  end.
 \end{lstlisting}
+
+% TODO: explicar notación de <- y ;;.
+En el ejemplo anterior se hace uso de los dos operadores monádicos mencionados anteriormente. Para \lstinline{bind}, utilizamos la notación \lstinline{<-} que conecta a \lstinline{m xs} con \lstinline{ret ((t x)::xs')}.
+
+\subsection{El costo}
+
+Como dijimos anteriormente, las funcionalidades de Mtac2 tienen un coste. Habiamos mencionado que un elemento monádico de tipo \lstinline{M nat} puede ser \lstinline{ret 5}. Pero imaginemos que estamos calculando el cociente entre dos números enteros y el divisor en 0. Entonces el programa no puede devolver el cociente y debe fallar. Esto signfica que un programa monádico puede fallar o no. Mientras tanto en el mundo de Coq este concepto no existe. Un programa que retorna un entero, debe retornar un entero, y más aún, un programa que tiene el tipo de una proposición, efectivamente es una prueba de la misma. Supongamos esa proposición es \lstinline{P : Prop}. Ahora para probarla monádicamente necesitamos un programa \lstinline{p : M P}, pero para cualquier \lstinline{P} podemos escribir un programa \lstinline{p} y no tener una prueba.
+\begin{lstlisting}
+Definition univ (P : Prop): M P :=
+  raise MyException.
+\end{lstlisting}
+
+Si no utilizaramos la mónada esto no sería posible. La mónada no nos da tantas garantías como un tipo nativo de Coq.
+
+Dada esta limitación todas las funciones nativas de Coq pueden ser utilizadas en los tipos de las funciones, pero no sucede lo mismo con las funciones monádicas. Esto hace que se tenga que pensar de manera estratégica que funciones deseamos hacer nativas y cuales monádicas.
 
 \subsection{Alternativas}
 % TODO: ltac2, meta-coq.

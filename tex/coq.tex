@@ -1,21 +1,40 @@
 \section{Coq}
 
-En este capitulo introduciremos las características más relevantes del asistente de pruebas Coq. El objetivo de este capitulo es introducir todos los conceptos que utilizaremos más adelante, pero esto significa que no es una introducción completa.
-
-\subsection{La historia de Coq}
+En este capitulo introduciremos las características más relevantes del asistente de pruebas interactivo Coq. El objetivo de este capitulo es introducir todos los conceptos que utilizaremos más adelante, pero esto significa que no es una introducción completa.
 
 El desarrollo de Coq comenzó en 1984 con el apoyo de INRIA como el trabajo de Gérard Huet y Thierry Coquand. En ese momento Coquand estaba implementado un lenguaje llamado \textit{Calculus of Constructions} cuando el 1991 una nueva implementación basada en un Calculus of Inductive Constructions extendido comenzó a ser desarrollado tomando el nombre de Coq.
 
 Ahora mismo Coq es desarrollado por más de 40 desarrolladores activos y es reconocido como unos de los asistentes de prueba principales.
 
+Como un asistente de pruebas la orientación de Coq es la de permitir la escritura totalmente formal de teoremas y pruebas, y asegurarnos de su correción. Se parte de lo que se denomina \textit{kernel}, el nucleo de Coq, que es el que verifica que la prueba corresponde al teorema, es decir, que sea correcta. De esta forma, el humano no está encargado de verificar la prueba, solo de escribirla.
+
+Cuando se dice que Coq es un asistente \textit{interactivo} nos referimos a que Coq nos puede ayudar a desarrollar la prueba en cierta medida.
+% TODO: UI de Coq, dar ejemplos.
+% TODO: qué es una goal?
+Por ejemplo, supongamos que queremos probar el siguiente teorema.
+\begin{lstlisting}
+Definition le_S (n : nat) : n <= S n.
+\end{lstlisting}
+Al entrar a alguno de los editores de textos compatibles con Coq (Emacs, Visual Studio Code o CoqIDE) cargamos el teorema y Coq entrará al modo interactivo, en el cual nos dirá el estado actual de la prueba. En este caso como no hicimos nada hasta el momento, tenemos una hipótesis \lstinline{n : \nat} y una única \textit{goal}: \lstinline{n <= S n}. Entonces aplicamos inducción en \lstinline{n} tenemos dos submetas. Y así Coq nos asiste en el proceso, mostrándonos nuestras hipótesis y metas actuales, como podemos observar en \ref{fig:ui}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=1\textwidth]{coq_emacs_example.png}
+  \caption{Ejemplo de interfaz de Coq}
+  \label{fig:ui}
+\end{figure}
+
+A continuación explicaremos los conceptos de \textit{táctica} y de que manera se utiliza Coq.
+
+% TODO: diferencia con otros asistentes
+
 \subsection{Los lenguajes Coq}
 
 Coq no es técnicamente un lenguaje de programación, si no un asistente de pruebas. Pero podemos encontrar múltiples lenguajes dentro de Coq que nos permiten expresarnos. 
 \begin{itemize}
-    % TODO: cita Gallina?
+    % TODO: cita Gallina? http://adam.chlipala.net/cpdt/html/Universes.html
     \item \textit{Gallina}: este es el lenguaje de especificación de Coq. Permite desarrollar teorías matemáticas y probar especificaciones de programas. Utilizaremos extensivamente un lenguaje muy similar a este para definir nuestros programas en Mtac2.
     % TODO: cita Ltac?
-    % TODO: donde hablo de tácticas?
     \item \textit{Ltac}: este el lenguaje en que se definen las \textit{tácticas} de Coq. Dado que Coq está centrado en las tácticas, Ltac es una de las partes centrales del aparato.
     \item \textit{Vernacular}.
 \end{itemize}
@@ -28,8 +47,7 @@ Aunque Coq no es un lenguaje de programación propiamente dicho, este puede ser 
 
 Llamaremos \textit{Terms} (o términos) a los elementos básicos de esta teoría. Terms incluye \textit{Type}, \textit{Prop}, variables, tuplas, funciones, entre otros. Estás son algúnas de las herramientas que utilizaremos para escribir nuestros programas.
 
-% TODO: Set vs. Prop vs. Type??? Creo que no
-% \subsection{Set vs. Prop vs. Type}
+% TODO: Ampliar sobre las capacidades de Coq.
 
 \subsection{Tipos de datos y Funciones}
 
@@ -150,4 +168,6 @@ Como podemos observar, la única diferencia es que la signatura de \lstinline{he
 % TODO: mencionar metaprogramación, o sea Ltac2 pq no? o Meta-coq etc. Lo planeamos hacer en la parte de Mtac2, después de hablar de Mtac2.
 
 \subsection{Tácticas}
+
+Las tácticas se utilizan para probar teoremas. Hemos utilizado \lstinline{induction} y \lstinline{apply} para el ejemplo de la figura \ref{fig:ui} pero ahora hablaremos de varias de ellas y cómo el meta-lenguaje Ltac (ya en Coq por defecto) nos permite escribirlas.
 % TODO: Cómo escribir tácticas de Coq, o sea Ltac. De esta forma se pueden comparar las metatacticas de Mtac2 con una referencia previa.
