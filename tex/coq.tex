@@ -170,4 +170,15 @@ Como podemos observar, la única diferencia es que la signatura de \lstinline{he
 \subsection{Tácticas}
 
 Las tácticas se utilizan para probar teoremas. Hemos utilizado \lstinline{induction} y \lstinline{apply} para el ejemplo de la figura \ref{fig:ui} pero ahora hablaremos de varias de ellas y cómo el meta-lenguaje Ltac (ya en Coq por defecto) nos permite escribirlas.
+% TODO: cita Ltac https://coq.inria.fr/refman/zebibliography.html#del00
+% TODO: Utilizar tácticas de Coq. Mencionar que hay múltiples librerías de tacticas.
+Como se documenta en ... hay cientos de tácticas. Hablaremos de algunas solo para que el lector pueda tener un concepto de cómo puede ser una táctica, y luego diseñaremos alguna táctica muy simple.
+\begin{itemize}
+  \item \lstinline{simpl}: esta táctica aplica a cualquier meta. Intenta reducir un término a algo legible y no normalizarlo completamente.
+  \item \lstinline{intros}: introduce todas las hipotesis que todavía estén en la meta. 
+  \item \lstinline{rewrite}: reescribe la meta utilizando alguna igualdad previamente provada o alguna hipótesis.
+  \item \lstinline{destruct}: toma una variable inductiva o co-inductiva y genera submetas para cada uno de sus constructores.
+  \item \lstinline{induction}: hace lo mismo que \lstinline{destruct} con la diferencia de que genera hipótesis inductivas.
+\end{itemize}
+Estas tácticas son algunas de las más utilizadas.
 % TODO: Cómo escribir tácticas de Coq, o sea Ltac. De esta forma se pueden comparar las metatacticas de Mtac2 con una referencia previa.
