@@ -20,3 +20,8 @@ induction n.
 - apply (le_0_n 1).
 - apply (le_n_S (n) (S n)). exact IHn.
 Qed.
+
+Lemma sub_0_r : forall n, n - 0 = n.
+Proof. intro n. case n.
+
+[ | intro n']. reflexivity. Qed. 

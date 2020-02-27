@@ -7,25 +7,6 @@ El desarrollo de Coq comenzó en 1984 con el apoyo de INRIA como el trabajo de G
 Ahora mismo Coq es desarrollado por más de 40 desarrolladores activos y es reconocido como unos de los asistentes de prueba principales.
 
 Como un asistente de pruebas la orientación de Coq es la de permitir la escritura totalmente formal de teoremas y pruebas, y asegurarnos de su correción. Se parte de lo que se denomina \textit{kernel}, el nucleo de Coq, que es el que verifica que la prueba corresponde al teorema, es decir, que sea correcta. De esta forma, el humano no está encargado de verificar la prueba, solo de escribirla.
-
-Cuando se dice que Coq es un asistente \textit{interactivo} nos referimos a que Coq nos puede ayudar a desarrollar la prueba en cierta medida.
-% TODO: UI de Coq, dar ejemplos.
-% TODO: qué es una goal?
-Por ejemplo, supongamos que queremos probar el siguiente teorema.
-\begin{lstlisting}
-Definition le_S (n : nat) : n <= S n.
-\end{lstlisting}
-Al entrar a alguno de los editores de textos compatibles con Coq (Emacs, Visual Studio Code o CoqIDE) cargamos el teorema y Coq entrará al modo interactivo, en el cual nos dirá el estado actual de la prueba. En este caso como no hicimos nada hasta el momento, tenemos una hipótesis \lstinline{n : \nat} y una única \textit{goal}: \lstinline{n <= S n}. Entonces aplicamos inducción en \lstinline{n} tenemos dos submetas. Y así Coq nos asiste en el proceso, mostrándonos nuestras hipótesis y metas actuales, como podemos observar en \ref{fig:ui}.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=1\textwidth]{coq_emacs_example.png}
-  \caption{Ejemplo de interfaz de Coq}
-  \label{fig:ui}
-\end{figure}
-
-A continuación explicaremos los conceptos de \textit{táctica} y de que manera se utiliza Coq.
-
 % TODO: diferencia con otros asistentes
 
 \subsection{Los lenguajes Coq}
@@ -160,25 +141,58 @@ Program Definition head {A}
 \end{lstlisting}
 Como podemos observar, la única diferencia es que la signatura de \lstinline{head} especificamos que \lstinline{l} es una lista junto con una prueba que muestra que no es vacía.
 
-% Este trabajo se centra en modificar meta-programas añadiendo tipos dependientes donde sea necesario, por eso es sumamente importante ejercitar este concepto.
-
-% De esta manera, con la correspendencia Curry-Howard, un programa funcional puede ser una prueba de un teorema. Esta correspondecia está 
-% gracias a Gallina podemos utilizarlo como uno. Gallina está fuertemente inspirado en OCaml, el lenguaje base de Coq y nuestros meta-programas estarán codificados en este. Esta programación en Coq es 
-
-% TODO: mencionar metaprogramación, o sea Ltac2 pq no? o Meta-coq etc. Lo planeamos hacer en la parte de Mtac2, después de hablar de Mtac2.
-
 \subsection{Tácticas}
 
-Las tácticas se utilizan para probar teoremas. Hemos utilizado \lstinline{induction} y \lstinline{apply} para el ejemplo de la figura \ref{fig:ui} pero ahora hablaremos de varias de ellas y cómo el meta-lenguaje Ltac (ya en Coq por defecto) nos permite escribirlas.
+En la próxima sección hablaremos de pruebas, metas (\textit{goals}) y tácticas. Para esto introduciremos un ejemplo que nos facilite entender estos conceptos.
+
+\begin{exmp}\label{exmp:sub_0_r}
+\begin{lstlisting}
+Lemma sub_0_r : forall n, n - 0 = n.
+Proof. intro n. case n; [ | intro n']; reflexivity. Qed. 
+\end{lstlisting}
+\end{exmp}
+
 % TODO: cita Ltac https://coq.inria.fr/refman/zebibliography.html#del00
 % TODO: Utilizar tácticas de Coq. Mencionar que hay múltiples librerías de tacticas.
-Como se documenta en ... hay cientos de tácticas. Hablaremos de algunas solo para que el lector pueda tener un concepto de cómo puede ser una táctica, y luego diseñaremos alguna táctica muy simple.
+
+El teorema a probar restar 0 a cualquier número $n$ es $n$. Ya que la resta está definida por pattern matching en el primer argumento, esta igualdad no es automáticamente cierta computando. Por eso, debemos hacer análisis por casos.
+
+El código comienza con el comando \lstinline{Lemma}, donde efectivamente definimos lo que queremos probar.
+Luego utilizamos el comando \lstinline{Proof} para indicar el inicio de la prueba, la cual será resuelta a través de la concatenación de tácticas de Ltac. Estas tácticas trasnforman el \textit{proof-state} incrementalmente construyendo un \textit{proof-term}, la prueba.
+
+Después de \lstinline{Proof}, Coq genera una \lstinline{goal}, una meta. Internamente, una meta en Coq es representada con una \textit{meta-variable}. Esta meta-variable tiene un tipo, en concreto el lema que queremos probar. En este caso nuestra meta $?g$ tiene tipo \lstinline{\forall n, n - 0 = n}.
+
+Para introducir la variable $n$, utilizamos \lstinline{intro}. Esta instancia a $?g$ como \lstinline{fun n:nat => $?g_1$} donde el tipo de $?g_1$ es \lstinline{n - 0 = n}.
+
+% TODO: Contextual Modal Type Theory, Nanevsky 2008.
+Ya introducida la variable, el próximo paso es hacer análisis por casos en ella. Con \lstinline{case} podemos analizar a $n$ según los constructores de su tipo. Para el primer caso: \lstinline{0 - 0 = 0} es trivial. El segundo caso es \lstinline{\forall n':nat, S n' - 0 = S n'}, para el cual, primero introduciremos $n'$ y luego, por la naturaleza inductiva de la resta, será igualmente trivial para Coq. La táctica \lstinline{case} retorna estas dos sub-metas, las cuales componemos, con el operador de composición (el punto y coma), con las tácticas listadas en \lstinline{[ | intro n']}. La primer sub-meta es resuelta por la táctica a la izquierda del \lstinline{|}, que es implicitamente la táctica identidad (\lstinline{idtac}), mientras que la segunda sub-meta es resuelta por la táctica a la derecha de \lstinline{|}, \lstinline{intro n'}. La salida de esta composición son de nuevo dos tácticas las que de nuevo compondremos con \lstinline{reflexivity}. Esto signfica que aplicaremos \lstinline{reflexivity} a ambas tácticas resultantes, resolviendolas trivialmente por computación.
+
+\subsection{Interfaz interactiva}
+
+Cuando se dice que Coq es un asistente \textit{interactivo} nos referimos a que Coq nos puede ayudar a desarrollar la prueba en cierta medida.
+% TODO: UI de Coq, dar ejemplos.
+Por ejemplo, supongamos que queremos probar el siguiente teorema.
+\begin{exmp}
+\begin{lstlisting}
+Definition le_S (n : nat) : n <= S n.
+\end{lstlisting}
+\end{exmp}
+Al entrar a alguno de los editores de textos compatibles con Coq (Emacs, Visual Studio Code o CoqIDE) cargamos el teorema y Coq entrará al modo interactivo, en el cual nos mostrará el estado actual de la prueba. En este caso comenzamos con la hipótesis \lstinline{n : \nat} ya en nuestro contexto y una única meta $?g$ de tipo \lstinline{n <= S n}. Ahora aplicamos inducción en \lstinline{n} obteniendo dos sub-metas: $?g_1$ con tipo \lstinline{0 <= S 0} y $?g_2$ con tipo \lstinline{S n <= S (S n)}. Para la primera meta $?g_1$ utilizamos \lstinline{apply} para aplicar el teorema \lstinline{le_0_n} instanciado con \lstinline{S n}, esto soluciona automaticamente la sub-meta. La segunda sub-meta se resuelve de una manera similar, solo que tenemos una hipótesis inductiva \lstinline{IHn}.
+
+En la figura \ref{fig:ui} podemos observar como se nos presenta esta información.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=1\textwidth]{coq_emacs_example.png}
+  \caption{Ejemplo de interfaz de Coq}
+  \label{fig:ui}
+\end{figure}
+
+Coq cuenta con muchos comandos que se usan constantemente.
 \begin{itemize}
-  \item \lstinline{simpl}: esta táctica aplica a cualquier meta. Intenta reducir un término a algo legible y no normalizarlo completamente.
-  \item \lstinline{intros}: introduce todas las hipotesis que todavía estén en la meta. 
-  \item \lstinline{rewrite}: reescribe la meta utilizando alguna igualdad previamente provada o alguna hipótesis.
-  \item \lstinline{destruct}: toma una variable inductiva o co-inductiva y genera submetas para cada uno de sus constructores.
-  \item \lstinline{induction}: hace lo mismo que \lstinline{destruct} con la diferencia de que genera hipótesis inductivas.
+  \item \lstinline{Check} imprime el tipo de un término. Cuando es llamado en modo prueba, el término es chequeado en el contexto local de la sub-meta.
+  \item El comando \lstinline{About} muestra información general.
+  \item \lstinline{Print}:
+  \item \lstinline{Locate}:
+  \item \lstinline{Eval}:
 \end{itemize}
-Estas tácticas son algunas de las más utilizadas.
-% TODO: Cómo escribir tácticas de Coq, o sea Ltac. De esta forma se pueden comparar las metatacticas de Mtac2 con una referencia previa.
