@@ -6,6 +6,15 @@
 \subsection{Meta-tácticas}
 % TODO: cómo hacer meta-tácticas y cómo usarlas. Diferencias con tácticas normales. Hacer después de escribir tácticas de Coq.
 
+Ahora volveremos al ejemplo \ref{exmp:sub_0_r} y utilizaremos meta-tácticas para probarlo.
+\begin{exmp}\label{exmp:sub_0_r_mtac2}
+\begin{lstlisting}
+MProof.
+intro n. case n &> [m: idtac | intro n'] &> reflexivity.
+Qed.
+\end{lstlisting}
+\end{exmp}
+
 \subsection{Mónadas}
 % TODO: qué son las mónadas, como se operan y por qué las queremos.
 Las mónadas son uno de los temas esotéricos de programación funcional y son una implementación del concepto de teoría de categorías. Según el libro X son ...
