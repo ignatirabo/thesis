@@ -1,4 +1,4 @@
-\section{Motivación}
+\chapter{Motivación}\label{ch:motivacion}
 
 % Se asume que se explicó que es Mtac2 en la introducción y todas las cosas que
 % se pueden hacer.
@@ -53,6 +53,7 @@ tipo \lstinline{f : forall (l: list S)  l' <> nil -> M S}.
 \begin{lstlisting}
 bind : forall A B, M A -> (A -> M B) -> M B.
 \end{lstlisting}
+% En la motivación usar el ret lifteando antes del fun/lambda y el bind lifteado para el max.
 
 Solucionar esta situación específica no es un problema.
 Una alternativa es introducir los parámetros de la función y beta-expandir la definición del fixpoint.
