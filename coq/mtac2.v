@@ -43,3 +43,20 @@ Definition wmon : M (1 + 1 = 2) :=
 
 Definition univ (P : Prop): M P :=
   raise MyException.
+
+Definition list_max_nat :=
+  mfix f (l: list nat) : l <> nil -> M nat :=
+    mtmmatch l as l' return l' <> nil -> M nat with
+    | [? e] [e] =m>
+      fun nonE =>
+        M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') =m>
+      fun nonE =>
+        let m := Nat.max e1 e2 in
+        f (m :: l') cons_not_nil
+    | [? l' r'] l' ++ r' =m>
+      fun nonE =>
+        l' <- f l';
+        r' <- f r';
+        ret (l' ++ r')
+    end.

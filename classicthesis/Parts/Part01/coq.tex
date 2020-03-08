@@ -143,19 +143,14 @@ Como podemos observar, la única diferencia es que la signatura de \lstinline{he
 \section{Tácticas}
 
 En la próxima sección hablaremos de pruebas, metas (\textit{goals}) y tácticas. Para esto introduciremos un ejemplo que nos facilite entender estos conceptos.
-
-\begin{exmp}\label{exmp:sub_0_r}
-\begin{lstlisting}
+\begin{lstlisting}[float=h,frame=tb,caption={Teorema y prueba en Coq},label=lst:sub_0_r]
 Lemma sub_0_r : forall n, n - 0 = n.
 Proof. intro n. case n; [ | intro n']; reflexivity. Qed. 
 \end{lstlisting}
-\end{exmp}
+En \ref{lst:sub_0_r}, el lema a probar restar 0 a cualquier número $n$ es $n$. Ya que la resta está definida por pattern matching en el primer argumento, esta igualdad no es automáticamente cierta computando. Por eso, debemos hacer análisis por casos.
 
 % TODO: cita Ltac https://coq.inria.fr/refman/zebibliography.html#del00
 % TODO: Utilizar tácticas de Coq. Mencionar que hay múltiples librerías de tacticas.
-
-El teorema a probar restar 0 a cualquier número $n$ es $n$. Ya que la resta está definida por pattern matching en el primer argumento, esta igualdad no es automáticamente cierta computando. Por eso, debemos hacer análisis por casos.
-
 El código comienza con el comando \lstinline{Lemma}, donde efectivamente definimos lo que queremos probar.
 Luego utilizamos el comando \lstinline{Proof} para indicar el inicio de la prueba, la cual será resuelta a través de la concatenación de tácticas de Ltac. Estas tácticas trasnforman el \textit{proof-state} incrementalmente construyendo un \textit{proof-term}, la prueba.
 

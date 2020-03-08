@@ -67,7 +67,7 @@
 %********************************************************************
 % Frontmatter
 %*******************************************************
-\include{FrontBackmatter/DirtyTitlepage}
+%\include{FrontBackmatter/DirtyTitlepage}
 \include{FrontBackmatter/Titlepage}
 \include{FrontBackmatter/Titleback}
 \cleardoublepage\include{FrontBackmatter/Dedication}
@@ -91,15 +91,15 @@
 
 %************************************************
 %\include{Chapters/Chapter01/intro}
-\include{Chapters/Chapter01/coq}
-\include{Chapters/Chapter01/mtac2}
-\include{Chapters/Chapter01/tele}
+\include{Parts/Part01/coq}
+\include{Parts/Part01/mtac2}
+\include{Parts/Part01/tele}
 \cleardoublepage
 \ctparttext{You can put some informational part preamble text here.}
 \part{Lift}\label{pt:lift}
-\include{Chapters/Chapter02/motivacion}
-\include{Chapters/Chapter02/lift}
-\include{Chapters/Chapter02/technical}
+\include{Parts/Part02/motivacion}
+\include{Parts/Part02/lift}
+\include{Parts/Part02/technical}
 % ********************************************************************
 % Backmatter
 %*******************************************************
@@ -107,7 +107,7 @@
 %\renewcommand{\thechapter}{\alph{chapter}}
 \cleardoublepage
 \part{Appendix}
-\include{Chapters/Chapter0A}
+\include{Parts/Chapter0A}
 %********************************************************************
 % Other Stuff in the Back
 %*******************************************************
