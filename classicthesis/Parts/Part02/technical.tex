@@ -5,8 +5,8 @@ Comenzaremos discutiendo su funcionamiento básico y de ahí escalaremos a los d
 
 \section{TyTree}
 
-En términos generales \lift\ es un fixpoint sobre un telescopio con un gran análisis por casos sobre los tipos.
-Entonces surge un problema: ¿Cómo podemos hacer \textit{pattern matching} en los tipos de manera sintáctica?
+En términos generales \lift es un fixpoint sobre un telescopio con un gran análisis por casos sobre los tipos.
+Entonces surge un problema: ¿cómo podemos hacer \textit{pattern matching} en los tipos de manera sintáctica?
 La solución es utilizar un reflejo de los mismos, de manera de que podamos expresarlos de manera inductiva.
 
 \begin{lstlisting}
@@ -74,7 +74,7 @@ $\equiv$
 ret : \tyTree_FAType (fun A => \tyTree_imp (\tyTree_base A) (\tyTree_M A))
 \end{lstlisting}
 
-Es importante notar que podemos encontrar usos de \lstinline{\tyTree_M} en múltiples secciones de la signatura, solo se matcheará \lstinline{\tyTree_M} en \lift\ con el retorno de la función. 
+Es importante notar que podemos encontrar usos de \lstinline{\tyTree_M} en múltiples secciones de la signatura, solo se matcheará \lstinline{\tyTree_M} en \lift con el retorno de la función. 
 
 % TODO: dejo los otros para después? Leer comentarios de la agenda del 14 de enero.
 
@@ -204,7 +204,7 @@ F (apply_sort A U) $\equiv$
     % TODO: Hablar del tipo de lift_in
     \item Tendremos una llamada \lstinline{lift_in U (\tyTree_base \; (apply_sort A U))} matcheando el caso correspondiente.
     \lstinline{lift_in} retornará una $\Sigma$-Type con un valor \lstinline{F : accessor t -> \Type_sort} y una prueba de que el tipo \lstinline{\tyTree_base \; (apply_sort A U)} es igual a \lstinline{F (uncurry_in_acc U)}. \lstinline{uncurry_in_acc U} nos retorna el accessor trivial de \lstinline{U}. Lo importante es que sabemos que \lstinline{F (uncurry_in_acc U)} es igual al lado izquierdo de la implicación de \lstinline{ret}.
-    \item Ahora volvemos a \lift{} y generamos un valor \lstinline{x : X'} con
+    \item Ahora volvemos a \lift y generamos un valor \lstinline{x : X'} con
     \begin{lstlisting}
 X' := MTele_val (MTele_In \Type_sort F)
     \end{lstlisting}
