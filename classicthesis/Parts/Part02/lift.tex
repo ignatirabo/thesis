@@ -1,18 +1,28 @@
 \chapter{Lift}\label{ch:lift}
 
-Denominamos \lstinline{lift} a la función desarrollada en este trabajo.
-La misma tiene la tarea de agregar dependencias a meta-programas de manera quasi automática: solo requiere un telescopio.
+Denominamos \textsc{Lift} al meta-programa desarrollado en este trabajo.
+Esta función tiene la tarea de agregar dependencias a otros meta-programas de manera cuasi automática. Veremos que solo depende de un telescopio, el que en principio generaremos nosotros.
 
-Lift se basa en analizar los tipos de las funciones y modificarlos añadiendo dependencias triviales en los tipos que se encuentran bajo la mónada, generando así nuevos meta-programas más generales.
-El signficado real de este funcionamiento será trabajado en este capítulo a través de ejemplos que mostrarán el comportamiento de lift.
+\textsc{Lift} se basa en analizar los tipos de las funciones y modificarlos añadiendo dependencias triviales en los tipos que se encuentran bajo la mónada, generando así nuevos meta-programas más generales.
+Cuando digamos ``dependencias triviales'' nos referiremos a valores en el tipo que son dependientes pero no tienen ningún valor real, es decir, no influyen en el resultado de la ejecución.
+Aunque esto pueda parecer inutil, su justificación es que hacer estos agregados efectivamente generan funciones más generales que pueden ser utilizadas en una amplia cantidad de situaciones. 
+El \emph{lifteo} de funciones será trabajado en este capítulo a través de ejemplos.
 
 \section{Lifteando funciones simples}
 
 Una de las funciones monádica más simples es \lstinline{ret : \forall A, A -> M A}, uno de los operadores monádicos.
-Supongamos que nos interesa tener
-\begin{lstlisting}
-ret^ : \forall (A : nat -> nat -> Type), (\forall n n', A n n') -> (\forall n n', M (A n n'))
+
+\begin{lstlisting}[float=h,frame=tb,caption={Teorema y prueba en Coq},label=lst:ret]
+ret : forall A, A -> M A
 \end{lstlisting}
+
+Como vemos en la signatura de \lstinline{ret}, solo puede devolver expresiones \lstinline{M A} donde no es posible que haya dependencias en \lstinline{A}. Esto hace que en una serie de situaciones no sea posible usar esta función.
+% TODO: linkear con motivación y lift_max.
+
+% Supongamos que nos interesa tener
+% \begin{lstlisting}
+% ret^ : \forall (A : nat -> nat -> Type), (\forall n n', A n n') -> (\forall n n', M (A n n'))
+% \end{lstlisting}
 
 Ahora, nuestro trabajo es poder definir un telescopio que se amolde a la información que necesitamos agregar.
 En este caso el telescopio es el siguiente: \lstinline{t := [n : nat ;> n' : nat]$_t$} dado que queremos que \lstinline{}{A} dependa de dos $\nat$. Efectivamente \lstinline{ret^ := lift ret t}.
