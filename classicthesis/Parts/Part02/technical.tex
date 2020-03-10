@@ -1,44 +1,54 @@
 \chapter{Aspectos Técnicos}\label{ch:technical}
 
 En esta sección discutiremos los aspectos técnicos de \lift.
-Comenzaremos discutiendo su funcionamiento básico y de ahí escalaremos a los detalles más profundos. 
+Comenzaremos discutiendo su funcionamiento básico y de ahí escalaremos a algunos de los detalles más profundos. 
 
-\section{TyTree}
+\section{El tipo TyTree}
 
 En términos generales \lift es un fixpoint sobre un telescopio con un gran análisis por casos sobre los tipos.
 Entonces surge un problema: ¿cómo podemos hacer \textit{pattern matching} en los tipos de manera sintáctica?
 La solución es utilizar un reflejo de los mismos, de manera de que podamos expresarlos de manera inductiva.
 
-\begin{lstlisting}
+\graffito{Los nombres de los constructores están simplificados para la facilidad del lector. En el apépendice podemos encontrar la verdadera definición.}
+\begin{lstlisting}[float=h,frame=tb,caption={El tipo inductivo \lstinline{TyTree}},label=lst:tytree]
 Inductive TyTree : Type :=
-| \tyTree_val {m : MTele} (T : MTele_Ty m) : TyTree
-| \tyTree_M (T : Type) : TyTree
-| \tyTree_MFA {m : MTele} (T : MTele_Ty m) : TyTree
-| \tyTree_In (s : Sort) {m : MTele} (F : accessor m -> s) : TyTree
-| \tyTree_imp (T : TyTree) (R : TyTree) : TyTree
-| \tyTree_FATeleVal {m : MTele} (T : MTele_Ty m)
+| \tyTree_val$\!$ {m : MTele} (T : MTele_Ty m) : TyTree
+| \tyTree_M$\!$ (T : Type) : TyTree
+| \tyTree_MFA$\!$ {m : MTele} (T : MTele_Ty m) : TyTree
+| \tyTree_In$\!$ (s : Sort) {m : MTele} (F : accessor m -> s) : TyTree
+| \tyTree_imp$\!$ (T : TyTree) (R : TyTree) : TyTree
+| \tyTree_FATeleVal$\!$ {m : MTele} (T : MTele_Ty m)
   (F : \forall t : MTele_val T, TyTree) : TyTree
-| \tyTree_FATeleType (m : MTele) (F : \forall (T : MTele_Ty m), TyTree) : TyTree
-| \tyTree_FAVal (T : Type) (F : T -> TyTree) : TyTree
-| \tyTree_FAType (F : Type -> TyTree) : TyTree
-| \tyTree_base (T : Type) : TyTree
+| \tyTree_FATeleType$\!$ (m : MTele) (F : \forall (T : MTele_Ty m), TyTree) : TyTree
+| \tyTree_FAVal$\!$ (T : Type) (F : T -> TyTree) : TyTree
+| \tyTree_FAType$\!$ (F : Type -> TyTree) : TyTree
+| \tyTree_base$\!$ (T : Type) : TyTree
 .
 \end{lstlisting}
 
-Con este tipo podemos reescribir todas las signaturas de funciones. Varios de los constructores, como por ejemplo
-\lstinline{\tyTree_MFA} o \lstinline{\tyTree_FATeleVal}, tendrán sentido más adelante, dado que reflejan elementos en
-funciones lifteadas.
+Con los constructores de este tipo podemos expresar todas las signaturas que nos interesan. Varios de los constructores, como por ejemplo \lstinline{\tyTree_MFA} o \lstinline{\tyTree_FATeleVal}, tendrán sentido más adelante, así que veamos algunos ejemplos simples.
 
-Una de las propiedades principales de este reflejo es que a primera vista parece que un tipo puede escribirse de múltiples formas en \lstinline{TyTree}, pero los tratamos de manera distinta y por eso podemos plantear una biyección
-entre \lstinline{Type} y \lstinline{TyTree}. Utilizamos la función \lstinline{to_ty : TyTree -> Type} para transformar un \lstinline{TyTree} en su \lstinline{Type} correspondiente. Notar que esta función no es monádica, y eso es principal, ya que nos permite utilizar la función en las signaturas que definimos. En cambio, la función \lstinline{to_tree : Type -> M TyTree} necesariamente es monádica ya que debemos hacer un analisis sintáctico en los tipos de Coq. Haremos uso extensivo de \lstinline{to_ty}.
+\begin{lstlisting}[frame=tb,caption={Ejemplos de \lstinline{TyTree}},label=lst:exmp_tytree]
+ret : \forall A, A -> M A.
+ret : \tyTree_FAType$\!$ (fun A => \tyTree_imp$\!$ (\tyTree_base A) (\tyTree_M A)).
+bind : \forall A B, M A -> (A -> M B) -> M B.
+bind : \tyTree_FAType$\!$ (fun A => \tyTree_FAType$\!$ (fun B => \tyTree_imp$\!$ (\tyTree_M A) (\tyTree_imp$\!$ (\tyTree_imp$\!$ (\tyTree_base A) (\tyTree_M B)) (\tyTree_M B)))).
+f : \forall (n : nat), 0 <= n -> M nat.
+f : \tyTree_FAVal$\!$ nat (fun n => \tyTree_imp$\!$ (\tyTree_base (0 <= n)) (\tyTree_M nat)).
+\end{lstlisting}
 
-Utilizaremos \lstinline{Const$_t$} para expresar \lstinline{tyTree_Const}, donde \lstinline{Const} representa alguno de los nombres de los constructores de la definición de \lstinline{TyTree}. 
+A primera vista los tipos puede escribirse de múltiples formas ya que \lstinline{\tyTree_FAVal} es más fuerte que \lstinline{\tyTree_imp}. La clave está en que nuestra función \lift hará una separación muy específica entre cada caso y nuestra forma de reescribir la signatura de una función es sumamente importante.
+%Más adelante veremos cómo analizamos cada caso de forma quelos tratamos de manera distinta y por eso podemos plantear una biyección entre \lstinline{Type} y \lstinline{TyTree}.
 
-Ahora tomaremos una función \lstinline{f} e iremos modificando si signatura para mostrar este reflejo de tipos.
+Utilizaremos la función \lstinline{to_ty : TyTree -> Type} para transformar un \lstinline{TyTree} en su \lstinline{Type} correspondiente. Notar que esta función no es monádica, y eso es principal, ya que nos permite utilizar la función en las signaturas que definimos. En cambio, la función \lstinline{to_tree : Type -> M TyTree} necesariamente será monádica ya que debemos hacer un analisis sintáctico en los tipos de Coq. Se puede encontrar la definición de \lstinline{to_ty} en el apéndice.
+% TODO: apendice to_ty.
+
+\iffalse
+Ahora tomaremos la función \lstinline{f} de \ref{lst:exmp_tytree}. e iremos modificando si signatura para mostrar este reflejo de tipos.
 Para simplificar escribiremos \lstinline{P $\equiv$ Q} para expresar que un tipo es equivalente a un \lstinline{TyTree} aunque no sea técnicamente correcto en Coq.
 
 \begin{lstlisting}
-f : nat -> nat -> nat
+f : \forall (n : nat), 0 <= n -> M nat.
 \end{lstlisting}
 
 Su tipo traducido es
@@ -75,28 +85,25 @@ ret : \tyTree_FAType (fun A => \tyTree_imp (\tyTree_base A) (\tyTree_M A))
 \end{lstlisting}
 
 Es importante notar que podemos encontrar usos de \lstinline{\tyTree_M} en múltiples secciones de la signatura, solo se matcheará \lstinline{\tyTree_M} en \lift con el retorno de la función. 
+\fi
 
 % TODO: dejo los otros para después? Leer comentarios de la agenda del 14 de enero.
 
 % TODO: el tipo de lift.
 \section{El tipo de \lift}
 
-Analicemos la definición de \lift.
+Ahora analizaremos la función \lift.
 
-\begin{lstlisting}
-Fixpoint lift (m : MTele) (U : ArgsOf m) (p l : bool) (T : TyTree) :
-  \forall (f : to_ty T), M m:{ T : TyTree & to_ty T} := ...
+\begin{lstlisting}[frame=tb,caption={Signatura de \lift},label=lst:tipo_lift]
+Fixpoint lift (m : MTele) (U : ArgsOf m) (T : TyTree) :
+  \forall (f : to_ty T), M m:{ T : TyTree & to_ty T}.
 \end{lstlisting}
 
-Dentro de esta signatura vemos elementos conocidos como el telescopio \lstinline{m : MTele} que anuncia las dependencias, un \lstinline{T : TyTree} que representa el tipo de la función a \textit{liftear} y la \lstinline{f : to_ty T} de tipo \lstinline{T}.
-También conocemos
-\begin{lstlisting}
-M m:{ T : TyTree & to_ty T}
-(* $\Sigma$-type con un tipo y un elemento del mismo *)
-\end{lstlisting}
+Dentro de esta signatura vemos elementos conocidos como el telescopio \lstinline{m : MTele} que anuncia las dependencias, un \lstinline{f : to_ty T} que representa la función a liftear de tipo \lstinline{to_ty T}, es decir, el tipo equivalente al \lstinline{TyTree}.
 
-En el retorno conseguimos un nuevo \lstinline{T' : TyTree} que representa la signatura de la función \lstinline{f} lifteada, y un elemento de tipo \lstinline{T'}, es decir, la nueva función.
+La función retorna un par dependiente (o $\Sigma$-type) que contiene la nueva función junto con el \lstinline{TyTree} que describe su tipo.
 
+\iffalse % Quité p y l de lift, no hacían nada.
 Ahora, ¿qué representan los argumentos que no mencionamos? Es \textbf{fácil} comprender quienes son \lstinline{p} y \lstinline{l}.
 \begin{itemize}
     \item \lstinline{p}: la polaridad. Comienza con valor \lstinline{true}. Este solo se modifica cuando matcheamos \lstinline{\tyTree_imp} en \lift. No es útil para \lstinline{lift_in} y representa...
@@ -107,11 +114,14 @@ Ahora, ¿qué representan los argumentos que no mencionamos? Es \textbf{fácil} 
     \item \lstinline{l}: comienza en \lstinline{false}. Representa si nos encontramos a la derecha o izquierda de una implicación de manera inmediata. Es útil para...
     % TODO: igual que p. No veo para qué. Puede ser un error?
 \end{itemize}
+\fi
 
-En cuanto a \lstinline{U : ArgsOf m}, \lstinline{U} representa los argumentos que el telescopio añade, y es nuestro truco para poder hacer funcionar \lift, ya que nos permite transportar argumentos de manera descurrificada.
-Esto quiere decir que transporta a los argumentos en un ``contenedor''.
-Lo que sucede es que cuando encontremos un tipo \lstinline{A} cualquiera en nuestra función, este tipo puede o no estar bajo la mónada.
+El otro argumento, \lstinline{U : ArgsOf m}, es el más complicado.
+Este contiene los argumentos que el telescopio añade de manera descurrificada, y es nuestro truco para poder hacer funcionar \lift.
+Esto quiere decir que transporta los argumentos del telescopio en un ``contenedor''.
+Lo que sucede es que cuando encontramos un tipo \lstinline{A} cualquiera en nuestra función, este tipo puede o no estar bajo la mónada.
 En el caso de estarlo debemos modificarlo, es decir, reemplazar \lstinline{A : Type} por \lstinline{A : MTele_Ty t} con \lstinline{t : MTele}.
+Aquí es donde utilizamos \lstinline{U} para agregar las dependeicas a \lstinline{A}.
 % Con \lstinline{U} y otras funciones de telescopios podemos conseguir este comportamiento.
 
 % TODO: hablar de funciones lifteadas y sus tipos, es decir, TyTree's.
