@@ -9,54 +9,71 @@ La siguiente función calcula el máximo de una lista de números \lstinline{nat
 Definition list_max_nat :=
   mfix f (l: list nat) : l <> nil -> M nat :=
     mtmmatch l as l' return l' <> nil -> M nat with
-    | [? e] [e] =m> fun nonE => M.ret e
-    | [? e1 e2 l'] (e1 :: e2 :: l') =m> fun nonE =>
-      let m := Nat.max e1 e2 in
-      f (m :: l') cons_not_nil
-    | [? l' r'] l' ++ r' => (* cualquier cosa *) 
+    | [? e] [e] => fun P => M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
+      let x := Nat.max e1 e2 in
+      f (x :: l') _
+    | [? l' r'] app l' r' => fun P =>
+      match app_not_nil l' r' P with
+      | inl P' => f l' P'
+      | inr P' => f r' P'
+      end
     end.
 \end{lstlisting}
+% TODO: Beta dice que hay que usar disjoint sum "x + y" y no el \/ (or).
 
 El último caso de \lstinline{mtmmatch} analiza una expresión que no es un constructor del tipo inductivo \lstinline{list}. Por eso es necesario utilizar el \lstinline{match} monádico.
-con una función, y no un constructor, es imposible implementar esto sin Mtac2. Notar que tampoco podemos utilizar \lstinline{mmatch} ya que el tipo que retornamos terminos de tipo \lstinline{l' <> nil -> M nat}.
+Notar que tampoco podemos utilizar \lstinline{mmatch} ya que el tipo que retornamos terminos de tipo \lstinline{l' <> nil -> M nat}.
 
-Ahora supongamos que deseamos parametrizar $\nat$ y tener una función que acepte
-múltiples conjuntos. Sea
-\begin{lstlisting}
+Ahora supongamos que deseamos parametrizar $\nat$ y utilizar una función que acepte multiples conjuntos de nuestro interés.
+\begin{lstlisting}[float=h,frame=tb,caption={Teorema y prueba en Coq},label=lst:max]
 Definition max (S: Set) : M (S -> S -> S) :=
   mmatch S in Set as S' return M (S' -> S' -> S') with
   | nat => M.ret Nat.max
   end.
 \end{lstlisting}
-la función que retorna la relación máximo en un conjunto $S$.
+Sea \lstinline{max} en \ref{lst:max}, la función que retorna la relación máximo en un conjunto $S$.
 A primera vista nuestra idea podría fucionar, es decir, conceptualmente no es incorrecta.
 
-\begin{lstlisting}
-Definition list_max (S: Set)  :=
+\begin{lstlisting}[float=h,frame=tb,caption={Teorema y prueba en Coq},label=lst:list_max]
+Definition list_max (S: Set) :=
   max <- max S; (* error! *)
   mfix f (l: list S) : l' <> nil -> M S :=
     mtmmatch l as l' return l' <> nil -> M S with
-    | [? e] [e] =m> fun nonE=>M.ret e
-    | [? e1 e2 l'] (e1 :: e2 :: l') =m> fun nonE =>
+    | [? e] [e] => fun P => M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
       m <- max e1 e2;
-      f (m :: l') cons_not_nil
+      f (m :: l') _
+    | ...
     end.
 \end{lstlisting}
 
 Al intentar que Coq interprete la función veremos que esta función no tipa.
-Esto es debido a la signatura de \lstinline{bind}.
+Esto es debido a que \lstinline{bind : forall A B : Type, M A -> (A -> M B) -> M B} no tiene la signatura necesaria.
 Nuestro \lstinline{mfix} no puede unificarse a \lstinline{M B}, ya que tiene
 tipo \lstinline{f : forall (l: list S)  l' <> nil -> M S}.
-
-\begin{lstlisting}
-bind : forall A B, M A -> (A -> M B) -> M B.
-\end{lstlisting}
-% En la motivación usar el ret lifteando antes del fun/lambda y el bind lifteado para el max.
+Es decir, tenemos \lstinline{A = (S -> S -> S)} y \lstinline{B = forall (l: list S)  l' <> nil -> M S} entonces no podemos utilizar \lstinline{bind}.
+% TODO: En la motivación usar el ret lifteando antes del fun/lambda y el bind lifteado para el max.
 
 Solucionar esta situación específica no es un problema.
 Una alternativa es introducir los parámetros de la función y beta-expandir la definición del fixpoint.
 Otra es codificar un nuevo bind que tenga el tipo necesario.
-El problema será que ambas soluciones son específicas al problema, entonces en cada situación debemos volver a implementar alguno de estos recursos.
+El problema será que ambas soluciones son específicas al problema, entonces en cada situación debemos volver a implementar alguno de estos recursos programacionales.
+
+Nuestra solución es la siguiente.
+
+\begin{lstlisting}[float=h,frame=tb,caption={Teorema y prueba en Coq},label=lst:list_max_lifted]
+Definition list_max_lifted (S: Set) :=
+  max <^- max S;
+  mfix f (l: list S) : l' <> nil -> M S :=
+    mtmmatch l as l' return l' <> nil -> M S with
+    | [? e] [e] => fun P => M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
+      m <- max e1 e2;
+      f (m :: l') _
+    | ...
+    end.
+\end{lstlisting}
 
 Es por eso que nuestro proyecto es la codificación de un nuevo meta-programa \lift{} que automaticamente puede generalizar meta-programas con las dependencias necesarias para que sea utilizado en el contexto.
 En nuestro ejemplo, con \lift{} podemos generalizar \lstinline{bind} consiguiendo un nuevo meta-programa que se comporta como la función original pero con una signatura distinta, permitiendo su uso.
