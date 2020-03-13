@@ -47,10 +47,10 @@ bind^ : \forall (A B : \forall (p : l' <> nil), Type),
 Como vimos anteriormente, para liftear una función necesitamos definir un telescopio. Este es el que indicará los argumentos dependientes que debamos agregar a nuestra función.
 % TODO: hablar de la futura creación automática.
 
-Para el caso de ref(motiv) debemos añadir una única dependencia de tipo \lstinline{l' <> nil}. Por ese motivo necesitaremos un telescopio de largo uno.
+Para el caso de \ref{lst:list_max_lifted} debemos añadir una única dependencia de tipo \lstinline{l' <> nil}. Por ese motivo necesitaremos un telescopio de largo uno.
 
 \begin{lstlisting}[float=h,frame=tb,caption={Nueva signatura de bind},label=lst:list_max_tele]
-t : MTele := [p : l' <> nil]$_t$
+tele_motiv : MTele := [p : l' <> nil]$_t$
 \end{lstlisting}
 
 Cabe aclarar que \lstinline{l'} es una variable ya definida en el contexto, y por eso nos referimos a esa lista particular y no a cualquier otra.
