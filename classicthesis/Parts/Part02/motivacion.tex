@@ -58,16 +58,16 @@ Es decir, tenemos \lstinline{A = (S -> S -> S)} y \lstinline{B = forall (l: list
 Solucionar esta situación específica no es un problema.
 Una alternativa es introducir los parámetros de la función y beta-expandir la definición del fixpoint.
 Otra es codificar un nuevo bind que tenga el tipo necesario.
-El problema será que ambas soluciones son específicas al problema, entonces en cada situación debemos volver a implementar alguno de estos recursos programacionales.
+El problema será que ambas soluciones son específicas al problema, entonces en cada situación debemos volver a implementar alguno de estos operadores.
 
-Nuestra solución es la siguiente.
+En nuestra solución suplantamos \lstinline{bind} y \lstinline{ret} por \lstinline{bind^} y \lstinline{ret^}, respectivamente. Estás funciones son las versiones lifteadas de las originales y poseen el tipo necesario.
 
 \begin{lstlisting}[float=h,frame=tb,caption={Teorema y prueba en Coq},label=lst:list_max_lifted]
 Definition list_max_lifted (S: Set) :=
-  max <^- max S;
+  max <^- max S; (* notación para bind^ *)
   mfix f (l: list S) : l' <> nil -> M S :=
     mtmmatch l as l' return l' <> nil -> M S with
-    | [? e] [e] => fun P => M.ret e
+    | [? e] [e] => ret^ e
     | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
       m <- max e1 e2;
       f (m :: l') _
@@ -75,5 +75,6 @@ Definition list_max_lifted (S: Set) :=
     end.
 \end{lstlisting}
 
-Es por eso que nuestro proyecto es la codificación de un nuevo meta-programa \lift que automaticamente puede generalizar meta-programas con las dependencias necesarias para que sea utilizado en el contexto.
-En nuestro ejemplo, con \lift podemos generalizar \lstinline{bind} consiguiendo un nuevo meta-programa que se comporta como la función original pero con una signatura distinta, permitiendo su uso.
+Nuestro proyecto es la codificación de un nuevo meta-programa \lift que puede generalizar meta-programas con las dependencias necesarias para que sea utilizado en el contexto.
+En nuestro ejemplo, con \lift podemos generalizar \lstinline{bind} y \lstinline{ret}, consiguiendo nuevos meta-programas que se comportan como las originales pero con una signatura distinta, permitiendo su uso.
+Veremos que la función \lift requiere pequeño esfuerzo para ser utilizada.

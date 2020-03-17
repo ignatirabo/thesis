@@ -1,7 +1,7 @@
 \chapter{Mtac2}\label{ch:mtac2}
 
 % TODO: qué es mtac2?
-\textit{Mtac2} es un meta-lenguaje de programación para Coq. Esto quiere decir que complementa a Coq, permitiendo ``hacer Coq'' de una manera distinta. En el trabajo, nos centramos en ampliar Mtac2 y por eso es importante que veamos que nos permite hacer y cómo.
+\Mtac es un meta-lenguaje de programación para Coq. Esto quiere decir que complementa a Coq, permitiendo ``hacer Coq'' de una manera distinta. En el trabajo, nos centramos en ampliar \Mtac y por eso es importante que veamos que nos permite hacer y cómo.
 
 \section{Meta-tácticas}
 % TODO: cómo hacer meta-tácticas y cómo usarlas. Diferencias con tácticas normales. Hacer después de escribir tácticas de Coq.
@@ -71,3 +71,14 @@ Dada esta limitación todas las funciones nativas de Coq pueden ser utilizadas e
 
 \section{Alternativas}
 % TODO: ltac2, meta-coq.
+% TODO: mtac2 es shallow embedded, los otros no, los objetos de los otros son términos de un tipo inductivo Term, no tienen un tipo informativo a diferencia de los de mtac2.
+% TODO: referencias https://popl19.sigplan.org/details/CoqPL-2019/8/Ltac2-Tactical-Warfare
+% TODO: Mtac [9] and Mtac2 [3], Rtac [4] and Template-Coq [1], and Coq-Elpi [8].
+
+\Mtac no es el único meta-lenguaje de programación para Coq. 
+Dentro de estea categoría encontramos dos principales.
+
+El primero es \emph{Ltac2}. Al igual que \Mtac es tipado, y basicamente funciona como un wrapper alrededor del \emph{proof engine} de Coq.
+Implementa una $\alpha$ táctica de tipo monádico en OCaml y trata de conservar la mayor parte de Ltac posible.
+
+La gran diferencia entre estos meta-lenguajes es que \Mtac es \emph{shallow embedded}, mientras que los otros no. A diferencia de \Mtac, los objetos de estas alternativas son términos de un tipo inductivo \lstinline{Term}, es decir, no tienen un tipo informativo.
