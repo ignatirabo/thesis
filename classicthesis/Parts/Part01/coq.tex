@@ -15,9 +15,7 @@ El ejemplo más conocido de formalización en Coq es el teorema de los cuatro co
 
 Coq no es técnicamente un lenguaje de programación, si no un asistente de pruebas. Pero podemos encontrar múltiples lenguajes dentro de Coq que nos permiten expresarnos. 
 \begin{description}
-    % TODO: cita Gallina? http://adam.chlipala.net/cpdt/html/Universes.html
-    \item[Gallina] Este es el lenguaje de especificación de Coq. Permite desarrollar teorías matemáticas y probar especificaciones de programas. Utilizaremos extensivamente un lenguaje muy similar a este para definir nuestros programas en \Mtac.
-    % TODO: cita Ltac?
+    \item[Gallina] Este es el lenguaje de especificación de Coq \cite{Gallina}. Permite desarrollar teorías matemáticas y probar especificaciones de programas. Utilizaremos extensivamente un lenguaje muy similar a este para definir nuestros programas en \Mtac.
     \item[Ltac] El lenguaje en que se definen las \textit{tácticas} de Coq. Es el meta-lenguaje por defecto de Coq. Introducido por \citeauthor{DBLP:conf/lpar/Delahaye00} \cite{DBLP:conf/lpar/Delahaye00} en Coq 7.0. Ltac es central en Coq y hasta algunos lo consideran una de las principales razones del éxito de este. Antes de Ltac, los usuarios de Coq tenían que escribir los \textit{proof terms} a mano o utilizaban un conjunto de tácticas muy primitivas que ejecutaban reglas muy básicas. Ltac le proporcionó a los usuarios una forma de escribir sus propias tácticas al unir las tácticas básicas gracias a un conjunto expresivo de combinadores, así permitiendo la el desarrollo de formalizaciones más complejas en Coq.
     \item[Vernacular] Este lenguaje contiene los comandos básicos de Coq con los que nos comunicamos con interprete. En lo que resta del trabajo utilizaremos varios de estos comandos.
 \end{description}
@@ -142,8 +140,9 @@ Inductive sig (A : Type) (P : A -> Prop) : Type :=
   exist : \forall x : A, P x -> {x : A | P x}
 \end{lstlisting}
 
-Se utiliza la notación \lstinline|{x : A \| P x}| para expresar \lstinline{sig A (fun x => P)}. Utilizaremos este tipo de manera extensa para nuestras definiciones.
 % TODO: está bien la notación?
+\graffito{TODO: está bien la notación?}
+Se utiliza la notación \lstinline|{x : A \| P x}| para expresar \lstinline{sig A (fun x => P)}. Utilizaremos este tipo de manera extensa para nuestras definiciones.
 
 La librería \lstinline{Program} permite progamar en Coq como si fuera un lenguaje de programación funcional mientras que, por detrás, se utiliza una especificación tan fuerte como se desee y probando que el codigo cumple la especificación de manera automática. En nuestro caso utilizaremos \lstinline{Program} para codificar \lstinline{head} de una manera casi transparente.
 \begin{lstlisting}
@@ -168,8 +167,8 @@ Proof. intro n. case n; [ | intro n']; reflexivity. Qed.
 
 En \ref{lst:sub_0_r}, definimos un lema enunciando que restarle 0 a cualquier número $n$ es $n$. Ya que la resta está definida por pattern matching en el primer argumento, esta igualdad no es automáticamente cierta computando. Por eso, debemos hacer análisis por casos.
 
-% TODO: cita Ltac https://coq.inria.fr/refman/zebibliography.html#del00
 % TODO: Utilizar tácticas de Coq. Mencionar que hay múltiples librerías de tacticas.
+\graffito{TODO: Mencionar que hay múltiples librerías de tacticas?}
 El código comienza con el comando \lstinline{Lemma}, donde efectivamente especificamos lo que queremos probar.
 Luego utilizamos el comando \lstinline{Proof} para indicar el inicio de la prueba, la cual será resuelta a través de la concatenación de tácticas de Ltac. Estas tácticas trasnforman el \textit{proof-state} incrementalmente construyendo un \textit{proof-term}, la prueba. Podemos pensar al proof-state como el estado parcial de la prueba. Aplicando tácticas podemos modificar este estado, y al mismo tiempo ir creando nuestr prueba, generalmente llamada proof-term.
 
@@ -177,20 +176,23 @@ Después de \lstinline{Proof}, Coq genera una \lstinline{goal}, una meta. Intern
 
 Para introducir la variable $n$, utilizamos \lstinline{intro}. Esta instancia a $?g$ como \lstinline{fun n:nat => $?g_1$} donde el tipo de $?g_1$ es \lstinline{n - 0 = n}.
 
-% TODO: Contextual Modal Type Theory, Nanevsky 2008.
+% TODO: Contextual Modal Type Theory, Nanevsky 2008. Me pa que no
 Ya introducida la variable, el próximo paso es hacer análisis por casos en ella. Con \lstinline{case} podemos analizar a $n$ según los constructores de su tipo. Para el primer caso: \lstinline{0 - 0 = 0} es trivial. El segundo caso es \lstinline{\forall n':nat, S n' - 0 = S n'}, para el cual, primero introduciremos $n'$ y luego, por la naturaleza inductiva de la resta, será igualmente trivial para Coq. La táctica \lstinline{case} retorna estas dos sub-metas, las cuales componemos, con el operador de composición (el punto y coma), con las tácticas listadas en \lstinline{[ | intro n']}. La primer sub-meta es resuelta por la táctica a la izquierda del \lstinline{|}, que es implicitamente la táctica identidad (\lstinline{idtac}), mientras que la segunda sub-meta es resuelta por la táctica a la derecha de \lstinline{|}, \lstinline{intro n'}. La salida de esta composición son de nuevo dos tácticas las que de nuevo compondremos con \lstinline{reflexivity}. Esto signfica que aplicaremos \lstinline{reflexivity} a ambas tácticas resultantes, resolviendolas trivialmente por computación.
 
 \section{Interfaz interactiva}
 
 Cuando se dice que Coq es un asistente \textit{interactivo} nos referimos a que Coq nos puede ayudar a desarrollar la prueba en cierta medida.
-% TODO: UI de Coq, dar ejemplos.
 Por ejemplo, supongamos que queremos probar el siguiente teorema.
 \begin{exmp}
 \begin{lstlisting}
 Definition le_S (n : nat) : n <= S n.
 \end{lstlisting}
 \end{exmp}
-Al entrar a alguno de los editores de textos compatibles con Coq (Emacs, Visual Studio Code o CoqIDE) cargamos el teorema y Coq entrará al modo interactivo, en el cual nos mostrará el estado actual de la prueba. En este caso comenzamos con la hipótesis \lstinline{n : \nat} ya en nuestro contexto y una única meta $?g$ de tipo \lstinline{n <= S n}. Ahora aplicamos inducción en \lstinline{n} obteniendo dos sub-metas: $?g_1$ con tipo \lstinline{0 <= S 0} y $?g_2$ con tipo \lstinline{S n <= S (S n)}. Para la primera meta $?g_1$ utilizamos \lstinline{apply} para aplicar el teorema \lstinline{le_0_n} instanciado con \lstinline{S n}, esto soluciona automaticamente la sub-meta. La segunda sub-meta se resuelve de una manera similar, solo que tenemos una hipótesis inductiva \lstinline{IHn}.
+Al entrar a alguno de los editores de textos compatibles con Coq (Emacs, Visual Studio Code o CoqIDE) cargamos el teorema y Coq entrará al modo interactivo, en el cual nos mostrará el estado actual de la prueba.
+En este caso comenzamos con la hipótesis \lstinline{n : \nat} ya en nuestro contexto y una única meta $?g$ de tipo \lstinline{n <= S n}.
+Ahora aplicamos inducción en \lstinline{n} obteniendo dos sub-metas: $?g_1$ con tipo \lstinline{0 <= S 0} y $?g_2$ con tipo \lstinline{S n <= S (S n)}.
+Para la primera meta $?g_1$ utilizamos \lstinline{apply} para aplicar el teorema \lstinline{le_0_n} instanciado con \lstinline{S n}, esto soluciona automaticamente la sub-meta.
+La segunda sub-meta se resuelve de una manera similar, solo que tenemos una hipótesis inductiva \lstinline{IHn}.
 
 En la siguiente figura podemos observar como se nos presenta esta información.
 
@@ -201,11 +203,55 @@ En la siguiente figura podemos observar como se nos presenta esta información.
   \label{fig:ui}
 \end{figure}
 
-Coq cuenta con muchos comandos que se usan constantemente.
-\begin{itemize}
-  \item \lstinline{Check} imprime el tipo de un término. Cuando es llamado en modo prueba, el término es chequeado en el contexto local de la sub-meta.
-  \item El comando \lstinline{About} muestra información general.
-  \item \lstinline{Print}:
-  \item \lstinline{Locate}:
-  \item \lstinline{Eval}:
-\end{itemize}
+Coq cuenta con muchos comandos que se usan constantemente. Estos comandos son parte del ``lenguaje'' introducido anteriormente: \textsc{Vernacular}. Algunos de los comandos más importantes son los siguientes.
+
+\begin{description}
+  \item[Check] Con \texttt{Check} podemos consultar el tipo de un término. Cuando es llamado en modo prueba, el término es chequeado en el contexto local de la sub-meta.
+  \begin{center}
+  \begin{tabular}{| l | l |}
+  \hline
+  \texttt{Check S O.} & \texttt{S O : nat} \\
+  \texttt{Check nat.} & \texttt{Set} \\
+  \hline
+  \end{tabular}
+  \end{center}
+  \item[About] El comando \texttt{About} provee información general. Por ejemplo, podemos consultar la signatura de una función, la de un tipo, o consultar el tipo de un constructor. Pero a diferencia de \texttt{Check}, no podemos pasarle cualquier termino. Por ejemplo, \texttt{About S O.} retornará un error.
+  \begin{center}
+  \begin{tabular}{| l | l |}
+  \hline
+  \texttt{About S.} & \texttt{S : nat -> nat} \\
+  \texttt{About list.} & \texttt{list : Type -> Type} \\
+  \hline
+  \end{tabular}
+  \end{center}
+  \item[Print] Podemos pensar a \texttt{Print} como un \texttt{About} que aparte nos muestra la definición completa. Con este podemos inspeccionar elementos ya definidos.
+  \begin{center}
+  \begin{tabular}{| l | l |}
+  \hline
+  \texttt{Print list.} & \texttt{Inductive list (A : Type) : Type := ...} \\
+  \hline
+  \end{tabular}
+  \end{center}
+  \item[Locate] Con este comando podemos encontrar donde han sido definidos los elementos. 
+  \begin{center}
+  \begin{tabular}{| l | l |}
+  \hline
+  \texttt{Locate bool.} & \texttt{Inductive Coq.Init.Datatypes.boo} \\
+  \hline
+  \end{tabular}
+  \end{center}
+  \item[Eval] Con \texttt{Eval} podemos evaluar terminos. La manera en que los evaluemos o reduzcamos es elegida por nosotros.
+  \begin{center}
+  \begin{tabular}{| l | l |}
+  \hline
+  \texttt{Eval compute in 1 + 1.} & \texttt{= 2 : nat} \\
+  \texttt{Eval cbv in (fun x => x * (x + 1)) 2.} & \texttt{= 6 : nat} \\
+  \hline
+  \end{tabular}
+  \end{center}
+  En este caso \texttt{compute} se traduce a $\beta$-reducir las funciones y \texttt{cbv} se refiere a ``call-by-value''. En este contexto \texttt{compute} y \texttt{cbv} reducen a lo mismo. En otros casos será muy importante diferenciar entre estos, incluyendo \texttt{cbn} (``call-by-name'').
+\end{description}
+
+Podemos encontrar una lista completa de estos comandos en \href{https://coq.inria.fr/refman/proof-engine/vernacular-commands.html}{Vernacular Commands}.
+
+% TODO: mencionar shortcuts??

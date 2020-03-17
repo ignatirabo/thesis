@@ -1,48 +1,47 @@
 \chapter{Mtac2}\label{ch:mtac2}
 
-% TODO: qué es mtac2?
-\Mtac es un meta-lenguaje de programación para Coq. Esto quiere decir que complementa a Coq, permitiendo ``hacer Coq'' de una manera distinta. En el trabajo, nos centramos en ampliar \Mtac y por eso es importante que veamos que nos permite hacer y cómo.
+\Mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} es un meta-lenguaje de programación para Coq. Esto quiere decir que complementa a Coq, permitiendo ``hacer Coq'' de una manera distinta. En el trabajo, nos centramos en ampliar \Mtac y por eso es importante que veamos que nos permite hacer y cómo.
 
 \section{Meta-tácticas}
-% TODO: cómo hacer meta-tácticas y cómo usarlas. Diferencias con tácticas normales. Hacer después de escribir tácticas de Coq.
 
-Ahora volveremos al ejemplo \ref{exmp:sub_0_r} y utilizaremos meta-tácticas para probarlo.
-\begin{exmp}\label{exmp:sub_0_r_mtac2}
-\begin{lstlisting}
+Ahora volveremos al ejemplo \ref{lst:sub_0_r} y utilizaremos meta-tácticas para probarlo.
+\begin{lstlisting}[frame=tb,caption={Prueba en \Mtac},label=lst:sub_0_r_mtac2]
 MProof.
 intro n. case n &> [m: idtac | intro n'] &> reflexivity.
 Qed.
 \end{lstlisting}
-\end{exmp}
 
 \section{Mónadas}
-% TODO: qué son las mónadas, como se operan y por qué las queremos.
-Las mónadas son uno de los temas esotéricos de programación funcional y son una implementación del concepto de teoría de categorías. Según el libro X son ...
+Las mónadas son uno de los temas esotéricos de programación funcional y son una implementación del concepto de teoría de categorías.
+% Según el libro X son ...
 %TODO: citar el libro que me pasó miguel de teoría de categorías?
-Por esto nos limitaremos a hablar de mónadas a un nivel más computacional. Dentro de este contexto, utilizamos la función \lstinline{M : Type -> Prop} para referirnos a la versión monádica de un tipo cualquiera. A partir de los tipos monádicos pasamos a tener elementos monádicos. Estos elementos efectivamente reflejan pasos computacionales y se construyen a través de dos funciones: \lstinline{bind} compone pasos computacionales y \lstinline{return} o \lstinline{ret} los envuelve en la mónada. Por ejemplo, podemos tener el tipo \lstinline{M nat} que expresa posibles valores naturales, y uno de estos elementos es \lstinline{ret 5}. Lo importante de las mónadas es que nos permiten expresar programas con efectos secundarios de una manera funcional.
+Por esto nos limitaremos a hablar de mónadas a un nivel más computacional. Dentro de este contexto, utilizamos la función \lstinline{M : Type -> Prop} para referirnos a la versión monádica de un tipo cualquiera. A partir de los tipos monádicos, pasamos a tener elementos monádicos. Estos elementos reflejan pasos computacionales y se construyen a través de dos funciones: \lstinline{bind} compone pasos computacionales y \lstinline{return} o \lstinline{ret} los envuelve en la mónada. Por ejemplo, podemos tener el tipo \lstinline{M nat} que expresa posibles valores naturales, y uno de estos elementos es \lstinline{ret 5}. Lo importante de las mónadas es que nos permiten expresar programas con efectos secundarios de una manera funcional.
+\graffito{TODO: No nos interesan los detalles?}
 Esto también es lo que nos permite tener tacticas tipadas, pero no nos interesan los detalles de la implementación.
 
 \section{Confección de Meta-programas}
-Ya habiendo mencionado meta-tátcias, ahora hablaremos de meta-programas. Estos son la base de las meta-tácticas y podemos escribir programas que luego serán tácticas. Estos programas se caracterizan por ser monádicos, es decir, que tienen efectos secundarios. Esto se amplia a muchas caracteristicas útiles, pero nada es gratis, entonces debemos comprender las limitaciones impuestas por el meta-lenguaje.
+
+Ya habiendo mencionado meta-tácticas, tornaremos nuestra atención a meta-programas. Las meta-tácticas serán programas de \Mtac. Estos programas se caracterizan por ser monádicos, es decir, que tienen efectos secundarios. Esto se amplia a muchas caracteristicas útiles, pero nada es gratis, entonces debemos comprender las limitaciones impuestas por el meta-lenguaje.
 
 % TODO: acá hablamos de mmatch, mtmmatch, mfix y las nuevas meta-cosas: sigmas, etc.
 Comenzaremos analizando \lstinline{mmatch}. Como ya vimos en Gallina, el \lstinline{match} es puro, o sea, necesitamos matchear todos los casos del constructor y a su vez no podemos matchear en terminos que no sean constructores del tipo. Mientras tanto, \lstinline{mmatch} nos permite matchear libremente. Esto significa que podemos matchear en expresiones sintácticas de manera de separarlas muy especificamente para nuestra conveniencia. Un ejemplo puede ser el siguiente.
 
-Imaginemos un programa que a todo número le suma uno, pero especificamente no modifica el número original si este está exprezado como una suma. Esto se puede exprezar de la siguiente forma en \lstinline{Mtac2}.
+Imaginemos un programa que a todo número le suma uno, pero especificamente no modifica el número original si este está expresado como una suma. Esto se puede exprezar de la siguiente forma en \Mtac.
 \begin{lstlisting}
 Definition test_match (n : nat) : M nat :=
   mmatch n with
   | [? x y] add x y => ret n
   | O => ret (S O)
-  | [? n']S n' => ret (S (S n'))
+  | [? n'] S n' => ret (S (S n'))
   end.
 \end{lstlisting}
 
-El único detalle extraño que podemos encontrar es que en dos de los casos tenemos unos corchetes antes de la expresión. Esto se utiliza para decirle a Mtac2 que esas variables están siendo introducidas en ese momento.
+El único detalle extraño que podemos encontrar es que en dos de los casos tenemos unos corchetes antes de la expresión. Esto se utiliza para decirle a \Mtac que estas variables están siendo introducidas al contexto.
 
 % mfix
 Para hacer programas recursivos utilizaremos \lstinline{mfix}. Existen multiples variantes para una cantidad distinta de argumentos recursivos: \lstinline{mfix1}, \lstinline{mfix2}, e
 tcetera.
+
 Un ejemplo puede ser \lstinline{map}.
 \begin{lstlisting}
 Definition map {A} {B} (t : A -> B) : \forall (l : list A), M (list B) :=
@@ -50,12 +49,12 @@ mfix1 m (l : list A) : M list B :=
   mmatch l with
   | nil => ret nil
   | [? x xs] x::xs => xs' <- m xs;
-                      ret ((t x)::xs')
+                            ret ((t x)::xs')
   end.
 \end{lstlisting}
 
-% TODO: explicar notación de <- y ;;.
-En el ejemplo anterior se hace uso de los dos operadores monádicos mencionados anteriormente. Para \lstinline{bind}, utilizamos la notación \lstinline{<-} que conecta a \lstinline{m xs} con \lstinline{ret ((t x)::xs')}.
+En \lstinline{map} solo tenemos un argumento recursivo que será la lista que estamos mapeando.
+En el ejemplo también vemos el uso de la notación \lstinline{<-}. Esta signfica que estamos \emph{bindeando} a la variable \lstinline{xs'} con el cómputo \lstinline{m xs}. En otros ejemplos es posible que veamos otra notación: \lstinline{;;}. Esta también es un bind pero con la diferencia de que no nos interesa el valor que retorna. Usualmente lo observaremos al usar \lstinline{print}, ya que esta función retorna \lstinline{unit}.
 
 \section{El costo}
 
@@ -67,6 +66,7 @@ Definition univ (P : Prop): M P :=
 
 Si no utilizaramos la mónada esto no sería posible. La mónada no nos da tantas garantías como un tipo nativo de Coq.
 
+\graffito{TODO: verdad o mentira?}
 Dada esta limitación todas las funciones nativas de Coq pueden ser utilizadas en los tipos de las funciones, pero no sucede lo mismo con las funciones monádicas. Esto hace que se tenga que pensar de manera estratégica que funciones deseamos hacer nativas y cuales monádicas.
 
 \section{Alternativas}
@@ -75,10 +75,14 @@ Dada esta limitación todas las funciones nativas de Coq pueden ser utilizadas e
 % TODO: referencias https://popl19.sigplan.org/details/CoqPL-2019/8/Ltac2-Tactical-Warfare
 % TODO: Mtac [9] and Mtac2 [3], Rtac [4] and Template-Coq [1], and Coq-Elpi [8].
 
+\graffito{TODO: se necesita ojo de Beta}
 \Mtac no es el único meta-lenguaje de programación para Coq. 
 Dentro de estea categoría encontramos dos principales.
 
-El primero es \emph{Ltac2}. Al igual que \Mtac es tipado, y basicamente funciona como un wrapper alrededor del \emph{proof engine} de Coq.
-Implementa una $\alpha$ táctica de tipo monádico en OCaml y trata de conservar la mayor parte de Ltac posible.
+Un ejemplo de otro meta-lenguaje es \emph{Ltac2}.
+Este funciona como un wrapper alrededor del \emph{proof engine} de Coq.
+Implementa una $\alpha$ táctica de tipo monádico en OCaml y trata de conservar la mayor parte de Ltac posible, busca la mayor retrocompatibilidad.
+
+Otras alternativas pueden ser \emph{Template-Coq} \cite{DBLP:conf/itp/AnandBCST18}, \emph{Rtac} \cite{DBLP:conf/esop/MalechaB16} y \emph{Coq-Elpi} \cite{tassi:hal-01637063}
 
 La gran diferencia entre estos meta-lenguajes es que \Mtac es \emph{shallow embedded}, mientras que los otros no. A diferencia de \Mtac, los objetos de estas alternativas son términos de un tipo inductivo \lstinline{Term}, es decir, no tienen un tipo informativo.
