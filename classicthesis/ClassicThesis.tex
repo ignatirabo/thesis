@@ -76,6 +76,7 @@
 %\cleardoublepage\include{FrontBackmatter/Publications}
 %\cleardoublepage\include{FrontBackmatter/Acknowledgments}
 \cleardoublepage\include{FrontBackmatter/Contents}
+
 %********************************************************************
 % Mainmatter
 %*******************************************************
@@ -85,21 +86,23 @@
 %\setcounter{page}{90}
 % use \cleardoublepage here to avoid problems with pdfbookmark
 \cleardoublepage
-
 %************************************************
 \part{Una introducción}\label{pt:introduccion}
-
-%************************************************
-%\include{Chapters/Chapter01/intro}
 \include{Parts/Part01/coq}
 \include{Parts/Part01/mtac2}
 \include{Parts/Part01/tele}
 \cleardoublepage
+%************************************************
 \ctparttext{You can put some informational part preamble text here.}
 \part{Lift}\label{pt:lift}
 \include{Parts/Part02/motivacion}
 \include{Parts/Part02/lift}
 \include{Parts/Part02/technical}
+% ********************************************************************
+\ctparttext{You can put some informational part preamble text here.}
+\part{Conclusión}\label{pt:conclusion}
+% \include{Parts/Part03/futuro}
+\include{Parts/Part03/conclusion}
 % ********************************************************************
 % Backmatter
 %*******************************************************
