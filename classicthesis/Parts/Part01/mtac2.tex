@@ -86,3 +86,47 @@ Implementa una $\alpha$ táctica de tipo monádico en OCaml y trata de conservar
 Otras alternativas pueden ser \emph{Template-Coq} \cite{DBLP:conf/itp/AnandBCST18}, \emph{Rtac} \cite{DBLP:conf/esop/MalechaB16} y \emph{Coq-Elpi} \cite{tassi:hal-01637063}
 
 La gran diferencia entre estos meta-lenguajes es que \Mtac es \emph{shallow embedded}, mientras que los otros no. A diferencia de \Mtac, los objetos de estas alternativas son términos de un tipo inductivo \lstinline{Term}, es decir, no tienen un tipo informativo.
+
+\section{Telescopios}
+
+En Mtac2 llamamos \textit{telescopios} a una estructura de datos inductiva
+que permite expresar una secuencia de tipos posiblemente dependientes de largo arbitrario.
+
+\begin{lstlisting}[frame=tb,caption={Definicion de telescopio},label=lst:MTele]
+Inductive MTele : Type :=
+| mBase : MTele
+| mTele {X : Type} (F : X -> MTele) : MTele.
+\end{lstlisting}
+
+\graffito{TODO: Mencionar el uso general de MTele? En ese caso cual es?}
+El tipo \lstinline{MTele} crea una cadena de abstracciones.
+Este se codifica a través de funciones, lo que permite que sean dependientes, es decir, un telescopio puede tener elementos que dependan de elementos anteriores.
+
+Los telescopios, junto con las funciones que lo acompañan, serán claves a la hora de poder expresar nuestro problema y consecuente solución.
+
+Los telescopios no se caracterizan por ser simples.
+Para comenzar a estudiarlos podemos pensarlos en jerarquías.
+La primera jerarquía sería la de los telescopios en sí, elementos de tipo \lstinline{MTele}. Definiremos la siguiente notación para poder referirnos a estos de manera más simple.
+
+\begin{lstlisting}
+mBase $\equiv$ [$\;$]$_t$
+mTele (fun T : Type => mTele R : T -> Type) $\equiv$ [T : Type;> R : (T -> Type)]$_t$
+mTele (fun T : Type => mTele t : T) $\equiv$ [T : Type;> t : T]$_t$
+\end{lstlisting}
+
+Las otras jerarquías entran en juego cuando utilizamos las distintas funciones telescopicas.
+
+\begin{lstlisting}[frame=tb,caption={Definición de \lstinline{Sort}},label=lst:Sort]
+Inductive Sort : Type := Prop_sort | Type_sort.
+\end{lstlisting}
+
+La principal función es \lstinline{MTele_Sort}.
+Dado un telescopio \lstinline{t} de largo $n$ y un \lstinline{s : Sort}, esta función computa \lstinline{(\forall x$_1$ ... x$_n$, s)}, es decir, retorna el tipo expresado por ese telescopio y el \lstinline{Sort} dado.
+% TODO: Explicar que es Sort y stype_of
+Utilizaremos \lstinline{MTele_Ty} y \lstinline{MTele_Prop} para expresar \lstinline{MTele_Sort \Type_sort} y \lstinline{MTele_Sort \Prop_sort} respectivamente, donde \lstinline{\Type_sort} y \lstinline{\Prop_sort} son notación para \lstinline{Type_sort} y \lstinline{Prop_sort}. Elementos de este tipo serán de la segunda jerarquía.
+
+También debemos poder referirnos a valores de estos tipos telescópicos. Esto signfica que dado un elemento de tipo \lstinline{MTele_Sort s t}, podamos conseguir un elemento de tipo \lstinline{s}. En terminos matemáticos, \lstinline{fun x$_1$ ... x$_n$ => T x$_1$ ... x$_n$} con \lstinline{T : MTele_Sort s t}. Consideraremos que estos elementos pertenecen a la tercera y última jerarquía.
+
+\graffito{TODO: falta hablar de \texttt{MTele\_C}? Sirve para definir MFA.}
+Deseriamos que este fuera el final de los telescopios, pero nos falta el último ingrediente que nos proveerá del poder que buscamos. Con \lstinline{MTele_In} podemos ganar acceso a múltiples tipos y valores telescopios al mismo tiempo, así siendo capaces de computar un nuevo tipo telescópico.
+\graffito{TODO: más sobre esto, no explico nada. Se pueden poner más ejemplos o qué?}

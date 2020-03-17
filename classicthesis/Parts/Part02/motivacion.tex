@@ -5,7 +5,7 @@
 \textsc{Mtac2} nos permite definir funciones monádicas. Estas cuentan con ciertas ventajas.
 La siguiente función calcula el máximo de una lista de números \lstinline{nat : Set} y utiliza \lstinline{mtmmatch} para hacer un analisis sintáctico más profundo del que se puede realizar en \lstinline{match}. % TODO: hablar de mtmmatch en la intro.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Teorema y prueba en Coq},label=lst:list_max_nat]
+\begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max_nat}},label=lst:list_max_nat]
 Definition list_max_nat :=
   mfix f (l: list nat) : l <> nil -> M nat :=
     mtmmatch l as l' return l' <> nil -> M nat with
@@ -26,16 +26,18 @@ El último caso de \lstinline{mtmmatch} analiza una expresión que no es un cons
 Notar que tampoco podemos utilizar \lstinline{mmatch} ya que el tipo que retornamos terminos de tipo \lstinline{l' <> nil -> M nat}.
 
 Ahora supongamos que deseamos parametrizar $\nat$ y utilizar una función que acepte multiples conjuntos de nuestro interés.
-\begin{lstlisting}[float=h,frame=tb,caption={Teorema y prueba en Coq},label=lst:max]
+
+\begin{lstlisting}[frame=tb,caption={Función \lstinline{max}},label=lst:max]
 Definition max (S: Set) : M (S -> S -> S) :=
   mmatch S in Set as S' return M (S' -> S' -> S') with
   | nat => M.ret Nat.max
   end.
 \end{lstlisting}
+
 Sea \lstinline{max} en \ref{lst:max}, la función que retorna la relación máximo en un conjunto $S$.
 A primera vista nuestra idea podría fucionar, es decir, conceptualmente no es incorrecta.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Teorema y prueba en Coq},label=lst:list_max]
+\begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max}},label=lst:list_max]
 Definition list_max (S: Set) :=
   max <- max S; (* error! *)
   mfix f (l: list S) : l' <> nil -> M S :=
@@ -60,9 +62,12 @@ Una alternativa es introducir los parámetros de la función y beta-expandir la 
 Otra es codificar un nuevo bind que tenga el tipo necesario.
 El problema será que ambas soluciones son específicas al problema, entonces en cada situación debemos volver a implementar alguno de estos operadores.
 
-En nuestra solución suplantamos \lstinline{bind} y \lstinline{ret} por \lstinline{bind^} y \lstinline{ret^}, respectivamente. Estás funciones son las versiones lifteadas de las originales y poseen el tipo necesario.
+En nuestra solución suplantamos \lstinline{bind} y \lstinline{ret} por \lstinline{bind^} y \lstinline{ret^}, respectivamente. Llamaremos a estas funciones las versiones \emph{lifteadas} de las originales. Estas poseen el tipo necesario.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Teorema y prueba en Coq},label=lst:list_max_lifted]
+Nuestro proyecto es la codificación de un nuevo meta-programa \lift que puede generalizar meta-programas con las dependencias necesarias para que sea utilizado en el contexto.
+En nuestro ejemplo, con \lift podemos generalizar \lstinline{bind} y \lstinline{ret}, consiguiendo nuevos meta-programas que se comportan como las originales pero con una signatura distinta, permitiendo su uso.
+
+\begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max} lifteada},label=lst:list_max_lifted]
 Definition list_max_lifted (S: Set) :=
   max <^- max S; (* notación para bind^ *)
   mfix f (l: list S) : l' <> nil -> M S :=
@@ -75,6 +80,4 @@ Definition list_max_lifted (S: Set) :=
     end.
 \end{lstlisting}
 
-Nuestro proyecto es la codificación de un nuevo meta-programa \lift que puede generalizar meta-programas con las dependencias necesarias para que sea utilizado en el contexto.
-En nuestro ejemplo, con \lift podemos generalizar \lstinline{bind} y \lstinline{ret}, consiguiendo nuevos meta-programas que se comportan como las originales pero con una signatura distinta, permitiendo su uso.
 Veremos que la función \lift requiere pequeño esfuerzo para ser utilizada.
