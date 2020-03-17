@@ -9,7 +9,7 @@ En términos generales \lift es un fixpoint sobre un telescopio con un gran aná
 Entonces surge un problema: ¿cómo podemos hacer \textit{pattern matching} en los tipos de manera sintáctica?
 La solución es utilizar un reflejo de los mismos, de manera de que podamos expresarlos de manera inductiva.
 
-\graffito{Los nombres de los constructores están simplificados para la facilidad del lector. En el apépendice podemos encontrar la verdadera definición.}
+\graffito{Los nombres de los constructores están simplificados para la facilidad del lector. En el apéndice podemos encontrar la verdadera definición.}
 \begin{lstlisting}[float=h,frame=tb,caption={El tipo inductivo \lstinline{TyTree}},label=lst:tytree]
 Inductive TyTree : Type :=
 | \tyTree_val$\!$ {m : MTele} (T : MTele_Ty m) : TyTree
@@ -212,13 +212,14 @@ Notar que el primer constructor no es reemplazado ya que \lstinline{T} no se enc
 % TODO: hablar de contains_m para explicar como vemos estas cosas como el T de arriba?
 \section{El algoritmo}
 
+\graffito{TODO: No me gusta cómo está hecho esto, analizar si hay que cambiarlo.}
 A continuación haremos un recorrido paso a paso de como \lstinline{ret} es lifteado.
 
 \begin{enumerate}
     \item Matcheamos \lstinline{\tyTree_FAType \; F} donde \lstinline{F : Type -> TyTree}. Generamos un tipo arbritario \lstinline{A} para entonces poder verificar si, en \lstinline{F A}, \lstinline{A} se encuentra bajo la mónada. Realizamos esta verificación con la función auxiliar \lstinline{is_m}. Esta función retornará \lstinline{true} ya que efectivamente el tipo \lstinline{A} se encuentra bajo la mónada. Entonces generamos un nuevo \lstinline{A : MTele_Ty t}, es decir, una versión telescopica de \lstinline{A} y aplicamos \lift de manera recursiva sobre \lstinline{F (apply_sort A U)}. Aquí utilizamos la función \lstinline{apply_sort} de manera de aplicar los argumentos de \lstinline{U} en el tipo \lstinline{A}.
     % TODO: que sucede si da false?
     \item Ahora debemos liftear algo del siguiente tipo.
-    \begin{lstlisting}[frame=tb]
+    \begin{lstlisting}
 \tyTree_imp \; (\tyTree_base (apply_sort A U)) (\tyTree_M (apply_sort A U)))
     \end{lstlisting}
     Nuestra expresión matcheará con el caso \lstinline{\tyTree_imp} de \lift. Dado que ya hemos introducido todos los tipos cuantificados, sabemos cómo tratar a cada uno. En este caso eso es muy importante dado que se realiza un chequeo para saber si el lado izquierdo de la implicación contiene un tipo telescópico. Si no lo hay, el lado izquierdo de la implicación será ``final'', es decir, no necesitará más modificaciones. Pero en nuestro caso, reemplazamos \lstinline{A} por \lstinline{apply_sort A U}. Realizamos este chequeo con la función auxiliar \lstinline{contains_u}. Esto nos lleva a tener que utilizar \lstinline{lift_in}.
@@ -231,15 +232,15 @@ A continuación haremos un recorrido paso a paso de como \lstinline{ret} es lift
     % TODO: explicar accessor y Type_sort?
     % Esta función retornará un $\Sigma$-Type con un valor \lstinline{F : accessor t -> \Type_sort} y una prueba de que el tipo \lstinline{\tyTree_base \; (apply_sort A U)} es igual a \lstinline{F (uncurry_in_acc U)}. Todo esto parece suena muy técnico pero la idea intuitiva es que \lstinline{uncurry_in_acc U} nos retorna el accessor trivial de \lstinline{U}. Lo importante es que sabemos que \lstinline{F (uncurry_in_acc U)} es igual al lado izquierdo de la implicación de \lstinline{ret}.
     Esto nos es útil porque ahora podemos generar un valor \lstinline{x : X'}en \lift, donde \lstinline{X'} es \lstinline{MTele_val (MTele_In \Type_sort F)}.
-    Es decir que \lstinline{x} es una variable del tipo resultante de liftear \lstinline{X}, el lado izquierdo de la implicación. Lo que resta es tomar nuestra función \lstinline{f} de tipo \lstinline{X' -> Y} y liftearla. Esto signfica liftear \lstinline{f x}.
-    \item El último paso es \lstinline{lift t U Y (f x)} sabiendo que \lstinline{Y = \tyTree_M (apply_sort A U)}, entonces matcheamos con el caso correspondiente. Primero, debemos abstraer a \lstinline{U} de \lstinline{f} obteniendo una función dependiente de esta variable.
+    Es decir que \lstinline{x} es una variable del tipo resultante de liftear \lstinline{X}, el lado izquierdo de la implicación. Lo que resta es tomar nuestra función \lstinline{f} de tipo \lstinline{X'-> Y} y liftearla. Esto signfica liftear \lstinline{f x}.
+    \item El último paso es \lstinline{lift t U Y (f x)} sabiendo que \lstinline{Y = \tyTree_M$\,$ (apply_sort A U)}, entonces matcheamos con el caso correspondiente. Primero, debemos abstraer a \lstinline{U} de \lstinline{f} obteniendo una función dependiente de esta variable.
     % TODO: quien es curry?
-    Luego, currificamos a \lstinline{f} con respecto a \lstinline{U}. Esto se realiza a través de la función \lstinline{curry} de \textsc{Mtac2}, y de esta manera, la función pasa a tener tipo \lstinline{to_ty (\tyTree_MFA A)}.
+    Luego, currificamos a \lstinline{f} con respecto a \lstinline{U}. Esto se realiza a través de la función \lstinline{curry} de \textsc{Mtac2}, y de esta manera, la función pasa a tener tipo \lstinline{to_ty (\tyTree_MFA$\,$ A)}.
 %     \begin{lstlisting}
 % f : \forall x$_1$ ... x$_n$ => \tyTree_MFA (A x$_1$ ... x$_n$)
 %     \end{lstlisting}
     \item Finalmente, \lift retorna un \lstinline{T' : TyTree} y \lstinline{ret^ : to_ty (T')} con
     \begin{lstlisting}
-T' = \tyTree_FATeleType (fun A => \tyTree_imp (\tyTree_val A) (\tyTree_MFA A)).
+T' = \tyTree_FATeleType$\,$ (fun A => \tyTree_imp$\,$ (\tyTree_val$\,$ A) (\tyTree_MFA$\,$ A)).
     \end{lstlisting}
 \end{enumerate}
