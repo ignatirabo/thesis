@@ -183,11 +183,11 @@ Ya introducida la variable, el próximo paso es hacer análisis por casos en ell
 
 Cuando se dice que Coq es un asistente \textit{interactivo} nos referimos a que Coq nos puede ayudar a desarrollar la prueba en cierta medida.
 Por ejemplo, supongamos que queremos probar el siguiente teorema.
-\begin{exmp}
-\begin{lstlisting}
+
+\begin{lstlisting}[frame=tb,caption={Teorema ejemplo},label=lst:le_S]
 Definition le_S (n : nat) : n <= S n.
 \end{lstlisting}
-\end{exmp}
+
 Al entrar a alguno de los editores de textos compatibles con Coq (Emacs, Visual Studio Code o CoqIDE) cargamos el teorema y Coq entrará al modo interactivo, en el cual nos mostrará el estado actual de la prueba.
 En este caso comenzamos con la hipótesis \lstinline{n : \nat} ya en nuestro contexto y una única meta $?g$ de tipo \lstinline{n <= S n}.
 Ahora aplicamos inducción en \lstinline{n} obteniendo dos sub-metas: $?g_1$ con tipo \lstinline{0 <= S 0} y $?g_2$ con tipo \lstinline{S n <= S (S n)}.

@@ -11,6 +11,7 @@ Finalmente, se desarrolló el meta-programa \lift que puede generalizar otros me
 En algún punto se planea añadir \lift a \mtac como un feature por defecto. Pero principalmente el interés cae en implementar notación inteligente que pueda deducir telescopios. Como vimos en \ref{ch:motivacion}, las funciones \lstinline{bind} y \lstinline{ret} son funciones que queremos liftear, y probablemente con mayor frecuencia que otras. Con Coq podemos inferir el tipo necesario de estos dos operadores (y otros) y de esta manera podemos generar los telescopios, es decir, liftear funciones de manera completamente automática.
 La notación es la siguiente.
 
+\graffito{TODO: definir esto con Beta}
 \begin{lstlisting}
 a <^- b (* bind de a en b pero con un bind lifteado *)
 a;^;b (* equivalente a arriba pero sin conservar computo *)
