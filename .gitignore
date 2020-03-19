@@ -3,6 +3,7 @@
 *.lof
 *.log
 *.lot
+*.lol
 *.fls
 *.out
 *.toc
@@ -20,8 +21,7 @@
 *.cmx
 *.cmxa
 *.cmxs
-*.glob
-*.ml.d
+*.glob 
 *.ml4.d
 *.mli.d
 *.mllib.d
@@ -56,3 +56,5 @@ main.toc
 *-blx.aux
 *-blx.bib
 *.run.xml
+tex/main.pdf
+classicthesis/ClassicThesis.pdf
