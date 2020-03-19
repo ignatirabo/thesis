@@ -4,7 +4,9 @@
 
 \section{Meta-tácticas}
 
-Ahora volveremos al ejemplo \ref{lst:sub_0_r} y utilizaremos meta-tácticas para probarlo.
+Ahora volveremos al ejemplo \ref{lst:sub_0_r} y utilizaremos tácticas de \Mtac para probarlo.
+
+\graffito{TODO: explicar más}
 \begin{lstlisting}[frame=tb,caption={Prueba en \Mtac},label=lst:sub_0_r_mtac2]
 MProof.
 intro n. case n &> [m: idtac | intro n'] &> reflexivity.
@@ -12,6 +14,8 @@ Qed.
 \end{lstlisting}
 
 \section{Mónadas}
+
+\graffito{TODO: Beta pregunta porqué hablamos de mónadas}
 Las mónadas son uno de los temas esotéricos de programación funcional y son una implementación del concepto de teoría de categorías.
 % Según el libro X son ...
 %TODO: citar el libro que me pasó miguel de teoría de categorías?
@@ -39,6 +43,7 @@ Definition test_match (n : nat) : M nat :=
 El único detalle extraño que podemos encontrar es que en dos de los casos tenemos unos corchetes antes de la expresión. Esto se utiliza para decirle a \Mtac que estas variables están siendo introducidas al contexto.
 
 % mfix
+\graffito{TODO: agregar explicación de mfix y mtmmatch ya que los usamos}
 Para hacer programas recursivos utilizaremos \lstinline{mfix}. Existen multiples variantes para una cantidad distinta de argumentos recursivos: \lstinline{mfix1}, \lstinline{mfix2}, e
 tcetera.
 
@@ -66,7 +71,6 @@ Definition univ (P : Prop): M P :=
 
 Si no utilizaramos la mónada esto no sería posible. La mónada no nos da tantas garantías como un tipo nativo de Coq.
 
-\graffito{TODO: verdad o mentira?}
 Dada esta limitación todas las funciones nativas de Coq pueden ser utilizadas en los tipos de las funciones, pero no sucede lo mismo con las funciones monádicas. Esto hace que se tenga que pensar de manera estratégica que funciones deseamos hacer nativas y cuales monádicas.
 
 \section{Alternativas}
@@ -77,7 +81,6 @@ Dada esta limitación todas las funciones nativas de Coq pueden ser utilizadas e
 
 \graffito{TODO: se necesita ojo de Beta}
 \Mtac no es el único meta-lenguaje de programación para Coq. 
-Dentro de estea categoría encontramos dos principales.
 
 Un ejemplo de otro meta-lenguaje es \emph{Ltac2}.
 Este funciona como un wrapper alrededor del \emph{proof engine} de Coq.
@@ -85,12 +88,12 @@ Implementa una $\alpha$ táctica de tipo monádico en OCaml y trata de conservar
 
 Otras alternativas pueden ser \emph{Template-Coq} \cite{DBLP:conf/itp/AnandBCST18}, \emph{Rtac} \cite{DBLP:conf/esop/MalechaB16} y \emph{Coq-Elpi} \cite{tassi:hal-01637063}
 
-La gran diferencia entre estos meta-lenguajes es que \Mtac es \emph{shallow embedded}, mientras que los otros no. A diferencia de \Mtac, los objetos de estas alternativas son términos de un tipo inductivo \lstinline{Term}, es decir, no tienen un tipo informativo.
+La gran diferencia entre estos meta-lenguajes es que \Mtac es \emph{shallowly embedded}, mientras que los otros no. A diferencia de \Mtac, los objetos de estas alternativas son términos de un tipo inductivo \lstinline{Term}, es decir, no tienen un tipo informativo. Es decir, en \Mtac un programa \lstinline{M A} está garantizado que, si termina correctamente, retorna un término de tipo \lstinline{A}. Pero en los lenguajes \emph{deeply embedded} como los mencionados nada garantiza que el término retornado tenga un tipo dado; puede retornarse cualquier elemento de cualquier tipo.
 
 \section{Telescopios}
 
-En Mtac2 llamamos \textit{telescopios} a una estructura de datos inductiva
-que permite expresar una secuencia de tipos posiblemente dependientes de largo arbitrario.
+Los \emph{telescopios} son una estructura de datos inductiva de \Mtac que permite expresar una secuencia de tipos o valores, posiblemente dependientes, y de largo arbitrario.
+Los telescopios, junto con las funciones que lo acompañan, serán claves a la hora de poder expresar nuestro problema y consecuente solución.
 
 \begin{lstlisting}[frame=tb,caption={Definicion de telescopio},label=lst:MTele]
 Inductive MTele : Type :=
@@ -102,31 +105,54 @@ Inductive MTele : Type :=
 El tipo \lstinline{MTele} crea una cadena de abstracciones.
 Este se codifica a través de funciones, lo que permite que sean dependientes, es decir, un telescopio puede tener elementos que dependan de elementos anteriores.
 
-Los telescopios, junto con las funciones que lo acompañan, serán claves a la hora de poder expresar nuestro problema y consecuente solución.
+Definiremos la siguiente notación para poder referirnos a los telescopios de una manera más accesible.
 
-Los telescopios no se caracterizan por ser simples.
-Para comenzar a estudiarlos podemos pensarlos en jerarquías.
-La primera jerarquía sería la de los telescopios en sí, elementos de tipo \lstinline{MTele}. Definiremos la siguiente notación para poder referirnos a estos de manera más simple.
+El constructor \lstinline{mBase} representa el telescopio vacío o de largo cero. Representaremos con \lstinline{[$\;$]$_t$} a \lstinline{mBase}.
 
-\begin{lstlisting}
-mBase $\equiv$ [$\;$]$_t$
-mTele (fun T : Type => mTele R : T -> Type) $\equiv$ [T : Type;> R : (T -> Type)]$_t$
-mTele (fun T : Type => mTele t : T) $\equiv$ [T : Type;> t : T]$_t$
+Para un telescopio de largo $n$, tenemos al constructor \lstinline{mTele} anidado $n$ veces. Dado que podemos pensar al telescopio como una secuencia dependiente de tipos, un posible comienzo es \lstinline{[T$_0$ : Type ;> ...]$_t$}. Ahora, todos argumentos siguientes del telescopio pueden depender de \lstinline{T$_0$}. Luego, \lstinline{[T$_0$ : Type ;> T$_1$ : T$_0$ -> Type ;> ...]$_t$} tiene sentido, y el tipo \lstinline{T$_1$} depende de \lstinline{T$_0$}. Tranquilamente se puede dar el caso es que ningún argumento dependa de \lstinline{T$_0$}.
+
+\begin{lstlisting}[frame=tb,caption={Notación de telescopios},label=lst:not_tele]
+(* ej 1 *) mBase $\equiv$ [$\;$]$_t$
+(* ej 2 *) mTele (fun T : Type => mTele R : T -> Type) $\equiv$
+[T : Type ;> R : (T -> Type)]$_t$
+(* ej 3 *) mTele (fun T : Type => mTele t : T) $\equiv$
+[T : Type ;> t : T]$_t$
 \end{lstlisting}
 
-Las otras jerarquías entran en juego cuando utilizamos las distintas funciones telescopicas.
+Para comenzar a estudiar a este tipo, podemos pensar que existen jerarquías.
+La primera jerarquía sería la de los telescopios en sí, elementos de tipo \lstinline{MTele}.
+Ahora, dado un \lstinline{m : MTele}, la segunda jerarquía es la de los tipos generados por el telescopio \lstinline{m}.
+Luego, el último nivel es el de los elementos de este nuevo tipo telescopico.
+
+Veremos esto en mayor profundidad, pero para eso debemos primero definir el tipo \lstinline{Sort}.
 
 \begin{lstlisting}[frame=tb,caption={Definición de \lstinline{Sort}},label=lst:Sort]
-Inductive Sort : Type := Prop_sort | Type_sort.
+Inductive Sort : Type := \Prop_sort | \Type_sort.
 \end{lstlisting}
 
-La principal función es \lstinline{MTele_Sort}.
-Dado un telescopio \lstinline{t} de largo $n$ y un \lstinline{s : Sort}, esta función computa \lstinline{(\forall x$_1$ ... x$_n$, s)}, es decir, retorna el tipo expresado por ese telescopio y el \lstinline{Sort} dado.
-% TODO: Explicar que es Sort y stype_of
-Utilizaremos \lstinline{MTele_Ty} y \lstinline{MTele_Prop} para expresar \lstinline{MTele_Sort \Type_sort} y \lstinline{MTele_Sort \Prop_sort} respectivamente, donde \lstinline{\Type_sort} y \lstinline{\Prop_sort} son notación para \lstinline{Type_sort} y \lstinline{Prop_sort}. Elementos de este tipo serán de la segunda jerarquía.
+Dentro de unos parrafos, utilizaremos \lstinline{Sort} para abstraer el concepto de tipo y proposición, y poder aplicar ciertas funciones telescópicas.
 
-También debemos poder referirnos a valores de estos tipos telescópicos. Esto signfica que dado un elemento de tipo \lstinline{MTele_Sort s t}, podamos conseguir un elemento de tipo \lstinline{s}. En terminos matemáticos, \lstinline{fun x$_1$ ... x$_n$ => T x$_1$ ... x$_n$} con \lstinline{T : MTele_Sort s t}. Consideraremos que estos elementos pertenecen a la tercera y última jerarquía.
+\begin{itemize}
+  \item En el nivel superior, definimos nuestro telescopio \lstinline{m} de largo $n$ con dependencias arbitrarias. Esto es simplemente utilizando los constructores de \lstinline{MTele}.
+  \item Ya con \lstinline{m} definido, podemos utilizar la función \lstinline{MTele_Sort} para computar un tipo derivado del telescopio. Sea \lstinline{s : Sort}, es decir, \lstinline{s} es \lstinline{\Type_sort} o \lstinline{\Prop_sort}, la expresión \lstinline{(MTele_Sort s m)} es un tipo, y específicamente, es el tipo \lstinline{\forall x$_1$ x$_2$ ... x$_n$, s}.
+  \item Como dijimos, \lstinline{(MTele_Sort s m)} es un tipo, por lo tanto, podemos tener elementos de ese tipo. Esta sería la última jerarquía.
+  
+  Para esto utilizamos la función \lstinline{MTele_val}. Esta función toma un valor de \lstinline{(MTele_Sort s m)} y retorna un valor de tipo \lstinline{s}. Por cómo es el tipo, esto signfica que un valor del mismo es algo de la forma \lstinline{(fun x$_1$ x$_2$ ... x$_n$ => T x$_1$ x$_2$ ... x$_n$)} para algún \lstinline{T}. Luego, \lstinline{MTele_val} retornará un valor de tipo \lstinline{s}, es decir, \lstinline{T y$_1$ y$_2$ ... y$_n$} para algunos \lstinline{y$_i$}.
+\end{itemize}
 
+Utilizaremos \lstinline{MTele_Ty} y \lstinline{MTele_Prop} para expresar \lstinline{MTele_Sort \Type_sort} y \lstinline{MTele_Sort \Prop_sort} respectivamente.
+
+\subsection{Funciones extra}
 \graffito{TODO: falta hablar de \texttt{MTele\_C}? Sirve para definir MFA.}
-Deseriamos que este fuera el final de los telescopios, pero nos falta el último ingrediente que nos proveerá del poder que buscamos. Con \lstinline{MTele_In} podemos ganar acceso a múltiples tipos y valores telescopios al mismo tiempo, así siendo capaces de computar un nuevo tipo telescópico.
-\graffito{TODO: más sobre esto, no explico nada. Se pueden poner más ejemplos o qué?}
+
+Los telescopios de \Mtac traen consigo muchas funciones que son las que le dan el poder expresivo que los hace útiles. 
+
+La función \lstinline{MTele_C} permite mapear a un \lstinline{MTele_Sort} con una función constante.
+Por ejemplo, la mónada que hemos observado antes: \lstinline{M}, en realidad es una función de \lstinline{Type} en \lstinline{Prop}.
+Entonces podríamos tomar un tipo \lstinline{\forall x$_1$ ... x$_n$, T x$_1$ ... x$_n$} y transformalo en \lstinline{\forall x$_1$ ... x$_n$, M (T x$_1$ ... x$_n$)}
+
+\graffito{TODO: Ampliar, no explica nada}
+Con \lstinline{MTele_In} podemos ganar acceso a múltiples tipos y valores telescopios al mismo tiempo, así siendo capaces de computar un nuevo tipo telescópico.
+
+\subsection{Ejemplos}
+\graffito{TODO: poner ejemplos de jerarquías etc}
