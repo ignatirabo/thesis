@@ -69,10 +69,10 @@ En nuestro ejemplo, con \lift podemos generalizar \lstinline{bind} y \lstinline{
 
 \begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max} lifteada},label=lst:list_max_lifted]
 Definition list_max_lifted (S: Set) :=
-  max <^- max S; (* notación para bind^ *)
-  mfix f (l: list S) : l' <> nil -> M S :=
+max <^- max S; (* notacion para bind^ *)
+mfix f (l: list S) : l' <> nil -> M S :=
     mtmmatch l as l' return l' <> nil -> M S with
-    | [? e] [e] => ret^ e
+    | [? e] [e] => ret^ (fun _ => e)
     | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
       m <- max e1 e2;
       f (m :: l') _

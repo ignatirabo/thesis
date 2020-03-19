@@ -2,6 +2,7 @@ Require Import Program.
 Require Import Coq.Lists.List.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Init.Nat.
+Require Import Coq.Logic.Decidable.
 
 From Mtac2 Require Import Base Mtac2 Specif Sorts MTele MFixDef MTeleMatch MFix.
 Import Sorts.S.
@@ -55,7 +56,7 @@ move=> A l1 l2. case: l1.
 Defined.
 
 About bind.
-
+(*
 Definition list_max_nat :=
   mfix f (l: list nat) : l <> nil -> M nat :=
     mtmmatch l as l' return l' <> nil -> M nat with
@@ -84,3 +85,22 @@ Definition list_max (S: Set)  :=
       m <- max e1 e2;
       f (m :: l') _
     end.
+
+*)
+
+Definition m : MTele := mTele (fun T : Type => mTele (fun l : list T =>  mTele (fun p : List.length l = 0 => mBase))).
+
+Eval cbn in MTele_Ty m.
+
+Definition tm : MTele_Ty m := fun T l p => l = nil.
+
+About MTele_val.
+Eval cbn in MTele_val tm.
+
+Print Datatypes.length.
+
+Definition test_m : forall T (l : list T) (p : List.length l = 0), l = nil.
+intros T l p. by apply length_zero_iff_nil.
+Qed.
+
+Definition vm : MTele_val tm := test_m.

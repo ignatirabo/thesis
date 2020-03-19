@@ -30,11 +30,11 @@ Con los constructores de este tipo podemos expresar todas las signaturas que nos
 
 \begin{lstlisting}[frame=tb,caption={Ejemplos de \lstinline{TyTree}},label=lst:exmp_tytree]
 ret : \forall A, A -> M A.
-ret : \tyTree_FAType$\!$ (fun A => \tyTree_imp$\!$ (\tyTree_base A) (\tyTree_M A)).
+ret_r : \tyTree_FAType$\!$ (fun A => \tyTree_imp$\!$ (\tyTree_base A) (\tyTree_M A)).
 bind : \forall A B, M A -> (A -> M B) -> M B.
-bind : \tyTree_FAType$\!$ (fun A => \tyTree_FAType$\!$ (fun B => \tyTree_imp$\!$ (\tyTree_M A) (\tyTree_imp$\!$ (\tyTree_imp$\!$ (\tyTree_base A) (\tyTree_M B)) (\tyTree_M B)))).
+bind_r : \tyTree_FAType$\!$ (fun A => \tyTree_FAType$\!$ (fun B => \tyTree_imp$\!$ (\tyTree_M A) (\tyTree_imp$\!$ (\tyTree_imp$\!$ (\tyTree_base A) (\tyTree_M B)) (\tyTree_M B)))).
 f : \forall (n : nat), 0 <= n -> M nat.
-f : \tyTree_FAVal$\!$ nat (fun n => \tyTree_imp$\!$ (\tyTree_base (0 <= n)) (\tyTree_M nat)).
+f_r : \tyTree_FAVal$\!$ nat (fun n => \tyTree_imp$\!$ (\tyTree_base (0 <= n)) (\tyTree_M nat)).
 \end{lstlisting}
 
 A primera vista los tipos puede escribirse de múltiples formas ya que \lstinline{\tyTree_FAVal} es más fuerte que \lstinline{\tyTree_imp}. La clave está en que nuestra función \lift hará una separación muy específica entre cada caso y nuestra forma de reescribir la signatura de una función es sumamente importante.
@@ -164,7 +164,7 @@ Sea \lstinline{t : MTele} de largo $n$ y \lstinline{T : MTele_Ty t}, \lstinline{
 En el caso de \ref{lst:ret_lift_m}, la signatura \lstinline{\tyTree_In$\xspace$ \Type_sort (fun a : accessor m => acc_sort a A)} es simplemente equivalente a \lstinline{\tyTree_val$\xspace$ A} pero Coq no puede inferir esto directamente.
 La forma en que hemos definido \lift utiliza esta forma más general en todos los casos.
 
-Si concretizamos el telescopio conseguiremos una signatura más parecida a la matemática y la función resultante será muy simple. Por eso, utilizemos el telescopio de nuestra motivación \ref{lst:list_max_tele}.
+Si concretizamos el telescopio conseguiremos una signatura más parecida a la matemática y la función resultante será muy simple. Por eso, utilizemos el telescopio \lstinline{m} de nuestra motivación \ref{lst:list_max_tele}.
 % Para mostrar esto supongamos que tenemos un telescopio \lstinline{t := [x$_1$ : T$_1$;> x$_2$ : T$_2$;> x$_3$ : T$_3$]$_t$}. Luego,
 
 \begin{lstlisting}[frame=tb,caption={Ejemplo de \lstinline{ret^}},label=lst:exmp_ret]
@@ -177,12 +177,13 @@ ret^ : \forall A : l <> nil -> Type,
 
 Notemos que esta solución efectivamente se puede utilizar en \ref{lst:list_max_lifted}. Podemos observar también la signatura en forma \lstinline{TyTree} y notar que se corresponde con lo esperado.
 
+\graffito{TODO: de donde saqué esto? Capaz en la laptop?}
 \begin{lstlisting}[frame=tb,caption={Signatura en \lstinline{TyTree} de \lstinline{ret^}},label=lst:exmp_ret_tytree]
-\tyTree_FATeleType (tele_motiv S l)
+\tyTree_FATeleType (m S l)
   (fun A : l <> nil -> Type =>
     \tyTree_imp
       (\tyTree_In Type_sort
-        (fun a : accessor (tele_motiv S l) => acc_sort a A))
+        (fun a : accessor (m S l) => acc_sort a A))
           (\tyTree_MFA A))
 \end{lstlisting}
 % TODO: hacer lo mismo que con ret pero con bind. Why not?

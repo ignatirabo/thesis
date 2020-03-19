@@ -10,13 +10,26 @@ El \emph{lifteo} de funciones será trabajado en este capítulo a través de eje
 
 \section{Definiendo objetivos}
 
-Una de las funciones monádica más simples es \lstinline{ret : \forall A, A -> M A}, uno de los operadores monádicos.
+Una de las funciones monádica más simples es \lstinline{ret : forall A, A -> M A}, uno de los operadores monádicos.
 
 \begin{lstlisting}[float=h,frame=tb,caption={Signatura de ret},label=lst:ret]
 ret : forall A, A -> M A
 \end{lstlisting}
 
-Como vemos en la signatura de \lstinline{ret}, solo puede devolver expresiones \lstinline{M A} donde no es posible que haya dependencias en \lstinline{A}. Esto hace que en una serie de situaciones no sea posible usar esta función.
+Como vemos en la signatura de \lstinline{ret}, solo puede devolver expresiones \lstinline{M A} donde no es posible que el retorno esté cuantificado, es decir, que retorne una función.
+Si tomamos \lstinline{list_max_lifted} \ref{lst:list_max_lifted}, la función \lstinline{ret^} toma un valor de tipo \lstinline{(l' <> nil -> S)} y retorna \lstinline{l' <> nil -> M S}, que también puede ser expresado como \lstinline{forall (p : l' <> nil), M S}.
+Notemos que en \lstinline{list_max_lifted}, el argumento de \lstinline{ret^} no utiliza el valor introducido en la función.
+
+En principio, el tipo \lstinline{A : Type} de \lstinline{ret} será reemplazado por
+\begin{lstlisting}
+A : l' <> nil -> Type
+\end{lstlisting}
+y naturalmente podemos observar como queda el resto. 
+
+\begin{lstlisting}[float=h,frame=tb,caption={Signatura deseada de \lstinline{ret}},label=lst:ret_motiv]
+ret^ : \forall (A : l' <> nil -> Type), (\forall p, A p) -> (\forall p, M (A p))
+\end{lstlisting}
+
 % TODO: linkear con motivación y lift_max.
 
 % Supongamos que nos interesa tener
@@ -24,22 +37,27 @@ Como vemos en la signatura de \lstinline{ret}, solo puede devolver expresiones \
 % ret^ : \forall (A : nat -> nat -> Type), (\forall n n', A n n') -> (\forall n n', M (A n n'))
 % \end{lstlisting}
 
-Ahora, nuestro trabajo es poder definir un telescopio que se amolde a la información que necesitamos agregar.
-En este caso el telescopio es el siguiente: \lstinline{t := [n : nat ;> n' : nat]$_t$} dado que queremos que \lstinline{A} dependa de dos $\nat$. Efectivamente \lstinline{ret^ := lift ret t}. Este ejemplo es simple porque la signatura de \lstinline{ret} no contiene funciones. Pero en ese caso, estudiemos que sucede con \lstinline{bind}.
+% Ahora, nuestro trabajo es poder definir un telescopio que se amolde a la información que necesitamos agregar.
+% En este caso el telescopio es el siguiente: \lstinline{t := [n : nat ;> n' : nat]$_t$} dado que queremos que \lstinline{A} dependa de dos $\nat$.
+% Efectivamente \lstinline{ret^ := lift ret t}.
+% Este ejemplo es simple porque la signatura de \lstinline{ret} no contiene funciones.
+Ahora estudiemos que sucede con \lstinline{bind}.
 
-Bind es el otro operador monádico y su signatura presenta un problema. Esto es debido a que su signatura contiene una función y esta depende de los argumentos \lstinline{A} y \lstinline{B} que se encuentran bajo la mónada en diferentes partes del tipo.
+El operador \lstinline{bind} es la otra función que debemos modificar, pero su signatura presenta un problema más complejo que la de \lstinline{ret}. Esto es debido a que su signatura contiene una función y esta depende de los argumentos \lstinline{A} y \lstinline{B} que se encuentran bajo la mónada en diferentes partes del tipo.
 
 \begin{lstlisting}[float=h,frame=tb,caption={Signatura de bind},label=lst:bind]
 bind : forall A B, M A -> (A -> M B) -> M B
 \end{lstlisting}
 
-Volviendo a ref(motivacion) vimos que nuestro bind no es suficientemente general. El candidato a ser \lstinline{A} es \lstinline{S -> S -> S}, pero para \lstinline{B} dijimos \lstinline{l' <> nil -> M S} aunque esto es incorrecto. Lo que verdaderamente necesitamos es exprezar en un telescopio que deseamos que \texttt{S} dependa de \lstinline{l' <> nil}, es decir, \lstinline{S : \forall (p : l' <> nil), Type}. Claramente cuantificar esta parte del tipo es más fuerte que una dependencia, pero a nuestros fines no es un problema.
+Volviendo a \lstinline{list_max} \ref{lst:list_max}, pudimos notar que \lstinline{bind} no es suficientemente general. El candidato a ser \lstinline{A} es \lstinline{S -> S -> S}, pero para \lstinline{B} dijimos \lstinline{l' <> nil -> M S} aunque esto es incorrecto.
+Lo que verdaderamente necesitamos es exprezar en un telescopio que deseamos que \texttt{S} dependa de \lstinline{l' <> nil}, es decir, \lstinline{S : \forall (p : l' <> nil), Type}.
+Claramente cuantificar esta parte del tipo es más fuerte que una dependencia, pero a nuestros fines no es un problema.
 
 Ya con esta idea, podemos ver que el tipo que queremos que \lstinline{bind} retorne es \lstinline{\forall (p : l' <> nil), M (S p)}. Y finalmente llegamos al siguiente resultado.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Nueva signatura de bind},label=lst:bind_motiv]
+\begin{lstlisting}[float=h,frame=tb,caption={Signatura deseada de \lstinline{bind}},label=lst:bind_motiv]
 bind^ : \forall (A B : \forall (p : l' <> nil), Type),
-  (\forall p, M (A p)) -> )(\forall p, A p -> B p) -> (\forall p, M (B p)).
+  (\forall p, M (A p)) -> (\forall p, A p -> B p) -> (\forall p, M (B p)).
 \end{lstlisting}
 
 \section{Creando telescopios}
@@ -49,8 +67,8 @@ Como vimos anteriormente, para liftear una función necesitamos definir un teles
 
 Para el caso de \ref{lst:list_max_lifted} debemos añadir una única dependencia de tipo \lstinline{l' <> nil}. Por ese motivo necesitaremos un telescopio de largo uno.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Nueva signatura de bind},label=lst:list_max_tele]
-tele_motiv : MTele := [p : l' <> nil]$_t$
+\begin{lstlisting}[float=h,frame=tb,caption={Telescopio para \lstinline{list_max}},label=lst:list_max_tele]
+m : MTele := [p : l' <> nil]$_t$
 \end{lstlisting}
 
 Cabe aclarar que \lstinline{l'} es una variable ya definida en el contexto, y por eso nos referimos a esa lista particular y no a cualquier otra.
@@ -58,7 +76,7 @@ Cabe aclarar que \lstinline{l'} es una variable ya definida en el contexto, y po
 En otros casos definiremos telescopios con más argumentos y estos argumentos pueden ser dependientes. Por ejemplo, si \lstinline{l'} no estuviera definida previamente, necesitariamos que nuestro telescopio sea algo como  \lstinline{t : MTele := [l' : list S ;> p : l' <> nil]$_t$}. Y así sucesivamente.
 
 % TODO: referenciar trabajo futuro
-En ref(futuro) discutiremos sobre la capacidad de generar estos telescopios de manera automática analizando el tipo deseado de nuestra función lifteada.
+En \ref{sc:futuro} discutiremos sobre la capacidad de generar estos telescopios de manera automática analizando el tipo deseado de nuestra función lifteada.
 
 \section{El resultado}
 
@@ -73,14 +91,19 @@ bind^ := mprojT2 (lift bind t)
 Finalmente nuestro programa quedaría de la siguiente forma.
 
 \begin{lstlisting}[float=h,frame=tb,caption={Lifteando \lstinline{ret} y \lstinline{bind}},label=lst:lift1]
-Definition list_max (S: Set)  :=
-  max <^- max S; (* error! *)
-  mfix f (l: list S) : l' <> nil -> M S :=
+Definition list_max_lifted (S: Set) :=
+max <^- max S; (* notacion para bind^ *)
+mfix f (l: list S) : l' <> nil -> M S :=
     mtmmatch l as l' return l' <> nil -> M S with
-    | [? e] [e] =m> ret^ e
-    | [? e1 e2 l'] (e1 :: e2 :: l') =m> fun nonE =>
+    | [? e] [e] => ret^ (fun _ => e)
+    | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
       m <- max e1 e2;
-      f (m :: l') cons_not_nil
+      f (m :: l') _
+    | [? l' r'] app l' r' => fun P =>
+      match app_not_nil l' r' P with
+      | inl P' => f l' P'
+      | inr P' => f r' P'
+      end
     end.
 \end{lstlisting}
 

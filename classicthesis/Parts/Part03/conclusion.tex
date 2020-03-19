@@ -1,12 +1,12 @@
 \chapter{Conclusiones y trabajo futuro}\label{ch:conclusion}
 
-\section{Conclusiones}
+\section{Conclusión}\label{sc:conclusion}
 
 En la parte \ref{pt:introduccion} estudiamos al asistente de pruebas Coq y el meta-lenguaje de programación \mtac. Vimos como los tipos dependientes son sumamente importantes y como en \mtac se utilizan mónadas para escribir los meta-programas. 
 Luego, en la parte \ref{pt:lift} comprendimos el problema que se puede generar al utilizar los operadores monádicos de \mtac y un uso fuerte de tipos dependientes. Analizamos las signaturas de las funciones y se concluyó en que se necesitaban nuevas funciones más generales.
 Finalmente, se desarrolló el meta-programa \lift que puede generalizar otros meta-programas de manera cuasi automática. Para hacer esto realizamos un análisis por caso sobre la signatura de las funciones, y utilizamos telescopios para expresar los argumentos dependientes que se desea agregar.
 
-\section{Trabajo futuro}
+\section{Trabajo futuro}\label{sc:futuro}
 
 En algún punto se planea añadir \lift a \mtac como un feature por defecto. Pero principalmente el interés cae en implementar notación inteligente que pueda deducir telescopios. Como vimos en \ref{ch:motivacion}, las funciones \lstinline{bind} y \lstinline{ret} son funciones que queremos liftear, y probablemente con mayor frecuencia que otras. Con Coq podemos inferir el tipo necesario de estos dos operadores (y otros) y de esta manera podemos generar los telescopios, es decir, liftear funciones de manera completamente automática.
 La notación es la siguiente.

@@ -143,7 +143,7 @@ Dentro de unos parrafos, utilizaremos \lstinline{Sort} para abstraer el concepto
 Utilizaremos \lstinline{MTele_Ty} y \lstinline{MTele_Prop} para expresar \lstinline{MTele_Sort \Type_sort} y \lstinline{MTele_Sort \Prop_sort} respectivamente.
 
 \subsection{Funciones extra}
-\graffito{TODO: falta hablar de \texttt{MTele\_C}? Sirve para definir MFA.}
+% \graffito{TODO: falta hablar de \texttt{MTele\_C}? Sirve para definir MFA.}
 
 Los telescopios de \Mtac traen consigo muchas funciones que son las que le dan el poder expresivo que los hace útiles. 
 
@@ -154,5 +154,49 @@ Entonces podríamos tomar un tipo \lstinline{\forall x$_1$ ... x$_n$, T x$_1$ ..
 \graffito{TODO: Ampliar, no explica nada}
 Con \lstinline{MTele_In} podemos ganar acceso a múltiples tipos y valores telescopios al mismo tiempo, así siendo capaces de computar un nuevo tipo telescópico.
 
-\subsection{Ejemplos}
-\graffito{TODO: poner ejemplos de jerarquías etc}
+\subsection{Ejemplo}
+% \graffito{TODO: poner ejemplos de jerarquías etc}
+
+Para que los conceptos queden claros vamos a plantear un ejemplo de telescopios.
+
+Primero definimos un telescopio \lstinline{m}.
+
+\begin{lstlisting}
+Definition m := [T : Type ;> l : list T ;> p : length l = 0]$_t$
+\end{lstlisting}
+
+Si ahora inspeccionamos quien es \lstinline{MTele_Sort \Type_sort m} veremos que es lo esperado.
+
+\begin{lstlisting}
+Eval cbn in MTele_Ty m.
+= \forall (T : Type) (l : list T), length l = 0 -> Type : Type
+\end{lstlisting}
+
+El próximo paso es hablar de elementos de este tipo.
+
+\begin{lstlisting}
+Definition Tm : MTele_Ty m := fun T l p => l = nil.
+\end{lstlisting}
+
+Donde tenemos \lstinline{l <> nil} podemos poner cualquier tipo.
+Podriamos tener \lstinline{nat}, pero para hacerlo más interesante definimos un tipo con sentido.
+Lo importante es que Coq acepta la definición de \lstinline{Tm}, lo que implica que esta definición efectivamente tiene tipo el tipo esperado.
+Si este no fuera el caso, el type-checker de Coq no lo aceptaría.
+El próximo paso es definir un elemento del tipo \lstinline{Tm}.
+
+Podemos definir el siguiente teorema y probarlo.
+
+\begin{lstlisting}
+Definition test_Tm : forall T (l : list T) (p : List.length l = 0), l = nil.
+intros T l p. by apply length_zero_iff_nil.
+Qed.
+\end{lstlisting}
+
+El truco es que al conocer a \lstinline{Tm} sabemos que esta función tiene ese tipo.
+Finalmente, podemos definir lo siguiente.
+
+\begin{lstlisting}
+Definition vm : MTele_val tm := test_Tm.
+\end{lstlisting}
+
+Efectivamente, \lstinline{test_Tm} tiene tipo \lstinline{MTele_val tm}.
