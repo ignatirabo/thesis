@@ -5,7 +5,7 @@ Comenzaremos discutiendo su funcionamiento básico y de ahí escalaremos a algun
 
 \section{El tipo TyTree}
 
-En términos generales \lift es un fixpoint sobre un telescopio con un gran análisis por casos sobre los tipos.
+En términos generales, \lift es un fixpoint sobre un telescopio con un gran análisis por casos sobre los tipos.
 Entonces surge un problema: ¿cómo podemos hacer \textit{pattern matching} en los tipos de manera sintáctica?
 La solución es utilizar un reflejo de los mismos, de manera de que podamos expresarlos de manera inductiva.
 
@@ -229,16 +229,19 @@ Esto quiere decir que transporta los argumentos del telescopio en un ``contenedo
 % Es nuestro truco para poder hacer funcionar \lift ya que podemos transportar los argumentos empaquetados.
 Cuando encontramos un tipo \lstinline{A} cualquiera en nuestra función, este tipo puede o no estar bajo la mónada.
 Si no lo está, no debemos realizar ninguna tarea.
-Pero en el caso de estarlo, debemos modificarlo. Esto signfica reemplazar a \lstinline{A} por \lstinline{A : MTele_Ty t} con \lstinline{t : MTele}.
+Pero en el caso de estarlo, debemos modificarlo. Esto signfica reemplazar al tipo original \lstinline{A} por \lstinline{A : MTele_Ty t} con \lstinline{t : MTele}.
 Notemos que \lstinline{A} puede ser cualquier tipo.
 Con la función \lstinline{apply_sort} podemos aplicar a \lstinline{U} en \lstinline{A}. La función generará un nuevo tipo: \lstinline{\forall v$_1$ ... v$_n$, A v$_1$ ... v$_n$}.
 
 Cuando en \lift encontramos una implicación, debemos liftear el lado izquierdo para luego poder liftear el derecho.
-Para hacer esto utilizamos la función auxiliar \lstinline{lift_in}.
+Para hacer esto utilizamos la función \lstinline{lift_in}.
 % Esta funciona tiene solo tres casosa pero la principal diferencia es la signatura del retorno: es un $\sigma$-tipo que lleva una función \lstinline{F} y una prueba 
-\graffito{TODO: explicar uncurry}
-A través de otras funciones auxiliares, \lstinline{lift_in} nos permitirá reemplazar nuestro tipo \lstinline{apply_sort A U} por un otro tipo equivalente: \lstinline{F (uncurry_in_acc U)}. Veamos que signfica esto.
+% \graffito{TODO: explicar uncurry}
+A través de otras funciones auxiliares, \lstinline{lift_in} nos permitirá reemplazar nuestro tipo \lstinline{apply_sort A U} por un otro tipo equivalente: \lstinline{F (uncurry_in_acc U)} donde \lstinline{F := fun a => a.(acc_sort) A}.
+La función \lstinline{uncurry_in_acc} toma nuestro \lstinline{U : ArgsOf m} y nos devuelve un \lstinline{accessor m}.
+De esta forma, \lstinline{F (uncurry_in_acc U)} se traduce a \lstinline{(uncurry_in_acc U).(acc_sort) A}, lo que intuitivamente representa el tipo \lstinline{A} con los argumentos de \lstinline{U}.
 
+Necesitamos codificarlo de esta forma para que sea aceptado por \lstinline{MTele_In}, y \lstinline{lift_in} nos provee del tipo junto con una prueba de equivalencia entre ambos. De esta forma, podemos reemplazarlo sin problema, y así, podemos liftear al elemento de la izquierda de la implicación.
 
 % TODO: se puede hacer sección de funciones auxiliares aunque creo que no es necesario.
 % TODO: hablar de contains_m para explicar como vemos estas cosas como el T de arriba?
