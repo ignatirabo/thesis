@@ -2,9 +2,10 @@
 
 \section{Conclusión}\label{sc:conclusion}
 
-En la parte \ref{pt:introduccion} estudiamos al asistente de pruebas Coq y el meta-lenguaje de programación \mtac. Vimos como los tipos dependientes son sumamente importantes y como en \mtac se utilizan mónadas para escribir los meta-programas. 
+En la parte \ref{pt:introduccion} estudiamos al asistente de pruebas Coq y el meta-lenguaje de programación \mtac. Vimos como los tipos dependientes son sumamente importantes y como en \mtac se utilizan mónadas para escribir los meta-programas.
+
 Luego, en la parte \ref{pt:lift} comprendimos el problema que se puede generar al utilizar los operadores monádicos de \mtac y un uso fuerte de tipos dependientes. Analizamos las signaturas de las funciones y se concluyó en que se necesitaban nuevas funciones más generales.
-Finalmente, se desarrolló el meta-programa \lift que puede generalizar otros meta-programas de manera cuasi automática. Para hacer esto realizamos un análisis por caso sobre la signatura de las funciones, y utilizamos telescopios para expresar los argumentos dependientes que se desea agregar.
+Consecuentemente, desarrollamos el meta-programa \lift que puede generalizar otros meta-programas de manera cuasi automática. Para hacer esto realizamos un análisis por caso sobre la signatura de las funciones, y utilizamos telescopios para expresar los argumentos dependientes que se desea agregar.
 
 \section{Trabajo futuro}\label{sc:futuro}
 
@@ -15,7 +16,7 @@ La notación es la siguiente.
 \begin{lstlisting}
 a <^- b (* bind de a en b pero con un bind lifteado *)
 a;^;b (* equivalente a arriba pero sin conservar computo *)
-g^ (* función cualquiera lifteada *)
+g^ (* funcion cualquiera lifteada *)
 \end{lstlisting}
 
 Parte de esta notación ya ha sido desarrollada.
