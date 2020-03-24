@@ -9,6 +9,7 @@ Unset Universe Minimization ToSet.
 Unset Printing Universes.
 
 Local Definition MFA {n} (T : MTele_Ty n) := (MTele_val (MTele_C Type_sort Prop_sort M T)).
+Local Notation InF s n := (forall now_ty : forall s0 : Sort, MTele_Sort s0 n -> s0, (forall (s0 : Sort) (T : MTele_Sort s0 n), MTele_val T -> now_ty s0 T) -> s).
 
 (* If recursion is needed then it's TyTree, if not only Type *)
 Inductive TyTree : Type :=
@@ -38,14 +39,13 @@ Fixpoint to_ty (X : TyTree) : Type :=
   | tyTree_base T => T
   end.
 
-(* This function is not used at all, hence the reason why it's not polished *)
+
 Definition to_tree (X : Type) : M TyTree :=
   (mfix1 rec (X : Type) : M TyTree :=
     mmatch X as X return M TyTree with
     | [? T : Type] (M T):Type =>
       ret (tyTree_M T)
-    | [? T R : Type] T -> R =>
-    (* no dependency of T on R. It's equivalent to forall _ : T, R *)
+    | [? T R : Type] T -> R => (* no dependency of T on R. It's equivalent to forall _ : T, R *)
       T <- rec T;
       R <- rec R;
       ret (tyTree_imp T R)
@@ -60,6 +60,15 @@ Definition to_tree (X : Type) : M TyTree :=
         F <- abs_fun t F;
         ret (tyTree_FAVal T F)
     | _ => ret (tyTree_base X)
+    (* | [? (m : MTele) (T : MTele_Ty m)] MTele_val T =>
+       ret (tyTree_val p T) (* fail *) *)
+    (* | [? (m : MTele) (T : MTele_Ty m)] (MFA T):Type =>
+      ret (tyTree_MFA T) (* fail *) *)
+    (* | [? (m : MTele) (T : MTele_Ty m) (F : forall x : MTele_val T, Type)] forall T , F T =>
+      \nu t : _,
+        F <- rec (F t) p;
+        F <- abs_fun t F;
+        ret (tyTree_FATeleVal p T F) (* fail *) *)
     end) X.
 
 (*** Is-M *)
@@ -92,7 +101,9 @@ Definition is_m (T : TyTree) (A : Type) : M bool :=
   | _ => ret false
   end) T.
 
-(* This function is used to determine if a TyTree contains a mention of an element U. The idea is to abstract and if the abstraction fails, it means that U is in T. It's a hack Janno figured we could use *)
+(* This function is used to determine if a TyTree contains a mention of an element U *)
+(* The idea is to abstract and if the abstraction fails, it means that U is in T *)
+(* It's a hack Janno figured we could use *)
 Definition contains_u (m : MTele) (U : ArgsOf m) (T : TyTree) : M bool :=
   mtry
     T' <- abs_fun U T;
@@ -138,11 +149,20 @@ Defined.
 
 Definition UnLiftInCase : Exception. exact exception. Qed.
 
-(* This is a new type that helps organize the code. *)
+(* Return: big f with accesors and F now_ty now_ty = to_ty T. *)
+(*
+Let now_ty {m} (U : ArgsOf m) := fun (s' : Sort) (ms : MTele_Sort s' m) => apply_sort ms U.
+Let now_val {m} (U : ArgsOf m) :=
+  fun (s' : Sort) (ms : MTele_Sort s' m) (mv : MTele_val ms) => uncurry_val mv U.
+*)
+
+(* This is a new type that helps organize the code *)
+(* I don't know if there is some kind of intuition *)
 Definition lift_inR {m} (T : TyTree) (A : accessor m):=
   m:{F : (accessor m -> Type_sort) & (to_ty T = F A)}.
 
-(* This function is an auxiliary function called by lift. It is only used for tyTree_imp, for the left side of the implication *)
+
+(* This function is an auxiliary function called by lift. It is only used for tyTree_imp *)
 Definition lift_in {m : MTele} (U : ArgsOf m) (T : TyTree) :
                  M (lift_inR T (uncurry_in_acc U)) :=
   (mfix1 f (T : TyTree) : M (lift_inR T (uncurry_in_acc U)) :=
@@ -183,20 +203,22 @@ Fixpoint MTele_cs {s : Sort} {n : MTele} {X : Type} (f : M X) : MFA (@MTele_Cs T
   | mBase =>
     f
   | @mTele Y F =>
+    (* Fun (fun x : X => @MTele_cs _ (F x) _ f) *)
     @Fun Type_sort Y (fun y : Y => MFA (@MTele_Cs Type_sort (F y) X)) (fun y : Y => @MTele_cs s (F y) X f)
+    (* ltac:(simpl in *; refine (@Fun s X (fun x => MTele_val (@MTele_Cs _ (F x) T)) (fun x : X => @MTele_cs _ (F x) T f))) *)
   end.
 
-(* Next line needs to be after MTele_cs, if not, Coq fails to typecheck *)
+(* Next line needs to after MTele_cs, if not, Coq fails to typecheck *)
 Arguments MTele_Cs {s} {n} _.
 
 Definition ShitHappens : Exception. exact exception. Qed.
 
-(* It has a lot of prints for easier debugging *)
 Polymorphic Fixpoint lift (m : MTele) (U : ArgsOf m) (T : TyTree) :
   forall (f : to_ty T), M m:{ T : TyTree & to_ty T} :=
   match T as T return forall (f : to_ty T), M m:{ T' : TyTree & to_ty T'} with
   | tyTree_base X =>
     fun f =>
+      print "lift: base";;
       ret (mexistT (fun Y : TyTree => to_ty Y) (tyTree_base X) f)
   | tyTree_M X =>
     fun f =>
@@ -222,6 +244,7 @@ Polymorphic Fixpoint lift (m : MTele) (U : ArgsOf m) (T : TyTree) :
         ret (mexistT (fun X : TyTree => to_ty X) (tyTree_MFA T) f')
       end
   | tyTree_imp X Y =>
+    (* print "hola";; *)
     fun f =>
       print "lift: imp";;
       print "X on imp:";;
@@ -233,6 +256,7 @@ Polymorphic Fixpoint lift (m : MTele) (U : ArgsOf m) (T : TyTree) :
         mtry
           ('(mexistT _ F e) <- lift_in U X;
           \nu x : MTele_val (MTele_In Type_sort F),
+            (* ltac:(rewrite e in f; exact (f (uncurry_in (s:=SType) F x U))) *)
             (* lift on right side Y *)
             let G := (F (uncurry_in_acc U)) -> to_ty Y in
             match eq_sym e in _ = T return (T -> to_ty Y) -> M _ with
@@ -270,6 +294,7 @@ Polymorphic Fixpoint lift (m : MTele) (U : ArgsOf m) (T : TyTree) :
       if b then (* Replace A with a (RETURN A U) *)
         \nu A : MTele_Ty m,
           (* I use apply_sort A U to uncurry the values *)
+          (* 101101000001110apply_sort A U is just forall x y z, A z x y *)
           s <- lift m U (F (apply_sort A U)) (f (apply_sort A U));
           let '(mexistT _ T' f') := s in
           T'' <- abs_fun (P := fun A => TyTree) A T';
@@ -281,8 +306,7 @@ Polymorphic Fixpoint lift (m : MTele) (U : ArgsOf m) (T : TyTree) :
           print "f'':";;
           print_term f'';;
           ret (mexistT to_ty T'' f'')
-      else
-        (* A is not monadic, no replacement *)
+      else (* A is not monadic, no replacement *)
         s <- lift m U (F A) (f A);
         let '(mexistT _ T' f') := s in
         T'' <- abs_fun (P := fun A => TyTree) A T';
@@ -299,71 +323,95 @@ Polymorphic Fixpoint lift (m : MTele) (U : ArgsOf m) (T : TyTree) :
     raise ShitHappens
   end.
 
-(* For easier usage *)
+Fixpoint checker (pol : bool) (l : bool) (X : TyTree) : Prop :=
+  match X as X' with
+  (* direct telescope cases *)
+  | tyTree_val T => False
+  | tyTree_MFA T => False
+  | tyTree_In s F => False
+  | @tyTree_FATeleVal m T F => False
+  | tyTree_FATeleType m F => False
+  (* non-telescope cases *)
+  | tyTree_M T =>
+    match andb pol l with
+    | true => True
+    | false => True
+    end
+  | tyTree_base T => True
+  (* indirect cases *)
+  | tyTree_imp T R => and (checker (negb pol) true T) (checker pol false R)
+  | tyTree_FAVal T F => forall t : T, checker pol false (F t)
+  | tyTree_FAType F => forall T : Type, checker pol false (F T)
+  end.
+
+Definition NotProperType : Exception. exact exception. Qed.
+
+Definition checker' : forall (p : bool) (l : bool) (T : TyTree), M (checker p l T) :=
+  mfix3 f (p : bool) (l : bool) (T : TyTree) : M (checker p l T) :=
+    mmatch T as T' return M (checker p l T') with
+    | [? X] tyTree_base X => ret (I)
+    | [? X] tyTree_M X =>
+      match p as p' return M (checker p' l (tyTree_M X)) with
+      | true =>
+        match l as l' return M (checker true l' (tyTree_M X)) with
+        | true => ret I
+        | false => ret (I)
+        end
+      | false => ret (I)
+      end
+    | [? (F : Type -> TyTree)] tyTree_FAType F =>
+      \nu X : Type,
+        t <- f p false (F X);
+        t <- abs_fun (P := fun X : Type => checker p false (F X)) X t;
+        ret (t)
+    | [? (X : Type) (F : X -> TyTree)] tyTree_FAVal X F =>
+      \nu x : X,
+        t <- f p false (F x);
+        t <- abs_fun (P := fun x : X => checker p false (F x)) x t;
+        ret (t)
+    | [? (X Y : TyTree)] tyTree_imp X Y =>
+      x <- f (negb p) true X;
+      y <- f p false Y;
+      ret (conj x y)
+    | _ => raise NotProperType
+    end.
+
 Definition lift' {T : TyTree} (f : to_ty T) : MTele -> M m:{T : TyTree & to_ty T} :=
   fun (m : MTele) =>
   \nu U : ArgsOf m,
+    c <- (checker' true false T);
     lift m U T f.
 
 (** Everything works! *)
 
 (** ret *)
-(* We lift ret and are interested in using the telescope from the motivation *)
-Definition retTyTree := tyTree_FAType (fun A : Type => (tyTree_imp (tyTree_base A) (tyTree_M A))).
-(* We have to make an alias to ret so we can tell Coq that we want to use a TyTree to refer to it's type. This works because retTyTree is effectively equivalent to the original type of ret *)
-Definition rett : to_ty retTyTree := @ret.
+(* This is related to the motivation *)
+Let R := tyTree_FAType (fun A : Type => (tyTree_imp (tyTree_base A) (tyTree_M A))).
+Let r : to_ty R := @ret.
 
-(* We get the lifted ret in a Sigma-type wrapper. In this case we don't define a telescope, it's the more general case *)
-Definition l_ret (m : MTele): m:{T : TyTree & to_ty T} := ltac:(mrun (lift' rett m)).
+Definition l_ret (m : MTele): m:{T : TyTree & to_ty T} := ltac:(mrun (lift' r m)).
 
-(* General MTele. Our list_max has arguments T and l which are know at the moment of interest *)
+
 Definition m_fun := fun (T : Type) (l : list T) => mTele (fun p : l <> nil => mBase).
 
-(* Example list, not relevant *)
 Definition l : list nat := cons 3 (cons 1 (cons 10 (cons 7 nil))).
 
-(* We need this proof to create the U : ArgsOf m *)
 Lemma l_nil : l <> nil.
 Proof.
 unfold l. unfold not. intros H. apply eq_sym in H. apply nil_cons in H. apply H.
 Qed.
 
-(* Final MTele *)
 Definition m := m_fun nat l.
 Eval cbn in ArgsOf m.
-(* We can now define U *)
 Definition U : ArgsOf m := mexistT _ l_nil tt.
 
-(* This won't work *)
-(* Definition li_ret : m:{T : TyTree & to_ty T} := ltac:(mrun (lift m U retTyTree ret)). *)
+About r.
+Definition li_ret : m:{T : TyTree & to_ty T} := ltac:(mrun (lift m U R r)).
 
-(* This works *)
-Definition li_ret : m:{T : TyTree & to_ty T} := ltac:(mrun (lift' rett m)).
+Eval cbn in fun T l => to_ty (mprojT1 (l_ret (tele_motiv_fun T l))).
+Eval cbn in to_ty (mprojT1 (l_ret (tele_motiv))).
 
-(* Check the result of li_ret *)
-Eval cbn in to_ty (mprojT1 li_ret).
-Eval cbn in mprojT2 li_ret.
+Eval cbn in fun T l => (mprojT2 (l_ret (tele_motiv_fun T l))).
+Eval cbn in mprojT2 (l_ret (tele_motiv)).
 
-(* Check the result of l_ret *)
-Eval cbn in to_ty (mprojT1 (l_ret m)).
-Eval cbn in mprojT2 (l_ret m).
-
-(* The result of the previous examples leads to the same result. Thus, we conclude that it is not necessary to define the telescope before. *)
-
-(** bind *)
-
-About bind.
-Definition bindTyTree := tyTree_FAType (fun A : Type => tyTree_FAType (fun B : Type => tyTree_imp (tyTree_M A) (tyTree_imp (tyTree_imp (tyTree_base A) (tyTree_M B)) (tyTree_M B)))).
-Definition bindt : to_ty bindTyTree := @bind.
-
-Definition l_bind (m : MTele): m:{T : TyTree & to_ty T} := ltac:(mrun (lift' bindt m)).
-
-Definition li_bind : m:{T : TyTree & to_ty T} := ltac:(mrun (lift' bindt m)).
-
-(* Check the result of li_ret *)
-Eval cbn in to_ty (mprojT1 li_bind).
-Eval cbn in mprojT2 li_bind.
-
-(* Check the result of l_ret *)
-Eval cbn in to_ty (mprojT1 (l_bind m)).
-Eval cbn in mprojT2 (l_bind m).
+Eval cbn in fun T l => (mprojT1 (l_ret (tele_motiv T l))).
