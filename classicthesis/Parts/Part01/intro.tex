@@ -1,1 +1,72 @@
-\section{Introducción}
+\chapter{Introducción}\label{ch:intro}
+
+El uso de \emph{asistentes de prueba} cada vez es mayor.
+Multiples de estos cuentan con meta-lenguajes de programación que permiten la automatización del proceso de desarrollo de pruebas.
+Dentro de todo el espectro, Coq \cite{CIC} es una las opciones más conocidas.
+El meta-lenguaje \mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} es una de las alternativas en Coq.
+A través de mónadas nos permite generar lo que se denomina \emph{tácticas}, en este caso, tipadas, a diferencia de las usuales.
+Estas meta-funciones monádicas utilizan operadores monádicos para poder reflejar cómputos a través de la concatenación de subcómputos.
+
+Como exprezamos en el resumen, el uso de estas funciones monádicas tiene un costo.
+El caso en el que nos centraremos es cuando nuestros operadores monádicos no sean lo suficienteme generales para poder vincular estos cómputos.
+En principio, no necesariamente surgirá este tipo de problemas, pero si el desarrollador está utilizando tipos dependientes, utilizará cuantificadores para poder expresar estas dependencias, pero los operadores monádicos de \mtac no permiten tomar ni retornar elementos cuantificados.
+
+Este trabajo podría haberse resumido a codificar dos operadores monádicos más generales y esto solucionaría el problema.
+Pero hemos hecho un paso extra al generalizar este problema para casi cualquier meta-función.
+Lo que tenemos es una meta-función que toma meta-funciones como argumento y nos retorna versiones con cuantificadores de las mismas de manera casi automática.
+De esta forma, los dos operadores a los que nos referimos sin nombrar, simplemente necesitan ser pasados como argumentos a nuestra nueva meta-función.
+
+Esta nueva función será denomidada \lift.
+
+% Qué es un asistente de prueba?
+\section{Asistentes de prueba}
+
+Historicamente, una prueba matemática era una sucesión de instrucciones, más especificamente reglas de inferencia, en un lenguaje más formal que el natural que al ser aplicadas en orden, partiendo de una serie de hipótesis, pueden llegar a una conclusión, el teorema.
+Si estás reglas son utilizadas correctamente, y las hipótesis no se contradicen, entonces todo resultado al que lleguemos puede ser considerado verdadero.
+
+Sin embargo, en toda prueba matemática no explicitamos cada regla que utilizamos cada vez que la usamos.
+Claramente no es necesario para que el lector pueda comprenderla.
+Pero entonces estás pruebas no tiene la rigurosidad absoluta que desearimos, podemos decir que estas siguen siendo informales.
+En este contexto, es absurdo pensar que los lectores pueden dar un veredicto exacto sobre el valor de verdad de la prueba.
+
+\graffito{TODO: citas}
+Tenemos la suerte de que las computadoras son muy adecuadas para este tipo de trabajos rigurosos. De aquí surge la motivación de desarrollar herramientas para verificar estos resultados matemáticos, pero que también puedan asistir al desarrollador en el proceso. Algunas de estas herramientas son Coq \cite{CIC}, Isabelle, Agda, Lean y HOL4.
+
+% Qué es Coq?
+\section{Coq}
+
+Coq es uno de los asistentes de pruebas más utilizados.
+\graffito{TODO: más citas}
+Este cuenta con numerosos resultados, tanto en la matemática como en la computación.
+
+Uno de los aspectos más importantes de Coq es que las pruebas se codifican a través de la concatenación de \emph{tácticas}.
+Supongamos que tenemos un teorema a probar.
+Pensaremos a este teorema como nuestra meta, técnicamente llamada \emph{goal} en Coq.
+Las tácticas modificarán a la meta actual, retornando una o múltiples metas intermedias.
+Nuestro trabajo consiste en utilizar estas tácticas para reducir nuestra meta hasta que sea verdadera.
+
+El aspecto más importante de las tácticas es que el programador puede desarrollar sus propias tácticas con el objetivo de asistirlo a la hora de escribir la prueba.
+Estás tácticas son, por defecto, definidas en el meta-lenguaje Ltac \cite{DBLP:conf/lpar/Delahaye00}.
+
+Existen múltiples tipos de tácticas que intentan diferentes cosas e, inclusive, con diferentes filosofías.
+En Coq, una de las más conocidas es CoqHammer \cite{DBLP:journals/jar/CzajkaK18} la cual tiene como objetivo, demostrar todo automáticamente, lo que, en parte, nos da pie para lo que sigue a continuación.
+
+% Qué es Mtac2?
+\section{Mtac2}
+
+El meta-lenguaje \Mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} tiene como objetivo reemplazar a Ltac.
+\graffito{TODO: falta citar a Ltac2}
+En este sentido, es uno de tantos que intentan lo mismo: Ltac2, Template-Coq \cite{DBLP:conf/itp/AnandBCST18}, Rtac \cite{DBLP:conf/esop/MalechaB16} y Coq-Elpi \cite{tassi:hal-01637063}.
+
+Volviendo a CoqHammer, esta táctica presenta varios problemas.
+En parte, esta táctica no es rápida; ejectuarla puede tardar múltiples horas, y aún así fallar.
+Si todo funciona, no debemos preocuparnos.
+Pero al fallar, no tenemos certeza de por qué fue.
+Y más aún, podríamos haber utilizado la táctica de manera incorrecta y no saberlo, ya que las tácticas de Ltac no son tipadas.
+Es decir, podemos intentar utilizar cualquier táctica en cualquier momento, pero solo funcionarán las tácticas adecuadas.
+Por eso, \mtac tiene tácticas tipadas.
+Estas solo pueden ser utilizadas en el momento en que la meta que queremos probar se aproxima a lo que nuesta tática acepta.
+También nos asegura de que forma será la meta resultante de la ejecución.
+Y por último, tendremos certeza de cómo falla.
+
+% No hablar de la solución
