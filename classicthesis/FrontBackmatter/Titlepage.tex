@@ -6,29 +6,40 @@
     % if you want the titlepage to be centered, uncomment and fine-tune the line below (KOMA classes environment)
     \begin{addmargin}[-1cm]{-3cm}
     \begin{center}
-        \large
+        \LARGE
 
         \hfill
 
         \vfill
 
-        \begingroup
-            \color{CTtitle}\spacedallcaps{\myTitle} \\ \bigskip
-        \endgroup
-
-        \spacedlowsmallcaps{\myName}
+        \spacedallcaps{\myUni} \\ \medskip
+        \Large
+        \myFaculty \\ \bigskip
+        \includegraphics[width=6cm]{gfx/unc_logo} \\ \bigskip
 
         \vfill
 
-        \includegraphics[width=6cm]{gfx/TFZsuperellipse_bw} \\ \medskip
+        \large
 
-        \mySubtitle \\ \medskip
-        %\myDegree \\
-        %\myDepartment \\
-        %\myFaculty \\
-        %\myUni \\ \bigskip
+        \begingroup
+            \color{CTtitle}\spacedallcaps{\myTitle} \\ \medskip
+        \endgroup
 
-        \myTime\ -- \myVersion
+        \Large
+
+        \spacedlowsmallcaps{\myName} \\ \smallskip
+        \spacedlowsmallcaps{Director:} \\
+        \spacedlowsmallcaps{\mySupervisor} \\ 
+
+        \vfill
+
+        \spacedlowsmallcaps{\myDegree} \\
+
+        \vfill
+
+        % \mySubtitle \\ \medskip
+
+        \myTime
 
         \vfill
 
