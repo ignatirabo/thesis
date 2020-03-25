@@ -2,19 +2,40 @@
 % Abstract
 %*******************************************************
 %\renewcommand{\abstractname}{Abstract}
-\pdfbookmark[1]{Abstract}{Abstract}
+\pdfbookmark[1]{Resumen}{Resumen}
 % \addcontentsline{toc}{chapter}{\tocEntry{Abstract}}
 \begingroup
 \let\clearpage\relax
 \let\cleardoublepage\relax
 \let\cleardoublepage\relax
 
+% I try to have four sentences in my abstract.
+% The first states the problem.
+% The second states why the problem is a problem.
+% The third is my startling sentence.
+% The fourth states the implication of my startling sentence.
+
+
+\chapter*{Resumen}
+
+Los meta-lenguajes de programación son una parte esencial de los asistentes de pruebas. Estos meta-lenguajes deben lidiar con multiples problemas y para esto utilizan diferentes mecanismos. En particular, el meta-lenguaje \Mtac en Coq, utiliza mónadas como una forma de añadir tipado descriptivo a las tácticas de Coq.
+
+Estos programas monádicos no son fáciles de desarrollar. En parte, el problema es conectar elementos monádicos cuando Coq cuenta con un sistema de tipos sumamente avanzado. Solucionar estos problemas requiere de esfuerzo programacional inútil al problema de interés.
+
+Utilizando \mtac podemos crear un nuevo meta-programa que cuasi automaticamente generalice la signatura de las funciones, permitiendo una comunicación fluida entre declaraciones monádicas. % seamless interaction/communication
+
+Con este trabajo el programador puede concentrarse en lo verdaderamente importante y olvidarse de los detalles fuertemente restringibles de la naturaleza de Coq, con un esfuerzo pequeño.
+
 \chapter*{Abstract}
-Short summary of the contents in English\dots a great guide by
-Kent Beck how to write good abstracts can be found here:
-\begin{center}
-\url{https://plg.uwaterloo.ca/~migod/research/beckOOPSLA.html}
-\end{center}
+
+Meta-languages are an essecial part of theorem provers. This meta-languages have to deal with several problems, hence they employ different mechanisms.
+Partularly speaking, the meta-language \Mtac on Coq, utilizes monads as a means to add rich typing of tactics in Coq.
+
+This monadic programs are hard to develop. Partly, the problem of \textit{connecting} monadic elements while Coq's type system is so complex. Solving this involves great effort on developing useless code that is not related to the actual program.
+
+Using \Mtac we can create a new meta-program that can almost automatically generalize the signature of functions, allowing a seamless communication between monadic statements.
+
+With this work, the programmer can focus on truly important tasks, forgetting the highly restrictable nature of Coq, with little effort.
 
 \vfill
 
