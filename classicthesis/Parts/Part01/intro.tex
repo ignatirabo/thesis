@@ -1,32 +1,31 @@
 \chapter{Introducción}\label{ch:intro}
 
 El uso de \emph{asistentes de prueba} cada vez es mayor.
-Multiples de estos cuentan con meta-lenguajes de programación que permiten la automatización del proceso de desarrollo de pruebas.
-Dentro de todo el espectro, Coq \cite{CIC} es una las opciones más conocidas.
-El meta-lenguaje \mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} es una de las alternativas en Coq.
-A través de mónadas nos permite generar lo que se denomina \emph{tácticas}, en este caso, tipadas, a diferencia de las usuales.
-Estas meta-funciones monádicas utilizan operadores monádicos para poder reflejar cómputos a través de la concatenación de subcómputos.
+Múltiples de estos cuentan con metalenguajes de programación que permiten la automatización del proceso de desarrollo de pruebas.
+Dentro del espectro, Coq \cite{CIC} es una las opciones más conocidas, con el metalenguaje \mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} siendo una de las alternativas de metalenguajes disponibles.
+En \Mtac, el uso de mónadas nos permite generar lo que se denomina \emph{tácticas}, en este caso, tipadas, a diferencia de las usuales.
+Estas metafunciones monádicas utilizan operadores monádicos para poder reflejar cómputos a través de la concatenación de subcómputos.
 
-Como exprezamos en el resumen, el uso de estas funciones monádicas tiene un costo.
-El caso en el que nos centraremos es cuando nuestros operadores monádicos no sean lo suficienteme generales para poder vincular estos cómputos.
-En principio, no necesariamente surgirá este tipo de problemas, pero si el desarrollador está utilizando tipos dependientes, utilizará cuantificadores para poder expresar estas dependencias, pero los operadores monádicos de \mtac no permiten tomar ni retornar elementos cuantificados.
+Como expresamos en el resumen, el uso de estas funciones monádicas tiene un costo.
+El caso en el que nos centraremos es cuando nuestros operadores monádicos no sean lo suficientemente generales para poder ``vincular'' estos cómputos.
+En principio, estos problemas no surgirán necesariamente, pero si el desarrollador está utilizando tipos dependientes, utilizará cuantificadores para poder expresar estas dependencias. La problemática es que los operadores monádicos de \mtac no permiten tomar, ni retornar, elementos cuantificados.
 
-Este trabajo podría haberse resumido a codificar dos operadores monádicos más generales y esto solucionaría el problema.
-Pero hemos hecho un paso extra al generalizar este problema para casi cualquier meta-función.
-Lo que tenemos es una meta-función que toma meta-funciones como argumento y nos retorna versiones con cuantificadores de las mismas de manera casi automática.
-De esta forma, los dos operadores a los que nos referimos sin nombrar, simplemente necesitan ser pasados como argumentos a nuestra nueva meta-función.
+Este trabajo podría haberse resumido a codificar dos operadores monádicos: \lstinline{bind} y \lstinline{ret}, de manera más general.
+Pero hemos desarrollado una solución más general.
+Lo que tenemos es una metafunción que toma metafunciones como argumento y retorna ``versiones cuantificadas'' de las mismas, de manera casi automática.
+De esta forma, los dos operadores a los que nos referimos, simplemente necesitan ser pasados como argumentos a nuestra nueva metafunción.
 
-Esta nueva función será denomidada \lift.
+Esta nueva función será denominada \lift.
 
 % Qué es un asistente de prueba?
 \section{Asistentes de prueba}
 
-Historicamente, una prueba matemática era una sucesión de instrucciones, más especificamente reglas de inferencia, en un lenguaje más formal que el natural que al ser aplicadas en orden, partiendo de una serie de hipótesis, pueden llegar a una conclusión, el teorema.
+Históricamente, una prueba matemática era una sucesión de instrucciones, más específicamente reglas de inferencia, en un lenguaje más formal que el natural que al ser aplicadas en orden, partiendo de una serie de hipótesis, pueden llegar a una conclusión, el teorema.
 Si estás reglas son utilizadas correctamente, y las hipótesis no se contradicen, entonces todo resultado al que lleguemos puede ser considerado verdadero.
 
 Sin embargo, en toda prueba matemática no explicitamos cada regla que utilizamos cada vez que la usamos.
 Claramente no es necesario para que el lector pueda comprenderla.
-Pero entonces estás pruebas no tiene la rigurosidad absoluta que desearimos, podemos decir que estas siguen siendo informales.
+Pero entonces estás pruebas no tiene la rigurosidad absoluta que desearíamos, podemos decir que estas siguen siendo informales.
 En este contexto, es absurdo pensar que los lectores pueden dar un veredicto exacto sobre el valor de verdad de la prueba.
 
 \graffito{TODO: citas}
@@ -36,17 +35,20 @@ Tenemos la suerte de que las computadoras son muy adecuadas para este tipo de tr
 \section{Coq}
 
 Coq es uno de los asistentes de pruebas más utilizados.
-\graffito{TODO: más citas}
+\graffito{TODO: más citas sobre papers de resultados.}
 Este cuenta con numerosos resultados, tanto en la matemática como en la computación.
 
 Uno de los aspectos más importantes de Coq es que las pruebas se codifican a través de la concatenación de \emph{tácticas}.
 Supongamos que tenemos un teorema a probar.
-Pensaremos a este teorema como nuestra meta, técnicamente llamada \emph{goal} en Coq.
-Las tácticas modificarán a la meta actual, retornando una o múltiples metas intermedias.
-Nuestro trabajo consiste en utilizar estas tácticas para reducir nuestra meta hasta que sea verdadera.
+Pensaremos a este teorema como una meta o un objetivo.
+A través del uso de tácticas, modificaremos la meta, también llamada \emph{goal}.
+Las tácticas generarán nuevas metas, que representarán pasos intermedios de la demostración.
+Por ejemplo, podemos pensar a la inducción matemática como una táctica, la cual tomará nuestra meta actual, generando dos nuevas metas: el caso base y el paso inductivo. En este caso, de una meta generamos dos nuevas.
+
+Nuestro trabajo consiste en utilizar estas tácticas para reducir nuestra meta hasta que esta sea verdadera.
 
 El aspecto más importante de las tácticas es que el programador puede desarrollar sus propias tácticas con el objetivo de asistirlo a la hora de escribir la prueba.
-Estás tácticas son, por defecto, definidas en el meta-lenguaje Ltac \cite{DBLP:conf/lpar/Delahaye00}.
+Estás tácticas son, por defecto, definidas en el metalenguaje Ltac \cite{DBLP:conf/lpar/Delahaye00}. A continuación hablaremos sobre otros metalenguajes.
 
 Existen múltiples tipos de tácticas que intentan diferentes cosas e, inclusive, con diferentes filosofías.
 En Coq, una de las más conocidas es CoqHammer \cite{DBLP:journals/jar/CzajkaK18} la cual tiene como objetivo, demostrar todo automáticamente, lo que, en parte, nos da pie para lo que sigue a continuación.
@@ -54,19 +56,19 @@ En Coq, una de las más conocidas es CoqHammer \cite{DBLP:journals/jar/CzajkaK18
 % Qué es Mtac2?
 \section{Mtac2}
 
-El meta-lenguaje \Mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} tiene como objetivo reemplazar a Ltac.
+El metalenguaje \Mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} tiene como objetivo reemplazar a Ltac.
 \graffito{TODO: falta citar a Ltac2}
 En este sentido, es uno de tantos que intentan lo mismo: Ltac2, Template-Coq \cite{DBLP:conf/itp/AnandBCST18}, Rtac \cite{DBLP:conf/esop/MalechaB16} y Coq-Elpi \cite{tassi:hal-01637063}.
 
 Volviendo a CoqHammer, esta táctica presenta varios problemas.
-En parte, esta táctica no es rápida; ejectuarla puede tardar múltiples horas, y aún así fallar.
+En parte, esta táctica no es rápida; ejecutarla puede tardar múltiples horas, y aún así fallar.
 Si todo funciona, no debemos preocuparnos.
 Pero al fallar, no tenemos certeza de por qué fue.
-Y más aún, podríamos haber utilizado la táctica de manera incorrecta y no saberlo, ya que las tácticas de Ltac no son tipadas.
+Y más aun, podríamos haber utilizado la táctica de manera incorrecta y no saberlo, ya que las tácticas de Ltac no son tipadas.
 Es decir, podemos intentar utilizar cualquier táctica en cualquier momento, pero solo funcionarán las tácticas adecuadas.
-Por eso, \mtac tiene tácticas tipadas.
-Estas solo pueden ser utilizadas en el momento en que la meta que queremos probar se aproxima a lo que nuesta tática acepta.
+Por eso, una de las características más importantes de \mtac es que tiene tácticas tipadas.
+Estas, solo pueden ser utilizadas en el momento en que la meta que queremos probar se aproxima a lo que nuestra táctica acepta.
 También nos asegura de que forma será la meta resultante de la ejecución.
-Y por último, tendremos certeza de cómo falla.
+Y por último, en el caso de fallar, tendremos certeza de cual fue la razón.
 
 % No hablar de la solución
