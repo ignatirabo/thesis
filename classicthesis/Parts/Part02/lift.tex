@@ -63,7 +63,6 @@ bind^ : \forall (A B : \forall (p : l' <> nil), Type),
 \section{Creando telescopios}
 
 Como vimos anteriormente, para liftear una función necesitamos definir un telescopio. Este es el que indicará los argumentos dependientes que debamos agregar a nuestra función.
-% TODO: hablar de la futura creación automática.
 
 Para el caso de \ref{lst:list_max_lifted} debemos añadir una única dependencia de tipo \lstinline{l' <> nil}. Por ese motivo necesitaremos un telescopio de largo uno.
 
@@ -75,7 +74,6 @@ Cabe aclarar que \lstinline{l'} es una variable ya definida en el contexto, y po
 
 En otros casos definiremos telescopios con más argumentos y estos argumentos pueden ser dependientes. Por ejemplo, si \lstinline{l'} no estuviera definida previamente, necesitariamos que nuestro telescopio sea algo como  \lstinline{t : MTele := [l' : list S ;> p : l' <> nil]$_t$}. Y así sucesivamente.
 
-% TODO: referenciar trabajo futuro
 En \ref{sc:futuro} discutiremos sobre la capacidad de generar estos telescopios de manera automática analizando el tipo deseado de nuestra función lifteada.
 
 \section{El resultado}

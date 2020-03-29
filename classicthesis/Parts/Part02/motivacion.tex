@@ -3,7 +3,7 @@
 % Se asume que se explicó que es Mtac2 en la introducción y todas las cosas que
 % se pueden hacer.
 \textsc{Mtac2} nos permite definir funciones monádicas. Estas cuentan con ciertas ventajas.
-La siguiente función calcula el máximo de una lista de números \lstinline{nat : Set} y utiliza \lstinline{mtmmatch} para hacer un analisis sintáctico más profundo del que se puede realizar en \lstinline{match}. % TODO: hablar de mtmmatch en la intro.
+La siguiente función calcula el máximo de una lista de números \lstinline{nat : Set} y utiliza \lstinline{mtmmatch} para hacer un análisis sintáctico más profundo del que se puede realizar en \lstinline{match}. % TODO: hablar de mtmmatch en la intro.
 
 \begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max_nat}},label=lst:list_max_nat]
 Definition list_max_nat :=
@@ -23,9 +23,9 @@ Definition list_max_nat :=
 % TODO: Beta dice que hay que usar disjoint sum "x + y" y no el \/ (or).
 
 El último caso de \lstinline{mtmmatch} analiza una expresión que no es un constructor del tipo inductivo \lstinline{list}. Por eso es necesario utilizar el \lstinline{match} monádico.
-Notar que tampoco podemos utilizar \lstinline{mmatch} ya que el tipo que retornamos terminos de tipo \lstinline{l' <> nil -> M nat}.
+Notar que tampoco podemos utilizar \lstinline{mmatch} ya que el tipo que retornamos términos de tipo \lstinline{l' <> nil -> M nat}.
 
-Ahora supongamos que deseamos parametrizar $\nat$ y utilizar una función que acepte multiples conjuntos de nuestro interés.
+Ahora supongamos que deseamos parametrizar $\nat$ y utilizar una función que acepte múltiples conjuntos de nuestro interés.
 
 \begin{lstlisting}[frame=tb,caption={Función \lstinline{max}},label=lst:max]
 Definition max (S: Set) : M (S -> S -> S) :=
@@ -64,8 +64,8 @@ El problema será que ambas soluciones son específicas al problema, entonces en
 
 En nuestra solución suplantamos \lstinline{bind} y \lstinline{ret} por \lstinline{bind^} y \lstinline{ret^}, respectivamente. Llamaremos a estas funciones las versiones \emph{lifteadas} de las originales. Estas poseen el tipo necesario.
 
-Nuestro proyecto es la codificación de un nuevo meta-programa \lift que puede generalizar meta-programas con las dependencias necesarias para que sea utilizado en el contexto.
-En nuestro ejemplo, con \lift podemos generalizar \lstinline{bind} y \lstinline{ret}, consiguiendo nuevos meta-programas que se comportan como las originales pero con una signatura distinta, permitiendo su uso.
+Nuestro proyecto es la codificación de un nuevo metaprograma \lift que puede generalizar metaprogramas con las dependencias necesarias para que sea utilizado en el contexto.
+En nuestro ejemplo, utilizando \lift podemos generalizar \lstinline{bind} y \lstinline{ret}, consiguiendo nuevos metaprogramas que se comportan como las originales pero con una signatura distinta, permitiendo su uso.
 
 \begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max} lifteada},label=lst:list_max_lifted]
 Definition list_max_lifted (S: Set) :=
