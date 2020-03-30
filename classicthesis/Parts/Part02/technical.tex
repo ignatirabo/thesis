@@ -161,6 +161,7 @@ ret^ : \forall A : l <> nil -> Type,
     ret (A p) (a p)
 \end{lstlisting}
 
+\graffito{TODO: hacer lo mismo que con ret pero con bind. Why not?}
 Notemos que esta solución efectivamente se puede utilizar en \ref{lst:list_max_lifted}. Podemos observar también la signatura en forma \lstinline{TyTree} y notar que se corresponde con lo esperado.
 
 \begin{lstlisting}[frame=tb,caption={Signatura en \lstinline{TyTree} de \lstinline{ret^}},label=lst:exmp_ret_tytree]
@@ -171,7 +172,6 @@ Notemos que esta solución efectivamente se puede utilizar en \ref{lst:list_max_
         (fun a : accessor (m S l) => acc_sort a A))
           (\tyTree_MFA A))
 \end{lstlisting}
-% TODO: hacer lo mismo que con ret pero con bind. Why not?
 
 El único constructor que no hemos utilizado es \lstinline{\tyTree_FATeleVal}.
 Este cumple el mismo rol que \lstinline{\tyTree_FAVal}, y como ya viene siendo el caso, el constructor solo será reemplazado si el tipo del elemento que introduce está bajo la mónada.
