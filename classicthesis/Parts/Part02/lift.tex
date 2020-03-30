@@ -1,30 +1,28 @@
 \chapter{Lift}\label{ch:lift}
 
-Denominamos \textsc{Lift} al meta-programa desarrollado en este trabajo.
-Esta función tiene la tarea de agregar dependencias a otros meta-programas de manera cuasi automática. Veremos que solo depende de un telescopio, el que en principio generaremos nosotros.
+Denominamos \textsc{Lift} al metaprograma desarrollado en este trabajo.
+Esta función tiene la tarea de agregar dependencias a otros metaprogramas de manera cuasi automática. Veremos que solo depende de un telescopio, el que en principio generaremos nosotros.
 
-\textsc{Lift} se basa en analizar los tipos de las funciones y modificarlos añadiendo dependencias triviales en los tipos que se encuentran bajo la mónada, generando así nuevos meta-programas más generales.
+\textsc{Lift} se basa en analizar los tipos de las funciones y modificarlos añadiendo dependencias triviales en los tipos que se encuentran bajo la mónada, generando así nuevos metaprogramas más generales.
 Cuando digamos ``dependencias triviales'' nos referiremos a valores en el tipo que son dependientes pero no tienen ningún valor real, es decir, no influyen en el resultado de la ejecución.
-Aunque esto pueda parecer inutil, su justificación es que hacer estos agregados efectivamente generan funciones más generales que pueden ser utilizadas en una amplia cantidad de situaciones. 
-El \emph{lifteo} de funciones será trabajado en este capítulo a través de ejemplos.
+Aunque esto pueda parecer inútil, su justificación es que hacer estos agregados, efectivamente genera funciones más generales que pueden ser utilizadas en una amplia cantidad de situaciones. 
+
+Esta generalización hace uso de telescopios para poder especificar las dependencias que se desea agregar.
+Primero observaremos la situación desde un punto de vista más bien intuitivo, y finalizaremos concretizando los telescopios.
 
 \section{Definiendo objetivos}
 
-Una de las funciones monádica más simples es \lstinline{ret : forall A, A -> M A}, uno de los operadores monádicos.
+Una de las funciones monádica más simples es \lstinline{ret}, uno de los operadores monádicos.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Signatura de ret},label=lst:ret]
+\begin{lstlisting}[frame=tb,caption={Signatura de \lstinline{ret}},label=lst:ret]
 ret : forall A, A -> M A
 \end{lstlisting}
 
-Como vemos en la signatura de \lstinline{ret}, solo puede devolver expresiones \lstinline{M A} donde no es posible que el retorno esté cuantificado, es decir, que retorne una función.
+Como vemos en la signatura de \lstinline{ret}, solo puede devolver expresiones \lstinline{(M A)} donde no es posible que el retorno esté cuantificado, es decir, no puede retornar una función.
 Si tomamos \lstinline{list_max_lifted} \ref{lst:list_max_lifted}, la función \lstinline{ret^} toma un valor de tipo \lstinline{(l' <> nil -> S)} y retorna \lstinline{l' <> nil -> M S}, que también puede ser expresado como \lstinline{forall (p : l' <> nil), M S}.
 Notemos que en \lstinline{list_max_lifted}, el argumento de \lstinline{ret^} no utiliza el valor introducido en la función.
 
-En principio, el tipo \lstinline{A : Type} de \lstinline{ret} será reemplazado por
-\begin{lstlisting}
-A : l' <> nil -> Type
-\end{lstlisting}
-y naturalmente podemos observar como queda el resto. 
+En principio, el tipo \lstinline{A : Type} de \lstinline{ret} será reemplazado por un nuevo tipo que tome la prueba: \lstinline{(A : l' <> nil -> Type)} y naturalmente podemos observar como queda el resto. 
 
 \begin{lstlisting}[float=h,frame=tb,caption={Signatura deseada de \lstinline{ret}},label=lst:ret_motiv]
 ret^ : \forall (A : l' <> nil -> Type), (\forall p, A p) -> (\forall p, M (A p))
@@ -43,47 +41,55 @@ ret^ : \forall (A : l' <> nil -> Type), (\forall p, A p) -> (\forall p, M (A p))
 % Este ejemplo es simple porque la signatura de \lstinline{ret} no contiene funciones.
 Ahora estudiemos que sucede con \lstinline{bind}.
 
-El operador \lstinline{bind} es la otra función que debemos modificar, pero su signatura presenta un problema más complejo que la de \lstinline{ret}. Esto es debido a que su signatura contiene una función y esta depende de los argumentos \lstinline{A} y \lstinline{B} que se encuentran bajo la mónada en diferentes partes del tipo.
+El operador \lstinline{bind} es la otra función que debemos modificar, pero su signatura presenta un problema más complejo que \lstinline{ret}. Esto es debido a que su signatura contiene una función y esta depende de los argumentos \lstinline{A} y \lstinline{B}, que se encuentran bajo la mónada en diferentes partes del tipo.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Signatura de bind},label=lst:bind]
+\begin{lstlisting}[frame=tb,caption={Signatura de \lstinline{bind}},label=lst:bind]
 bind : forall A B, M A -> (A -> M B) -> M B
 \end{lstlisting}
 
-Volviendo a \lstinline{list_max} \ref{lst:list_max}, pudimos notar que \lstinline{bind} no es suficientemente general. El candidato a ser \lstinline{A} es \lstinline{S -> S -> S}, pero para \lstinline{B} dijimos \lstinline{l' <> nil -> M S} aunque esto es incorrecto.
-Lo que verdaderamente necesitamos es exprezar en un telescopio que deseamos que \texttt{S} dependa de \lstinline{l' <> nil}, es decir, \lstinline{S : \forall (p : l' <> nil), Type}.
-Claramente cuantificar esta parte del tipo es más fuerte que una dependencia, pero a nuestros fines no es un problema.
+Volviendo a \lstinline{list_max} \ref{lst:list_max}, pudimos notar que \lstinline{bind} no es suficientemente general.
+En \ref{lst:list_max_lifted}, observamos que queremos bindear \lstinline{max S} con nuestro fixpoint. La signatura de \lstinline{max S} es \lstinline{M (S -> S -> S)}.
+La signatura del fixpoint es \lstinline{forall (l : list S), l <> nil -> M S}, por lo tanto, es lo que debe retornar nuestro \lstinline{bind}.
 
-Ya con esta idea, podemos ver que el tipo que queremos que \lstinline{bind} retorne es \lstinline{\forall (p : l' <> nil), M (S p)}. Y finalmente llegamos al siguiente resultado.
+Ahora intentemos armar la signatura del nuevo \lstinline{bind}. Tenemos que los tipos \lstinline{A} y \lstinline{B} que toma \lstinline{bind} deben ser reemplazados por otros más generales. Si hacemos que estos dos tipos sean dependientes de los mismos argumentos podemos facilitar este razonamiento.
+Entonces, si \lstinline{(A B : \forall l (p : l <> nil), Type)}, podemos reescribir la signatura.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Signatura deseada de \lstinline{bind}},label=lst:bind_motiv]
-bind^ : \forall (A B : \forall (p : l' <> nil), Type),
-  (\forall p, M (A p)) -> (\forall p, A p -> B p) -> (\forall p, M (B p)).
+\begin{lstlisting}[frame=tb,caption={Signatura deseada de \lstinline{bind}}]
+bind^ : \forall (A B : \forall l (p : l <> nil), Type),
+  \forall l p, M (A l p) ->
+  \forall l p, (A l p -> M (B l p)) ->
+  \forall l p, M (B l p)
 \end{lstlisting}
+
+\graffito{TODO: pegarle última leida}
+En esta signatura podemos notar que el retorno de \lstinline{bind^} es, efectivamente, el tipo del punto fijo. También notamos que la función de \lstinline{A} en \lstinline{M B}, intuitivamente sigue siendo eso, solo que tomamos dos argumentos \lstinline{l} y \lstinline{p} los cuales \lstinline{A} y \lstinline{B} están compartiendo.
+Ahora, es importante que al momento de utilizar \lstinline{bind^}, los dos tipos que toma estén bien definidos. Necesitamos que \lstinline{(B l p)} reduzca a \lstinline{S} y que \lstinline{(A l p)} reduzca a \lstinline{(S -> S -> S)}.
 
 \section{Creando telescopios}
 
 Como vimos anteriormente, para liftear una función necesitamos definir un telescopio. Este es el que indicará los argumentos dependientes que debamos agregar a nuestra función.
 
-Para el caso de \ref{lst:list_max_lifted} debemos añadir una única dependencia de tipo \lstinline{l' <> nil}. Por ese motivo necesitaremos un telescopio de largo uno.
+Como vimos recién, para \lstinline{bind^} en el caso de \ref{lst:list_max_lifted} debemos añadir dos dependecias a los tipos: \lstinline{l : list S} y \lstinline{p : l <> nil}.
+Por ese motivo necesitaremos un telescopio de largo dos.
+Pero dado que \lstinline{ret^} es utilizado dentro del fixpoint, \lstinline{l} ya se encuentra en el contexto y no es necesario añadirlo como un dato al telescopio. Entonces necesitaremos dos telescopios.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Telescopio para \lstinline{list_max}},label=lst:list_max_tele]
-m : MTele := [p : l' <> nil]$_t$
+\begin{lstlisting}[frame=tb,caption={Telescopio para \lstinline{list_max}},label=lst:list_max_tele]
+m : MTele := [l : list S ;> p : l <> nil]$_t$
+n : MTele := fun l => [p : l <> nil]$_t$
 \end{lstlisting}
 
-Cabe aclarar que \lstinline{l'} es una variable ya definida en el contexto, y por eso nos referimos a esa lista particular y no a cualquier otra.
-
-En otros casos definiremos telescopios con más argumentos y estos argumentos pueden ser dependientes. Por ejemplo, si \lstinline{l'} no estuviera definida previamente, necesitariamos que nuestro telescopio sea algo como  \lstinline{t : MTele := [l' : list S ;> p : l' <> nil]$_t$}. Y así sucesivamente.
+No es un problema que \lstinline{n} dependa de \lstinline{l}. Podemos crear una lista cualquiera al momento de liftear.
 
 En \ref{sc:futuro} discutiremos sobre la capacidad de generar estos telescopios de manera automática analizando el tipo deseado de nuestra función lifteada.
 
 \section{El resultado}
 
-La función \textsc{Lift} retorna una tupla dependiente con el tipo de la función lifteada y la función lifteada. Ya ahora con nuestro telescopio \lstinline{t}, extraer la nueva función es simple.
+La función \lift retorna una tupla dependiente con el tipo de la función lifteada y la función lifteada. Ya ahora con nuestro telescopio \lstinline{m}, extraer la nueva función es simple.
 
 \graffito{\lstinline{mprojT2} nos permite extraer el segundo argumento de una tupla dependiente en \textsc{Mtac2}}
 \begin{lstlisting}[float=h,frame=tb,caption={Lifteando \lstinline{ret} y \lstinline{bind}},label=lst:lift1]
-ret^ := mprojT2 (lift ret t)
-bind^ := mprojT2 (lift bind t)
+bind^ := mprojT2 (lift bind m)
+ret^ := mprojT2 (lift ret (n l))
 \end{lstlisting}
 
 Finalmente nuestro programa quedaría de la siguiente forma.
@@ -130,3 +136,5 @@ fun (A B : \forall T : Type, list T -> Type)
 Esta definición es efectivamente la que buscabamos y funciona perfectamente.
 El otro aspecto que seguiremos observando es que Lift no genera información innecesaria en la función destino.
 \fi
+
+En la próxima parte analizaremos cómo funciona \lift desde adentro.

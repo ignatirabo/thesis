@@ -26,11 +26,11 @@ Inductive TyTree : Type :=
 .
 \end{lstlisting}
 
-Notemos que el constructor \lstinline{\tyTree_M} es distinto a \lstinline{M}. Podemos diferenciarlos por el color. Claramente, ambos representan lo mismo, solo que uno es la versión reflejada.
+Notemos que el constructor \lstinline{\tyTree_M} es distinto a \lstinline{M}. En este trabajo podemos diferenciarlos por el color. Veremos que ambos representan lo mismo, solo que uno es la versión reflejada del otro.
 
 Con los constructores de este tipo podemos expresar todas las signaturas que nos interesan. Varios de los constructores, como por ejemplo \lstinline{\tyTree_MFA} o \lstinline{\tyTree_FATeleVal}, tendrán sentido más adelante.
 
-Ahora veamos algunos ejemplos simples.
+Ahora veamos algunos ejemplos simples de como podemos reescribir signaturas con este nuevo tipo.
 
 \begin{lstlisting}[frame=tb,caption={Ejemplos de \lstinline{TyTree}},label=lst:exmp_tytree]
 ret : \forall A, A -> M A.
@@ -44,10 +44,8 @@ f_r : \tyTree_FAVal$\!$ nat (fun n => \tyTree_imp$\!$ (\tyTree_base (0 <= n)) (\
 A primera vista los tipos puede escribirse de múltiples formas ya que \lstinline{\tyTree_FAVal} es más fuerte que \lstinline{\tyTree_imp}. La clave está en que nuestra función \lift hará una separación muy específica entre cada caso, por lo tanto, la forma en que reescribamos la signatura de las funciones es sumamente importante.
 %Más adelante veremos cómo analizamos cada caso de forma quelos tratamos de manera distinta y por eso podemos plantear una biyección entre \lstinline{Type} y \lstinline{TyTree}.
 
-Utilizaremos la función \lstinline{to_ty : TyTree -> Type} para transformar un \lstinline{TyTree} en su \lstinline{Type} correspondiente. Notar que esta función no es monádica, y eso es principal, ya que nos permite utilizar la función en las signaturas que definimos. En cambio, la función \lstinline{to_tree : Type -> M TyTree}, que es analoga a \lstinline{to_ty}, necesariamente será monádica ya que debemos hacer un analisis sintáctico en los tipos de Coq.
+Utilizaremos la función \lstinline{to_ty : TyTree -> Type} para transformar un \lstinline{TyTree} en su \lstinline{Type} correspondiente. Notar que esta función no es monádica, y eso es principal, ya que nos permite utilizarla en las signaturas que definimos. En cambio, la función \lstinline{to_tree : Type -> M TyTree}, que es análoga a \lstinline{to_ty}, necesariamente será monádica ya que debemos hacer un análisis sintáctico en los tipos de Coq.
 
-% \graffito{TODO: apendice to_ty}
-\graffito{TODO: apendice to-ty}
 Se puede encontrar la definición de \lstinline{to_ty} y \lstinline{to_tree} en el apéndice.
 
 \iffalse
@@ -96,7 +94,6 @@ Es importante notar que podemos encontrar usos de \lstinline{\tyTree_M} en múlt
 
 % TODO: dejo los otros para después? Leer comentarios de la agenda del 14 de enero.
 
-% TODO: hablar de funciones lifteadas y sus tipos, es decir, TyTree's.
 \section{TyTrees monádicos}
 
 Ahora nos centraremos en cómo representar funciones lifteadas con \lstinline{TyTree}.
@@ -113,13 +110,14 @@ fun m : MTele =>
       (\tyTree_MFA A))
 \end{lstlisting}
 
-En \ref{lst:ret_lift_m} podemos observar el uso de \lstinline{\tyTree_FATeleType}, \lstinline{\tyTree_In} y \lstinline{\tyTree_MFA}.
+Podemos encontrar en rojo todos los constructores de \lstinline{TyTree} que se utilizan.
+A continuación hablaremos de todos los elementos desconocidos de esta signatura presentada.
 
-Con \lstinline{\tyTree_FATeleType} podemos introducir tipos telescopios, es la versión telescopica de \lstinline{\tyTree_FAType}. Esto signfica que en la signatura de la función, si \lstinline{\tyTree_FAType} introduce un tipo que se encuentra bajo la mónada, este constructor se reemplazará por \lstinline{\tyTree_FATeleType}.
+Con \lstinline{\tyTree_FATeleType} podemos introducir tipos telescopios, es la versión telescopica de \lstinline{\tyTree_FAType}. Esto signfica que en la signatura de la función, si \lstinline{\tyTree_FAType} introduce un tipo que se encuentra bajo la mónada, este constructor se reemplazará por \lstinline{\tyTree_FATeleType}, siempre y cuando el tipo que introduzca necesite ser reemplazado, es decir, cuando el tipo se encuentre bajo la mónada en alguna instancia de la signatura.
 
 % TODO: que representa tyTree_In?
 % TODO: esto es demasiado técnico, explico más para que se entienda? lo saco?
-\lstinline{MTele_In} nos permite adentrarnos a un tipo telescópico, momentáneamente introduciendo todos los argumentos con un \lstinline{accessor} y trabajando sobre el tipo de manera directa.
+La función \lstinline{MTele_In} nos permite adentrarnos a un tipo telescópico, momentáneamente introduciendo todos los argumentos con un \lstinline{accessor} y trabajando sobre el tipo de manera directa.
 
 % Un \lstinline{accessor} nos permite expresar el ``tener acceso'' a los valores para cada argumento del telescopio.
 Un \lstinline{accessor} es un par de dos funciones llamadas \lstinline{acc_sort} y \lstinline{acc_val}.
@@ -144,28 +142,29 @@ Definition MFA {t} (T : MTele_Ty t) := (MTele_val
 \end{lstlisting}
 
 Con \lstinline{MFA} representamos tipos monádicos con argumentos cuantificados. 
-Sea \lstinline{t : MTele} de largo $n$ y \lstinline{T : MTele_Ty t}, \lstinline{MFA T} representará \lstinline{\forall x$_1$ ... x$_n$, M (T x$_1$ ... x$_n$)}.
+Sea \lstinline{(t : MTele)} de largo $n$ y \lstinline{(T : MTele_Ty t)}, \lstinline{MFA T} representará \lstinline{\forall x$_1$ ... x$_n$, M (T x$_1$ ... x$_n$)}.
 % Finalmente, en el caso anterior, interpretando los tipos de una manera más matemática, tomamos un valor \lstinline{\forall x$_1$ ... x$_n$, A x$_1$ ... x$_n$} y retornamos \lstinline{\forall x$_1$ ... x$_n$, M (T x$_1$ ... x$_n$)}.
 
-En el caso de \ref{lst:ret_lift_m}, la signatura \lstinline{\tyTree_In$\xspace$ \Type_sort (fun a : accessor m => acc_sort a A)} es simplemente equivalente a \lstinline{\tyTree_val$\xspace$ A} pero Coq no puede inferir esto directamente.
+En el caso de \ref{lst:ret_lift_m}, la signatura \lstinline{(\tyTree_In \; \Type_sort (fun a : accessor m => acc_sort a A))} es simplemente equivalente a \lstinline{(\tyTree_val \; A)} pero Coq no puede inferir esto directamente.
 La forma en que hemos definido \lift utiliza esta forma más general en todos los casos.
 
-Si concretizamos el telescopio conseguiremos una signatura más parecida a la matemática y la función resultante será muy simple. Por eso, utilizemos el telescopio \lstinline{m} de nuestra motivación \ref{lst:list_max_tele}.
+Si concretizamos el telescopio conseguiremos una signatura más parecida a la matemática y la función resultante será muy simple. Por eso, utilizemos el telescopio \lstinline{n} de nuestra motivación \ref{lst:list_max_tele}.
 % Para mostrar esto supongamos que tenemos un telescopio \lstinline{t := [x$_1$ : T$_1$;> x$_2$ : T$_2$;> x$_3$ : T$_3$]$_t$}. Luego,
 
 \begin{lstlisting}[frame=tb,caption={Ejemplo de \lstinline{ret^}},label=lst:exmp_ret]
 ret^ : \forall A : l <> nil -> Type,
-         (\forall p : l <> nil, A p) -> \forall p : l <> nil, M (A p) :=
-  fun  (A : l <> nil -> Type)
-     (a : \forall p : l <> nil, A p) (p : l <> nil) => 
-     ret (A p) (a p)
+  \forall p : l <> nil, A p ->
+  \forall p : l <> nil, M (A p) :=
+  fun (A : l <> nil -> Type)
+    (a : \forall p : l <> nil, A p)
+    (p : l <> nil) => 
+    ret (A p) (a p)
 \end{lstlisting}
 
 Notemos que esta solución efectivamente se puede utilizar en \ref{lst:list_max_lifted}. Podemos observar también la signatura en forma \lstinline{TyTree} y notar que se corresponde con lo esperado.
 
-\graffito{TODO: de donde saqué esto? Capaz en la laptop?}
 \begin{lstlisting}[frame=tb,caption={Signatura en \lstinline{TyTree} de \lstinline{ret^}},label=lst:exmp_ret_tytree]
-\tyTree_FATeleType (m S l)
+\tyTree_FATeleType \; (m S l)
   (fun A : l <> nil -> Type =>
     \tyTree_imp
       (\tyTree_In Type_sort

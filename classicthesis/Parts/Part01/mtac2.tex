@@ -163,7 +163,7 @@ Dentro de unos párrafos, utilizaremos \lstinline{Sort} para abstraer el concept
 
 \begin{itemize}
   \item En el nivel superior, definimos nuestro telescopio \lstinline{m} de largo $n$ con dependencias arbitrarias. Esto es simplemente utilizando los constructores de \lstinline{MTele}.
-  \item Ya con \lstinline{m} definido, podemos utilizar la función \lstinline{MTele_Sort} para computar un tipo derivado del telescopio. Sea \lstinline{s : Sort}, es decir, \lstinline{s} es \lstinline{\Type_sort} o \lstinline{\Prop_sort}, la expresión \lstinline{(MTele_Sort s m)} es un tipo, y específicamente, es el tipo \lstinline{\forall x$_1$ x$_2$ ... x$_n$, s}.
+  \item Ya con \lstinline{m} definido, podemos utilizar la función \lstinline{MTele_Sort} para computar un tipo derivado del telescopio. Sea \lstinline{(s : Sort)}, es decir, \lstinline{s} es \lstinline{\Type_sort} o \lstinline{\Prop_sort}, la expresión \lstinline{(MTele_Sort s m)} es un tipo, y específicamente, es el tipo \lstinline{\forall x$_1$ x$_2$ ... x$_n$, s}.
   \item Como dijimos, \lstinline{(MTele_Sort s m)} es un tipo, por lo tanto, podemos tener elementos de ese tipo. Esta sería la última jerarquía.
   
   Para esto utilizamos la función \lstinline{MTele_val}. Esta función toma un valor de \lstinline{(MTele_Sort s m)} y retorna un valor de tipo \lstinline{s}. Por cómo es el tipo, esto signfica que un valor del mismo es algo de la forma \lstinline{(fun x$_1$ x$_2$ ... x$_n$ => T x$_1$ x$_2$ ... x$_n$)} para algún \lstinline{T}. Luego, \lstinline{MTele_val} retornará un valor de tipo \lstinline{s}, es decir, \lstinline{T y$_1$ y$_2$ ... y$_n$} para algunos \lstinline{y$_i$}.
