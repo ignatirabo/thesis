@@ -72,10 +72,18 @@ En otros ejemplos es posible que veamos otra notación: \lstinline{;;}.
 Está notación también indica el uso de \lstinline{bind}, con la diferencia de que no nos interesa el valor que estamos vinculando.
 Usualmente lo observaremos al utilizar la función \lstinline{print}, ya que esta función retorna un argumento de tipo \lstinline{M unit}.
 
+Los últimos dos elementos que necesitamos entender son \lstinline{mtmmatch} y \lstinline{mfix}.
+Estas son versiones de \lstinline{mmatch} y \lstinline{mfix$_n$}, respectivamente.
+
+En primer lugar, utilizaremos \lstinline{mtmmatch} para realizar pattern matching monádico, con la diferencia de que los valores de retorno pueden ser dependientes, es decir, podemos retornar funciones que computan mónadas.
+
+Por último, \lstinline{mfix} es una versión general de la recursión monádica, esta puede tomar una cantidad arbitraria de argumentos. Está motivada por la limitación de \lstinline{mfix1}, \lstinline{mfix2} y \lstinline{mfix3}.
+Aún así, su uso no es estándar porque todavía está en desarrollo.
+
 \section{El costo de la mónada}
 
 Como mencionamos anteriormente, las funcionalidades de \Mtac tienen un coste.
-Imaginemos que estamos calculando el cociente entre dos números enteros, siendo el divisor igual a 0.
+Imaginemos que estamos calculando el cociente entre dos números enteros, siendo el divisor igual a cero.
 Entonces el programa no puede calcular el cociente y debe fallar.
 Esto nos muestra la gran diferencia entre un programa de Coq y uno de \mtac: un programa monádico puede fallar.
 Mientras tanto, en el mundo de Coq este concepto no existe.
@@ -117,13 +125,12 @@ La gran diferencia entre estos metalenguajes es que \Mtac es \emph{shallowly emb
 Los \emph{telescopios} son una estructura de datos inductiva de \Mtac que permite expresar una secuencia de tipos o valores, posiblemente dependientes, y de largo arbitrario.
 Los telescopios, junto con las funciones que lo acompañan, serán claves a la hora de poder expresar nuestro problema y consecuente solución.
 
-\begin{lstlisting}[frame=tb,caption={Definicion de telescopio},label=lst:MTele]
+\begin{lstlisting}[float=h,frame=tb,caption={Definicion de telescopio},label=lst:MTele]
 Inductive MTele : Type :=
 | mBase : MTele
 | mTele {X : Type} (F : X -> MTele) : MTele.
 \end{lstlisting}
 
-\graffito{TODO: Mencionar el uso general de MTele? En ese caso cual es?}
 El tipo \lstinline{MTele} crea una cadena de abstracciones.
 Este se codifica a través de funciones, lo que permite que sean dependientes, es decir, un telescopio puede tener elementos que dependan de elementos anteriores.
 
@@ -165,7 +172,6 @@ Dentro de unos párrafos, utilizaremos \lstinline{Sort} para abstraer el concept
 Utilizaremos \lstinline{MTele_Ty} y \lstinline{MTele_Prop} para expresar \lstinline{MTele_Sort \Type_sort} y \lstinline{MTele_Sort \Prop_sort} respectivamente.
 
 \subsection{Funciones extra}
-% \graffito{TODO: falta hablar de \texttt{MTele\_C}? Sirve para definir MFA.}
 
 Los telescopios de \Mtac traen consigo muchas funciones que son las que le dan el poder expresivo que los hace útiles. 
 
@@ -177,7 +183,6 @@ Entonces podríamos tomar un tipo \lstinline{\forall x$_1$ ... x$_n$, T x$_1$ ..
 Con \lstinline{MTele_In} podemos ganar acceso a múltiples tipos y valores telescopios al mismo tiempo, así siendo capaces de computar un nuevo tipo telescópico.
 
 \subsection{Ejemplo}
-% \graffito{TODO: poner ejemplos de jerarquías etc}
 
 Para que los conceptos queden claros vamos a plantear un ejemplo de telescopios.
 
