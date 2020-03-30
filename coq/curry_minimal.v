@@ -92,7 +92,7 @@ Definition is_m (T : TyTree) (A : Type) : M bool :=
   | _ => ret false
   end) T.
 
-(* This function is used to determine if a TyTree contains a mention of an element U. The idea is to abstract and if the abstraction fails, it means that U is in T. It's a hack Janno figured we could use *)
+(* This function is used to determine if a TyTree contains a mention of an element U. The idea is to abstract and if the abstraction fails, it means that U is in T. *)
 Definition contains_u (m : MTele) (U : ArgsOf m) (T : TyTree) : M bool :=
   mtry
     T' <- abs_fun U T;
