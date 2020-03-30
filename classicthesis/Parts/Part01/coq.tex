@@ -5,10 +5,11 @@ En este capitulo introduciremos las características más relevantes del asisten
 El desarrollo de Coq comenzó en 1984 con el apoyo de INRIA como el trabajo de Gérard Huet y Thierry Coquand. En ese momento Coquand estaba implementado un lenguaje llamado \emph{Calculus of Constructions} \cite{DBLP:journals/iandc/CoquandH88}.
 En 1991, Coquand creo una derivación del trabajo anterior, \emph{Calculus of Inductive Constructions} \cite{CIC}. Esta teoría comenzó a ser desarrollada y finalmente llegando a ser Coq.
 
-Ahora mismo Coq es desarrollado por más de 40 desarrolladores activos y es reconocido como unos de los asistentes de prueba principales.
+Ahora mismo Coq es desarrollado por más de 40 personas de forma activa y es reconocido como unos de los asistentes de prueba principales.
 
-Como un asistente de pruebas la orientación de Coq es la de permitir la escritura totalmente formal de teoremas y pruebas, y asegurarnos de su correción. Se parte de lo que se denomina \textit{kernel}, el nucleo de Coq, que es el que verifica que la prueba corresponde al teorema, es decir, que sea correcta. De esta forma, el humano no está encargado de verificar la prueba, solo de escribirla.
+Como un asistente de pruebas, la orientación de Coq es la de permitir la escritura totalmente formal de teoremas y pruebas, y asegurarnos de su correción. Se parte de lo que se denomina \textit{kernel}, el núcleo de Coq, que es el que verifica que la prueba corresponde al teorema, es decir, que sea correcta. De esta forma, el humano no está encargado de verificar la prueba, solo de escribirla.
 
+\graffito{TODO: volver a citar todos los ejemplos de la intro}
 El ejemplo más conocido de formalización en Coq es el teorema de los cuatro colores \cite{DBLP:conf/ascm/Gonthier07} hecho por \citeauthor{DBLP:conf/ascm/Gonthier07} en \citeyear{DBLP:conf/ascm/Gonthier07}.
 % TODO: diferencia con otros asistentes
 
@@ -17,7 +18,7 @@ El ejemplo más conocido de formalización en Coq es el teorema de los cuatro co
 Coq no es técnicamente un lenguaje de programación, sino, un asistente de pruebas. Pero podemos encontrar múltiples lenguajes dentro de Coq que nos permiten expresarnos. 
 \begin{description}
     \item[Gallina] Este es el lenguaje de especificación de Coq \cite{Gallina}. Permite desarrollar teorías matemáticas y probar especificaciones de programas. Utilizaremos extensivamente un lenguaje muy similar a este para definir nuestros programas en \Mtac.
-    \item[Ltac] El lenguaje en que se definen las \textit{tácticas} de Coq. Es el metalenguaje por defecto de Coq. Introducido por \citeauthor{DBLP:conf/lpar/Delahaye00} \cite{DBLP:conf/lpar/Delahaye00} en Coq 7.0. Ltac es central en Coq y hasta algunos lo consideran una de las principales razones del éxito de este. Antes de Ltac, los usuarios de Coq tenían que escribir los \textit{proof terms} a mano, o sino, utilizaban un conjunto de tácticas muy primitivas que ejecutaban reglas muy básicas. Ltac le proporcionó a los usuarios una forma de escribir sus propias tácticas al unir las tácticas básicas gracias a un conjunto expresivo de combinadores, así permitiendo la el desarrollo de formalizaciones más complejas en Coq.
+    \item[Ltac] El lenguaje en que se definen las \textit{tácticas} de Coq. Es el metalenguaje por defecto de Coq. Introducido por \citeauthor{DBLP:conf/lpar/Delahaye00} en Coq 7.0. Ltac \cite{DBLP:conf/lpar/Delahaye00} es central en Coq y hasta algunos lo consideran una de las principales razones del éxito de este. Antes de Ltac, los usuarios de Coq tenían que escribir los \textit{proof terms} a mano, o sino, utilizaban un conjunto de tácticas muy primitivas que ejecutaban reglas muy básicas. Ltac le proporcionó a los usuarios una forma de escribir sus propias tácticas al unir las tácticas básicas gracias a un conjunto expresivo de combinadores, así permitiendo la el desarrollo de formalizaciones más complejas en Coq.
     \item[Vernacular] Este lenguaje contiene los comandos básicos de Coq con los que nos comunicamos con intérprete. En lo que resta del trabajo utilizaremos varios de estos comandos.
 \end{description}
 
@@ -51,7 +52,7 @@ Definition implb (b1 b2:bool) : bool := if b1 then b2 else true.
 Definition negb (b:bool) := if b then false else true.
 \end{lstlisting}
 
-Las definiciones de funciones no recursivas comienzan con el comando \lstinline{Definition}. La primera se llama \lstinline{andb} y toma dos booleanos como argumentos, retornando un booleano. Se utiliza la notación \lstinline{if b then x else y} para matchear sobre los booleanos de manera más fácil. Finalmente podemos definir una función más interesante.
+Las definiciones de funciones no recursivas comienzan con el comando \lstinline{Definition}. La primera se llama \lstinline{andb} y toma dos booleanos como argumentos, retornando un booleano. Se utiliza la notación \lstinline{(if b then x else y)} para matchear sobre los booleanos de manera más fácil. Finalmente podemos definir una función más interesante.
 
 \begin{lstlisting}[frame=tb,caption={Definición de \lstinline{Is_true}},label=lst:Is_true]
 Definition Is_true (b:bool) :=
@@ -81,7 +82,7 @@ Inductive list (A : Type) : Type :=
   | cons : A -> list A -> list .
 \end{lstlisting}
 
-Este tipo es un tipo polimórfico dado que requiere de un \lstinline{A : Type} para ser un tipo. Antes de conocer ese \lstinline{A}, \lstinline{list} es una función. Por ejemplo, una posible lista es \lstinline{cons (S O) nil : list nat} que representa a la lista con un único elemento 1 de tipo \lstinline{nat}.
+Este tipo es un tipo polimórfico dado que requiere de un \lstinline{A : Type} para ser un tipo. Antes de conocer ese \lstinline{A}, \lstinline{list} es una función. Por ejemplo, una posible lista es \lstinline{cons (S O) \; nil : list nat} que representa a la lista con un único elemento 1 de tipo \lstinline{nat}.
 
 Definiremos una función que añade un elemento a una lista.
 
@@ -92,7 +93,7 @@ Definition add_list {A} (x : A) (l : list A) : list A :=
 
 Dado que el tipo \lstinline{A} puede ser inferido fácilmente por Coq, utilizamos llaves a su alrededor para expresar que sea un argumento implícito. En el cuerpo de la función solo utilizamos \lstinline{cons}, uno de los constructores de \lstinline{list}, para añadir un elemento delante de \lstinline{l}.
 
-Ahora nos interesa definir la función \lstinline{length} que retorna el largo de una lista.
+Ahora nos interesa definir la función \lstinline{len} que retorna el largo de una lista.
 
 \begin{lstlisting}
 Fixpoint len {A} (l : list A) : nat :=
@@ -107,7 +108,7 @@ El cuerpo de la función inspecciona a \lstinline{l} y lo \textit{matchea} con e
 
 \section{Tipos dependientes}
 
-Una de las herramientas más importantes de Coq son los tipos dependientes. Estos nos permiten hablar de elementos que dependen de otros anteriores. Por ejemplo, puede ser de nuestro interés hablar de números positivos, en otras palabras, \lstinline{x : nat} tal que \lstinline{x <> O}. En este caso, \lstinline{x <> O} es una prueba que depende de \lstinline{x} y solo existirá cuando \lstinline{x} sea mayor a 0.
+Una de las herramientas más importantes de Coq son los tipos dependientes. Estos nos permiten hablar de elementos que dependen de otros anteriores. Por ejemplo, puede ser de nuestro interés hablar de números positivos, más formalmente, \lstinline{x : nat} tal que \lstinline{x <> O}. En este caso, \lstinline{x <> O} es una prueba que depende de \lstinline{x} y solo existirá cuando \lstinline{x} sea mayor a cero.
 
 Para hablar de un ejemplo práctico de tipos dependientes, hemos elegido la función \lstinline{head} que retorna la cabeza de una lista. Comencemos con la versión más simple, donde utilizamos un valor ``default'' \lstinline{d} para el caso en que la lista sea vacía.
 
@@ -134,7 +135,7 @@ Definition head_o {A} (l : list A) : option A :=
 Esta solución es mejor que la anterior pero sigue sufriendo de una deficiencia. Dado que \lstinline{head_o} retorna un \lstinline{option} no sabemos si el resultado de esta función será realmente un elemento o si será el constructor vacío, por lo que todas las funciones que utilicen a \lstinline{head_o} deben también utilizar \lstinline{option}.
 
 Esto nos lleva a nuestra última solución. Esta requiere que nos aseguremos que la lista \lstinline{l} no es vacia, es decir, \lstinline{l <> []}. Pero para entenderla debemos ver dos cosas más: $\Sigma$\textit{-types} y \lstinline{Program}.
-Intuitivamente, los $\Sigma$\textit{-types} son tuplas donde el argumento de la derecha es dependiente del de la izquierda. A continuación, la definición.
+Intuitivamente, los $\Sigma$\textit{-types} son tuplas donde el argumento de la derecha es dependiente del de la izquierda. También podemos llamarlos pares dependientes. A continuación, la definición.
 
 \begin{lstlisting}[frame=tb,caption={Definición de $\Sigma$\textit{-types}},label=lst:sigma-types]
 Inductive sig (A : Type) (P : A -> Prop) : Type :=
@@ -155,7 +156,7 @@ Program Definition head {A}
   end.
 \end{lstlisting}
 
-En la signatura de \lstinline{head} podemos ver el uso del $\Sigma$-tipo. En el caso de la lista vacía utilizamos \lstinline{!} para expresar que este caso es inalcazable en esta situación. De esta forma \lstinline{Program} genera la prueba correspondiente.
+En la signatura de \lstinline{head} podemos ver el uso del $\Sigma$-tipo. En el caso de la lista vacía, utilizamos \lstinline{!} para expresar que este caso es inalcanzable en esta situación. De esta forma \lstinline{Program} genera la prueba correspondiente \lstinline{[] <> l}. En esta versión podemos claramente ver la utilidad de los tipos dependientes. Solo podemos utilizar esta función en caso de que la lista sea no vacía.
 
 \section{Tácticas}
 
@@ -166,12 +167,12 @@ Lemma sub_0_r : forall n, n - 0 = n.
 Proof. intro n. case n; [ | intro n']; reflexivity. Qed. 
 \end{lstlisting}
 
-En \ref{lst:sub_0_r}, definimos un lema enunciando que restarle 0 a cualquier número $n$ es $n$. Ya que la resta está definida por pattern matching en el primer argumento, esta igualdad no es automáticamente cierta computando. Por eso, debemos hacer análisis por casos.
+En \ref{lst:sub_0_r}, definimos un lema enunciando que restarle cero a cualquier número $n$, es $n$. Ya que la resta está definida por pattern matching en el primer argumento, esta igualdad no es automáticamente cierta computando. Por eso, debemos hacer análisis por casos.
 
 % TODO: Utilizar tácticas de Coq. Mencionar que hay múltiples librerías de tacticas.
 \graffito{TODO: Mencionar que hay múltiples librerías de tacticas?}
 El código comienza con el comando \lstinline{Lemma}, donde efectivamente especificamos lo que queremos probar.
-Luego utilizamos el comando \lstinline{Proof} para indicar el inicio de la prueba, la cual será resuelta a través de la concatenación de tácticas de Ltac. Estas tácticas trasnforman el \textit{proof-state} incrementalmente construyendo un \textit{proof-term}, la prueba. Podemos pensar al proof-state como el estado parcial de la prueba. Aplicando tácticas podemos modificar este estado, y al mismo tiempo ir creando nuestr prueba, generalmente llamada proof-term.
+Luego utilizamos el comando \lstinline{Proof} para indicar el inicio de la prueba, la cual será resuelta a través de la concatenación de tácticas de Ltac. Estas tácticas trasnforman el \textit{proof-state} incrementalmente construyendo un \textit{proof-term}, la prueba. Podemos pensar al proof-state como el estado parcial de la prueba. Aplicando tácticas podemos modificar este estado, y al mismo tiempo ir creando nuestra prueba, generalmente llamada proof-term.
 
 Después de \lstinline{Proof}, Coq genera una \lstinline{goal}, una meta. Internamente, una meta en Coq es representada con una \textit{meta-variable}. Esta meta-variable tiene un tipo, en concreto el lema que queremos probar. En este caso nuestra meta $?g$ tiene tipo \lstinline{\forall n, n - 0 = n}.
 
@@ -193,7 +194,13 @@ Al entrar a alguno de los editores de textos compatibles con Coq (Emacs, Visual 
 En este caso comenzamos con la hipótesis \lstinline{n : \nat} ya en nuestro contexto y una única meta $?g$ de tipo \lstinline{n <= S n}.
 Ahora aplicamos inducción en \lstinline{n} obteniendo dos submetas: $?g_1$ con tipo \lstinline{0 <= S 0} y $?g_2$ con tipo \lstinline{S n <= S (S n)}.
 Para la primera meta $?g_1$ utilizamos \lstinline{apply} para aplicar el teorema \lstinline{le_0_n} instanciado con \lstinline{S n}, esto soluciona automáticamente la submeta.
-La segunda sub-meta se resuelve de una manera similar, solo que tenemos una hipótesis inductiva \lstinline{IHn}.
+
+\begin{lstlisting}[caption={Teoremas \lstinline{le_0_n} y \lstinline{le_n_S}}]
+le_0_n : forall n : nat, 0 <= n
+le_n_S : forall n m : nat, n <= m -> S n <= S m
+\end{lstlisting}
+
+La segunda sub-meta se resuelve de una manera similar, utilizando el teorema \lstinline{le_n_S} y la hipótesis inductiva \lstinline{IHn}.
 
 En la siguiente figura podemos observar como se nos presenta esta información.
 

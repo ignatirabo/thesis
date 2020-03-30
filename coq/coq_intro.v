@@ -13,6 +13,7 @@ rewrite Nat.add_comm. reflexivity.
 Qed.
 
 Check le_n_S.
+Check le_0_n.
 
 Definition le_S (n : nat) : n <= S n.
 Proof.
