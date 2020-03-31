@@ -127,24 +127,6 @@ Notemos que esta solución efectivamente se puede utilizar en \ref{lst:list_max_
 El único constructor que no hemos utilizado es \lstinline{\tyTree_FATeleVal}.
 Este cumple el mismo rol que \lstinline{\tyTree_FAVal}, y como ya viene siendo el caso, el constructor solo será reemplazado si el tipo del elemento que introduce está bajo la mónada.
 
-\iffalse
-Tomemos una función de ejemplo con la siguiente signatura.
-
-\begin{lstlisting}
-\forall (T : Type) (R : T -> Type) (t : T), M (R t)
-$\equiv$
-\tyTree_FAType \; (fun T => \tyTree_FAType \; (fun R : T -> Type => \tyTree_FAVal \; T (fun t => \tyTree_M \; (R t))))
-\end{lstlisting}
-
-La traducción será muy directa.
-
-\begin{lstlisting}
-\tyTree_FAType \; (fun T => \tyTree_FATeleType \; (fun R : T -> Type => \tyTree_FATeleVal \; T (fun t => \tyTree_M \; (R t))))
-\end{lstlisting}
-
-Notar que el primer constructor no es reemplazado ya que \lstinline{T} no se encuentra bajo la mónada en ningún momento.
-\fi
-
 \section{El algoritmo}
 
 Ahora analizaremos la función \lift.
