@@ -2,20 +2,8 @@
 
 \Mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} es un metalenguaje de programación para Coq. Esto quiere decir que complementa a Coq, permitiendo ``hacer Coq'' de una manera distinta. En el trabajo, nos centramos en ampliar \Mtac y por eso es importante que veamos que nos permite hacer y cómo.
 
-% \section{Metatácticas}
-
-% Ahora volveremos al ejemplo \ref{lst:sub_0_r} y utilizaremos tácticas de \Mtac para probarlo.
-
-% \graffito{TODO: explicar más}
-% \begin{lstlisting}[frame=tb,caption={Prueba en \Mtac},label=lst:sub_0_r_mtac2]
-% MProof.
-% intro n. case n &> [m: idtac | intro n'] &> reflexivity.
-% Qed.
-% \end{lstlisting}
-
 \section{Mónadas}
 
-\graffito{TODO: Beta pregunta porqué hablamos de mónadas}
 Las mónadas son uno los métodos que utilizan los lenguajes de programación funcional para la representación de efectos secundarios.
 \Mtac define una mónada que es la que permite añadir una serie de características muy útiles a la hora de desarrollar metaprogramas.
 Las tácticas presentes en \mtac son metaprogramas monádicos.
@@ -30,7 +18,6 @@ Estos programas se caracterizan por ser monádicos, es decir, utilizan mónadas 
 Esto se amplía a muchas características útiles, pero nada es gratis.
 A continuación intentaremos comprender las limitaciones impuestas por el metalenguaje.
 
-% TODO: acá hablamos de mmatch, mtmmatch, mfix y las nuevas meta-cosas: sigmas, etc.
 Comenzaremos analizando \lstinline{mmatch}. Como ya vimos en Gallina, \lstinline{match} es puro, o sea, cuando lo utilizamos, necesitamos matchear todos los casos del constructor y a su vez no podemos matchear en términos que no sean constructores del tipo.
 Mientras tanto, \lstinline{mmatch} nos permite matchear más libremente.
 Esto significa que podemos matchear en expresiones sintácticas de manera de separarlas muy específicamente para nuestra conveniencia.
@@ -49,8 +36,6 @@ Definition test_match (n : nat) : M nat :=
 El único detalle extraño que podemos encontrar es que en dos de los casos tenemos unos corchetes antes de la expresión.
 Esto se utiliza para decirle a \Mtac que estas variables están siendo introducidas al contexto.
 
-% mfix
-\graffito{TODO: agregar explicación de mfix y mtmmatch ya que los usamos}
 Para hacer programas recursivos utilizaremos \lstinline{mfix}. Existen múltiples variantes para una cantidad distinta de argumentos recursivos: \lstinline{mfix1}, \lstinline{mfix2}, etcetera.
 
 Un ejemplo puede ser el de \lstinline{map}.
@@ -104,10 +89,7 @@ Dada esta limitación todas las funciones nativas de Coq pueden ser utilizadas e
 Esto hace que el desarrollo de metaprogramas se tenga que pensar de manera estratégica: qué funciones serán monádicas y cuales serán nativas de Coq.
 
 \section{Alternativas}
-% TODO: ltac2, meta-coq.
-% TODO: mtac2 es shallow embedded, los otros no, los objetos de los otros son términos de un tipo inductivo Term, no tienen un tipo informativo a diferencia de los de mtac2.
 % TODO: referencias https://popl19.sigplan.org/details/CoqPL-2019/8/Ltac2-Tactical-Warfare
-% TODO: Mtac [9] and Mtac2 [3], Rtac [4] and Template-Coq [1], and Coq-Elpi [8].
 
 \Mtac no es el único metalenguaje de programación para Coq. 
 
@@ -179,8 +161,9 @@ La función \lstinline{MTele_C} permite mapear a un \lstinline{MTele_Sort} con u
 Por ejemplo, la mónada que hemos observado antes: \lstinline{M}, en realidad es una función de \lstinline{Type} en \lstinline{Prop}.
 Entonces podríamos tomar un tipo \lstinline{\forall x$_1$ ... x$_n$, T x$_1$ ... x$_n$} y transformalo en \lstinline{\forall x$_1$ ... x$_n$, M (T x$_1$ ... x$_n$)}
 
-\graffito{TODO: Ampliar, no explica nada}
+\graffito{TODO: Agrego más?}
 Con \lstinline{MTele_In} podemos ganar acceso a múltiples tipos y valores telescopios al mismo tiempo, así siendo capaces de computar un nuevo tipo telescópico.
+Al momento de utilizarlo lo estudiaremos en más profundidad.
 
 \subsection{Ejemplo}
 

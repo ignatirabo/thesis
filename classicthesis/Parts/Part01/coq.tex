@@ -9,9 +9,7 @@ Ahora mismo Coq es desarrollado por más de 40 personas de forma activa y es rec
 
 Como un asistente de pruebas, la orientación de Coq es la de permitir la escritura totalmente formal de teoremas y pruebas, y asegurarnos de su correción. Se parte de lo que se denomina \textit{kernel}, el núcleo de Coq, que es el que verifica que la prueba corresponde al teorema, es decir, que sea correcta. De esta forma, el humano no está encargado de verificar la prueba, solo de escribirla.
 
-\graffito{TODO: volver a citar todos los ejemplos de la intro}
 El ejemplo más conocido de formalización en Coq es el teorema de los cuatro colores \cite{DBLP:conf/ascm/Gonthier07} hecho por \citeauthor{DBLP:conf/ascm/Gonthier07} en \citeyear{DBLP:conf/ascm/Gonthier07}.
-% TODO: diferencia con otros asistentes
 
 \section{Los lenguajes Coq}
 
@@ -29,8 +27,6 @@ Aunque Coq no es un lenguaje de programación propiamente dicho, este puede ser 
 \textit{Calculus of Inductive Constructions} \cite{CIC} es la base de Coq. Este es un cálculo lambda tipado de alto orden y puede ser interpretado como una extensión de la correspendencia Curry-Howard.
 
 Llamaremos \textit{Terms} (o términos) a los elementos básicos de esta teoría. Terms incluye \textit{Type}, \textit{Prop}, variables, tuplas, funciones, entre otros. Estás son algunas de las herramientas que utilizaremos para escribir nuestros programas.
-
-% TODO: Ampliar sobre las capacidades de Coq?
 
 \section{Tipos de datos y Funciones}
 
@@ -142,7 +138,6 @@ Inductive sig (A : Type) (P : A -> Prop) : Type :=
   exist : \forall x : A, P x -> {x : A | P x}
 \end{lstlisting}
 
-% TODO: está bien la notación?
 \graffito{TODO: está bien la notación?}
 Se utiliza la notación \lstinline|{x : A \| P x}| para expresar \lstinline{sig A (fun x => P)}. Utilizaremos este tipo de manera extensa para nuestras definiciones.
 
@@ -169,8 +164,6 @@ Proof. intro n. case n; [ | intro n']; reflexivity. Qed.
 
 En \ref{lst:sub_0_r}, definimos un lema enunciando que restarle cero a cualquier número $n$, es $n$. Ya que la resta está definida por pattern matching en el primer argumento, esta igualdad no es automáticamente cierta computando. Por eso, debemos hacer análisis por casos.
 
-% TODO: Utilizar tácticas de Coq. Mencionar que hay múltiples librerías de tacticas.
-\graffito{TODO: Mencionar que hay múltiples librerías de tacticas?}
 El código comienza con el comando \lstinline{Lemma}, donde efectivamente especificamos lo que queremos probar.
 Luego utilizamos el comando \lstinline{Proof} para indicar el inicio de la prueba, la cual será resuelta a través de la concatenación de tácticas de Ltac. Estas tácticas trasnforman el \textit{proof-state} incrementalmente construyendo un \textit{proof-term}, la prueba. Podemos pensar al proof-state como el estado parcial de la prueba. Aplicando tácticas podemos modificar este estado, y al mismo tiempo ir creando nuestra prueba, generalmente llamada proof-term.
 
@@ -178,7 +171,6 @@ Después de \lstinline{Proof}, Coq genera una \lstinline{goal}, una meta. Intern
 
 Para introducir la variable $n$, utilizamos \lstinline{intro}. Esta instancia a $?g$ como \lstinline{fun n:nat => $?g_1$} donde el tipo de $?g_1$ es \lstinline{n - 0 = n}.
 
-% TODO: Contextual Modal Type Theory, Nanevsky 2008. Me pa que no
 Ya introducida la variable, el próximo paso es hacer análisis por casos en ella. Con \lstinline{case} podemos analizar a $n$ según los constructores de su tipo. Para el primer caso: \lstinline{0 - 0 = 0} es trivial. El segundo caso es \lstinline{\forall n':nat, S n' - 0 = S n'}, para el cual, primero introduciremos $n'$ y luego, por la naturaleza inductiva de la resta, será igualmente trivial para Coq. La táctica \lstinline{case} retorna estas dos sub-metas, las cuales componemos, con el operador de composición (el punto y coma), con las tácticas listadas en \lstinline{[ | intro n']}. La primer sub-meta es resuelta por la táctica a la izquierda del \lstinline{|}, que es implicitamente la táctica identidad (\lstinline{idtac}), mientras que la segunda sub-meta es resuelta por la táctica a la derecha de \lstinline{|}, \lstinline{intro n'}. La salida de esta composición son de nuevo dos tácticas las que de nuevo compondremos con \lstinline{reflexivity}. Esto signfica que aplicaremos \lstinline{reflexivity} a ambas tácticas resultantes, resolviendolas trivialmente por computación.
 
 \section{Interfaz interactiva}
@@ -261,5 +253,3 @@ Coq cuenta con muchos comandos que se usan constantemente. Estos comandos son pa
 \end{description}
 
 Podemos encontrar una lista completa de estos comandos en \href{https://coq.inria.fr/refman/proof-engine/vernacular-commands.html}{Vernacular Commands}.
-
-% TODO: mencionar shortcuts??

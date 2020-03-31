@@ -48,52 +48,6 @@ Utilizaremos la función \lstinline{to_ty : TyTree -> Type} para transformar un 
 
 Se puede encontrar la definición de \lstinline{to_ty} y \lstinline{to_tree} en el apéndice.
 
-\iffalse
-Ahora tomaremos la función \lstinline{f} de \ref{lst:exmp_tytree}. e iremos modificando si signatura para mostrar este reflejo de tipos.
-Para simplificar escribiremos \lstinline{P $\equiv$ Q} para expresar que un tipo es equivalente a un \lstinline{TyTree} aunque no sea técnicamente correcto en Coq.
-
-\begin{lstlisting}
-f : \forall (n : nat), 0 <= n -> M nat.
-\end{lstlisting}
-
-Su tipo traducido es
-
-\begin{lstlisting}
-f : \tyTree_imp (\tyTree_base nat) (\tyTree_imp (\tyTree_base nat) (\tyTree_base nat))
-\end{lstlisting}
-
-Dado que no hay dependencias de tipos, podemos utilizar \lstinline{\tyTree_imp}. Ahora si parametrizamos
-$\nat$ por cualquier tipo.
-
-\begin{lstlisting}
-\forall A, A -> A -> A
-$\equiv$
-\tyTree_FAType (fun A => \tyTree_imp (\tyTree_base A) (\tyTree_imp (\tyTree_base A) (\tyTree_base A))
-\end{lstlisting}
-
-Con \lstinline{\tyTree_FAType} podemos observar claramente la dependencia de \lstinline{A}.
-
-Para expresar la dependencia de un valor utilizamos \lstinline{\tyTree_FAVal}.
-
-\begin{lstlisting}
-\forall A (B : A -> Type) (a : A), (B a)
-$\equiv$
-\tyTree_FAType (fun A => \tyTree_FAType (fun B : A -> Type => \tyTree_FAVal A (fun a => \tyTree_base (B a))))
-\end{lstlisting}
-
-El centro de nuestro trabajo son las funciones monádicas, esto significa utilizar \lstinline{\tyTree_M}.
-
-\begin{lstlisting}
-ret : \forall A, A -> M A
-$\equiv$
-ret : \tyTree_FAType (fun A => \tyTree_imp (\tyTree_base A) (\tyTree_M A))
-\end{lstlisting}
-
-Es importante notar que podemos encontrar usos de \lstinline{\tyTree_M} en múltiples secciones de la signatura, solo se matcheará \lstinline{\tyTree_M} en \lift con el retorno de la función. 
-\fi
-
-% TODO: dejo los otros para después? Leer comentarios de la agenda del 14 de enero.
-
 \section{TyTrees monádicos}
 
 Ahora nos centraremos en cómo representar funciones lifteadas con \lstinline{TyTree}.
@@ -115,11 +69,8 @@ A continuación hablaremos de todos los elementos desconocidos de esta signatura
 
 Con \lstinline{\tyTree_FATeleType} podemos introducir tipos telescopios, es la versión telescopica de \lstinline{\tyTree_FAType}. Esto signfica que en la signatura de la función, si \lstinline{\tyTree_FAType} introduce un tipo que se encuentra bajo la mónada, este constructor se reemplazará por \lstinline{\tyTree_FATeleType}, siempre y cuando el tipo que introduzca necesite ser reemplazado, es decir, cuando el tipo se encuentre bajo la mónada en alguna instancia de la signatura.
 
-% TODO: que representa tyTree_In?
-% TODO: esto es demasiado técnico, explico más para que se entienda? lo saco?
 La función \lstinline{MTele_In} nos permite adentrarnos a un tipo telescópico, momentáneamente introduciendo todos los argumentos con un \lstinline{accessor} y trabajando sobre el tipo de manera directa.
 
-% Un \lstinline{accessor} nos permite expresar el ``tener acceso'' a los valores para cada argumento del telescopio.
 Un \lstinline{accessor} es un par de dos funciones llamadas \lstinline{acc_sort} y \lstinline{acc_val}.
 Se comportan de la siguiente forma:
 \begin{itemize}
@@ -194,7 +145,6 @@ La traducción será muy directa.
 Notar que el primer constructor no es reemplazado ya que \lstinline{T} no se encuentra bajo la mónada en ningún momento.
 \fi
 
-% TODO: el tipo de lift.
 \section{El algoritmo}
 
 Ahora analizaremos la función \lift.
@@ -234,8 +184,6 @@ Con la función \lstinline{apply_sort} podemos aplicar a \lstinline{U} en \lstin
 
 Cuando en \lift encontramos una implicación, debemos liftear el lado izquierdo para luego poder liftear el derecho.
 Para hacer esto utilizamos la función \lstinline{lift_in}.
-% Esta funciona tiene solo tres casosa pero la principal diferencia es la signatura del retorno: es un $\sigma$-tipo que lleva una función \lstinline{F} y una prueba 
-% \graffito{TODO: explicar uncurry}
 A través de otras funciones auxiliares, \lstinline{lift_in} nos permitirá reemplazar nuestro tipo \lstinline{apply_sort A U} por un otro tipo equivalente: \lstinline{F (uncurry_in_acc U)} donde \lstinline{F := fun a => a.(acc_sort) A}.
 La función \lstinline{uncurry_in_acc} toma nuestro \lstinline{U : ArgsOf m} y nos devuelve un \lstinline{accessor m}.
 De esta forma, \lstinline{F (uncurry_in_acc U)} se traduce a \lstinline{(uncurry_in_acc U).(acc_sort) A}, lo que intuitivamente representa el tipo \lstinline{A} con los argumentos de \lstinline{U}.
