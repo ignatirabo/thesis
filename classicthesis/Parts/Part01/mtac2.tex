@@ -100,7 +100,7 @@ Implementa una $\alpha$ táctica de tipo monádico en OCaml y trata de conservar
 
 Otras alternativas pueden ser Template-Coq \cite{DBLP:conf/itp/AnandBCST18}, Rtac \cite{DBLP:conf/esop/MalechaB16} y Coq-Elpi \cite{tassi:hal-01637063}.
 
-La gran diferencia entre estos metalenguajes es que \Mtac es \emph{shallowly embedded}, mientras que los otros no. A diferencia de \Mtac, los objetos de estas alternativas son términos de un tipo inductivo \lstinline{Term}, es decir, no tienen un tipo informativo. Es decir, en \Mtac un programa \lstinline{M A} está garantizado que, si termina correctamente, retorna un término de tipo \lstinline{A}. Pero en los lenguajes \emph{deeply embedded}, como los mencionados, nada garantiza que el término retornado tenga un tipo dado, puede retornarse cualquier elemento de cualquier tipo.
+La gran diferencia entre estos metalenguajes es que \Mtac es \emph{shallowly embedded}, mientras que los otros no. A diferencia de \Mtac, los objetos de estas alternativas son términos de un tipo inductivo \lstinline{Term}, es decir, no tienen un tipo informativo. Es decir, en \Mtac un programa \lstinline{M A} está garantizado que, si termina correctamente, retorna un término de tipo \lstinline{A}. Pero en los lenguajes \emph{deeply embedded}, como los mencionados, nada garantiza que el término retornado tenga un tipo dado, puede retornarse cualquier elemento de cualquier tipo, incluso términos mal construidos.
 
 \section{Telescopios}
 

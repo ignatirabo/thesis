@@ -16,7 +16,7 @@ El ejemplo más conocido de formalización en Coq es el teorema de los cuatro co
 Coq no es técnicamente un lenguaje de programación, sino, un asistente de pruebas. Pero podemos encontrar múltiples lenguajes dentro de Coq que nos permiten expresarnos. 
 \begin{description}
     \item[Gallina] Este es el lenguaje de especificación de Coq \cite{Gallina}. Permite desarrollar teorías matemáticas y probar especificaciones de programas. Utilizaremos extensivamente un lenguaje muy similar a este para definir nuestros programas en \Mtac.
-    \item[Ltac] El lenguaje en que se definen las \textit{tácticas} de Coq. Es el metalenguaje por defecto de Coq. Introducido por \citeauthor{DBLP:conf/lpar/Delahaye00} en Coq 7.0. Ltac \cite{DBLP:conf/lpar/Delahaye00} es central en Coq y hasta algunos lo consideran una de las principales razones del éxito de este. Antes de Ltac, los usuarios de Coq tenían que escribir los \textit{proof terms} a mano, o sino, utilizaban un conjunto de tácticas muy primitivas que ejecutaban reglas muy básicas. Ltac le proporcionó a los usuarios una forma de escribir sus propias tácticas al unir las tácticas básicas gracias a un conjunto expresivo de combinadores, así permitiendo la el desarrollo de formalizaciones más complejas en Coq.
+    \item[Ltac] El lenguaje en que se definen las \textit{tácticas} de Coq. Es el metalenguaje por defecto de Coq. Introducido por \citeauthor{DBLP:conf/lpar/Delahaye00} en Coq 7.0. Ltac \cite{DBLP:conf/lpar/Delahaye00} es central en Coq y hasta algunos lo consideran una de las principales razones del éxito de este. Antes de Ltac, los usuarios de Coq tenían que escribir los \textit{proof terms} a mano, o sino, utilizaban un conjunto de tácticas muy primitivas que ejecutaban reglas muy básicas. Ltac le proporcionó a los usuarios una forma de escribir sus propias tácticas al unir las tácticas básicas gracias a un conjunto expresivo de combinadores, así permitiendo el desarrollo de formalizaciones más complejas en Coq.
     \item[Vernacular] Este lenguaje contiene los comandos básicos de Coq con los que nos comunicamos con intérprete. En lo que resta del trabajo utilizaremos varios de estos comandos.
 \end{description}
 
@@ -50,15 +50,15 @@ Definition negb (b:bool) := if b then false else true.
 
 Las definiciones de funciones no recursivas comienzan con el comando \lstinline{Definition}. La primera se llama \lstinline{andb} y toma dos booleanos como argumentos, retornando un booleano. Se utiliza la notación \lstinline{(if b then x else y)} para matchear sobre los booleanos de manera más fácil. Finalmente podemos definir una función más interesante.
 
-\begin{lstlisting}[frame=tb,caption={Definición de \lstinline{Is_true}},label=lst:Is_true]
-Definition Is_true (b:bool) :=
+\begin{lstlisting}[frame=tb,caption={Definición de \lstinline{is_true}},label=lst:Is_true]
+Definition is_true (b:bool) : Prop :=
   match b with
     | true => True
     | false => False
   end.
 \end{lstlisting}
 
-La definición de \ref{lst:Is_true} es muy importante. Nos muestra claramente que \lstinline{true} y \lstinline{True} no son lo mismo. Como vimos, \lstinline{true} representa el valor de verdad booleano. Mientras que \lstinline{True} representa la verdad en las proposiciones, es decir, algo que siempre tiene una prueba. De la misma forma, \lstinline{False} representa a los teoremas que nunca podremos probar. En caso de probar \lstinline{False} estaríamos mostrando que Coq es \emph{inconsistente}.
+La definición de \ref{lst:Is_true} es muy importante. Nos muestra claramente que \lstinline{true} y \lstinline{True} no son lo mismo. Como vimos, \lstinline{true} representa el valor de verdad booleano. Mientras que \lstinline{True} representa la verdad en las proposiciones, es decir, algo que siempre tiene una prueba. De la misma forma, \lstinline{False} representa a los teoremas que nunca podremos probar. En caso de probar \lstinline{False}, sin ninguna hipótesis, estaríamos mostrando que Coq es \emph{inconsistente}.
 
 Ahora, veamos un tipo inductivo recursivo.
 
@@ -138,14 +138,13 @@ Inductive sig (A : Type) (P : A -> Prop) : Type :=
   exist : \forall x : A, P x -> {x : A | P x}
 \end{lstlisting}
 
-\graffito{TODO: está bien la notación?}
 Se utiliza la notación \lstinline|{x : A \| P x}| para expresar \lstinline{sig A (fun x => P)}. Utilizaremos este tipo de manera extensa para nuestras definiciones.
 
 La librería \lstinline{Program} permite programar en Coq como si fuera un lenguaje de programación funcional mientras que, por detrás, se utiliza una especificación tan fuerte como se desee y probando que el código cumple la especificación de manera automática. En nuestro caso utilizaremos \lstinline{Program} para codificar \lstinline{head} de una manera casi transparente.
 \begin{lstlisting}
 Program Definition head {A}
-(l : list A | [] <> l ) : A :=
-  match l with
+(l : {l : list A | [] <> l} ) : A :=
+  match proj1_sig l with
   | [] => !
   | x :: xs => x
   end.

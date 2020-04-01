@@ -21,7 +21,7 @@ Esta nueva función será denominada \lift.
 \section{Asistentes de prueba}
 
 Históricamente, una prueba matemática era una sucesión de instrucciones, más específicamente reglas de inferencia, en un lenguaje más formal que el natural, que al ser aplicadas en orden, partiendo de una serie de hipótesis, pueden llegar a una conclusión, el teorema.
-Si estás reglas son utilizadas correctamente, y las hipótesis no se contradicen, entonces todo resultado al que lleguemos puede ser considerado verdadero. Y efectivamente, estos pasos representan una prueba de dicho resultado.
+Si estas reglas son utilizadas correctamente, y las hipótesis no se contradicen, entonces todo resultado al que lleguemos puede ser considerado verdadero. Y efectivamente, estos pasos representan una prueba de dicho resultado.
 
 Sin embargo, en las pruebas matemáticas no explicitamos cada regla que utilizamos, resulta tedioso.
 Claramente no es necesario para que el lector pueda comprenderla.
@@ -51,14 +51,14 @@ Estás tácticas son, por defecto, definidas en el metalenguaje Ltac \cite{DBLP:
 
 Existen múltiples tipos de tácticas que intentan diferentes cosas, e inclusive, con diferentes filosofías.
 Un ejemplo de esto, es la táctica CoqHammer \cite{DBLP:journals/jar/CzajkaK18}, una de las más conocidas en Coq. Esta tiene como objetivo demostrar todo automáticamente.
-Aunque esta táctica pueda resultar muy poderosa, también tiene conlleva muchos problemas.
+Aunque esta táctica pueda resultar muy poderosa, también conlleva muchos problemas, como mencionaremos mas adelante.
 
 % Qué es Mtac2?
 \section{Mtac2}
 
 El metalenguaje \Mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} tiene como objetivo reemplazar a Ltac.
 \graffito{TODO: falta citar a Ltac2}
-En este sentido, es uno de tantos que intentan lo mismo: Ltac2, Template-Coq \cite{DBLP:conf/itp/AnandBCST18}, Rtac \cite{DBLP:conf/esop/MalechaB16} y Coq-Elpi \cite{tassi:hal-01637063}.
+En este sentido, es uno de tantos que intentan lo mismo: Ltac2~(Cap.~Ltac2 en \cite{manual de referencia 8.11}), Template-Coq \cite{DBLP:conf/itp/AnandBCST18}, Rtac \cite{DBLP:conf/esop/MalechaB16} y Coq-Elpi \cite{tassi:hal-01637063}.
 
 Volviendo a CoqHammer, esta táctica presenta varias deficiencias.
 En parte, esta táctica no es rápida; ejecutarla puede tardar múltiples horas, y aún así fallar.
