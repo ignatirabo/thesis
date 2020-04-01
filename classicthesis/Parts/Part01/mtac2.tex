@@ -104,7 +104,8 @@ La gran diferencia entre estos metalenguajes es que \Mtac es \emph{shallowly emb
 
 \section{Telescopios}
 
-Los \emph{telescopios} son una estructura de datos inductiva de \Mtac que permite expresar una secuencia de tipos o valores, posiblemente dependientes, y de largo arbitrario.
+Los \emph{telescopios} son una estructura de datos inductiva % de \Mtac
+que permite expresar una secuencia de tipos o valores, posiblemente dependientes, y de largo arbitrario.
 Los telescopios, junto con las funciones que lo acompañan, serán claves a la hora de poder expresar nuestro problema y consecuente solución.
 
 \begin{lstlisting}[float=h,frame=tb,caption={Definicion de telescopio},label=lst:MTele]
@@ -188,7 +189,7 @@ El próximo paso es hablar de elementos de este tipo.
 Definition Tm : MTele_Ty m := fun T l p => l = nil.
 \end{lstlisting}
 
-Donde tenemos \lstinline{l <> nil} podemos poner cualquier tipo.
+Donde tenemos \lstinline{l = nil} podemos poner cualquier tipo.
 Podriamos tener \lstinline{nat}, pero para hacerlo más interesante definimos un tipo con sentido.
 Lo importante es que Coq acepta la definición de \lstinline{Tm}, lo que implica que esta definición efectivamente tiene tipo el tipo esperado.
 Si este no fuera el caso, el type-checker de Coq no lo aceptaría.
