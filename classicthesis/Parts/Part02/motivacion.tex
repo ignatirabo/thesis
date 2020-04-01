@@ -35,7 +35,7 @@ Definition max (S: Set) : M (S -> S -> S) :=
 \end{lstlisting}
 
 Sea \lstinline{max} en \ref{lst:max}, la función que retorna la relación máximo en un conjunto $S$.
-A primera vista nuestra idea podría fucionar, es decir, intuitivamente no es ilógica.
+A primera vista nuestra idea podría funcionar, es decir, intuitivamente no es ilógica.
 
 \begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max}},label=lst:list_max]
 Definition list_max (S: Set) :=
@@ -57,7 +57,7 @@ Esto es debido a que \lstinline{bind} no tiene la signatura necesaria.
 bind : forall A B, M A -> (A -> M B) -> M B
 \end{lstlisting}
 
-Nuestro \lstinline{mfix} no puede unificarse a \lstinline{M B}, ya que su tipo es una implicación: \lstinline{(f : forall (l: list S)  l' <> nil -> M S)}.
+Nuestro \lstinline{mfix} no puede unificarse a \lstinline{M B}, ya que su tipo es una implicación: \lstinline{(f : forall (l: list S),  l' <> nil -> M S)}.
 % Es decir, tenemos \lstinline{A = (S -> S -> S)} y \lstinline{B = forall (l: list S)  l' <> nil -> M S} entonces no podemos utilizar \lstinline{bind}.
 % TODO: En la motivación usar el ret lifteando antes del fun/lambda y el bind lifteado para el max.
 
