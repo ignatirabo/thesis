@@ -22,12 +22,12 @@ La notación es así.
 (* suponemos que a aparece en c *)
 a <^- b;
 c 
-(* equivalente a la notación de arriba pero *)
+(* equivalente a la notacion de arriba pero *)
 (* el resultado de b no influye en c, lo ignoramos *)
 b;^;c
 (* funcion cualquiera lifteada *)
-(* caso de ret^ en la motivación *)
+(* caso de ret^ en la motivacion *)
 g^ 
 \end{lstlisting}
 
-Parte de esta notación ya ha sido desarrollada.
+Parte de esta notación ya ha sido desarrollada. La complejidad radica en poder obtener el tipo adecuado en el momento justo para poder generar el telescopio correspondiente y poder liftear la función.

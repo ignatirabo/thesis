@@ -76,14 +76,14 @@ En \ref{sc:futuro} discutiremos sobre la capacidad de generar estos telescopios 
 La función \lift retorna una tupla dependiente con el tipo de la función lifteada y la función lifteada. Ya ahora con nuestro telescopio \lstinline{m}, extraer la nueva función es simple.
 
 \graffito{\lstinline{mprojT2} nos permite extraer el segundo argumento de una tupla dependiente en \textsc{Mtac2}}
-\begin{lstlisting}[float=h,frame=tb,caption={Lifteando \lstinline{ret} y \lstinline{bind}},label=lst:lift1]
+\begin{lstlisting}[float=h,frame=tb,caption={Lifteando \lstinline{ret} y \lstinline{bind}}]
 bind^ := mprojT2 (lift bind m)
 ret^ := mprojT2 (lift ret (n l))
 \end{lstlisting}
 
 Finalmente nuestro programa quedaría de la siguiente forma.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Lifteando \lstinline{ret} y \lstinline{bind}},label=lst:lift1]
+\begin{lstlisting}[float=h,frame=tb,caption={Lifteando \lstinline{ret} y \lstinline{bind}}]
 Definition list_max_lifted (S: Set) :=
 max <^- max S; (* notacion para bind^ *)
 mfix f (l: list S) : l' <> nil -> M S :=

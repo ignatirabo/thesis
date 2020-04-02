@@ -138,9 +138,9 @@ Fixpoint lift (m : MTele) (U : ArgsOf m) (T : TyTree) :
 
 Dentro de esta signatura tenemos múltiples elementos conocidos:
 \begin{itemize}
-  \item El \spacedlowsmallcaps{telescopio} \lstinline{m} que describe las dependencias a agregar.
-  \item El \spacedlowsmallcaps{TyTree} \lstinline{T} con la signatura de la función.
-  \item La \spacedlowsmallcaps{función} \lstinline{f : to_ty T}. La función a liftear.
+  \item El \textsf{telescopio} \lstinline{m} que describe las dependencias a agregar.
+  \item El \textsf{TyTree} \lstinline{T} con la signatura de la función.
+  \item La \textsf{función} \lstinline{f : to_ty T}. La función a liftear.
 \end{itemize}
 
 \lift retorna un par dependiente (o $\Sigma$-type) que contiene la nueva función junto con el \lstinline{TyTree} que describe su tipo.
@@ -247,3 +247,7 @@ A continuación haremos un recorrido paso a paso de como \lstinline{bind} es lif
             (\tyTree_MFA B))))
     \end{lstlisting}
 \end{enumerate}
+
+Hemos visto dos aplicaciones paso a paso de la función \lift, que nos permiten generar las versiones generalizadas de \lstinline{ret} y \lstinline{bind} tal como las necesitamos para nuestro ejemplo \ref{lst:list_max_lifted}.
+
+Aquí concluimos la discusión técnica, pero antes reiteramos que en el Apéndice \ref{ch:apendice} se encuentra a disposición del lector el código de la función \lift.
