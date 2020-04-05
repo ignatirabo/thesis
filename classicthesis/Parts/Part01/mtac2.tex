@@ -112,7 +112,7 @@ Los \emph{telescopios} son una estructura de datos inductiva % de \Mtac
 que permite expresar una secuencia de tipos o valores, posiblemente dependientes, y de largo arbitrario.
 Los telescopios, junto con las funciones que lo acompañan, serán claves a la hora de poder expresar nuestro problema y consecuente solución.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Definicion de telescopio},label=lst:MTele]
+\begin{lstlisting}[float=h,frame=tb,caption={Definición de telescopio},label=lst:MTele]
 Inductive MTele : Type :=
 | mBase : MTele
 | mTele {X : Type} (F : X -> MTele) : MTele.
