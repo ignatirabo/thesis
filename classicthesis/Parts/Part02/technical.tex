@@ -1,7 +1,7 @@
-\chapter{Aspectos Técnicos}\label{ch:technical}
+\chapter{Definición de Lift}\label{ch:technical}
 
-En esta sección discutiremos los aspectos técnicos de \lift.
-Comenzaremos discutiendo su funcionamiento básico y de ahí escalaremos a algunos de los detalles más profundos. 
+En este mostraremos en detalles las herramientas necesarias para la definición de \lift, la cual se hará en la sección \ref{sec:algoritmo}.
+Su código se encuentra en el apéndice \ref{ch:apendice}.
 
 \section{El tipo TyTree}
 
@@ -127,9 +127,9 @@ Notemos que esta solución efectivamente se puede utilizar en \ref{lst:list_max_
 El único constructor que no hemos utilizado es \lstinline{\tyTree_FATeleVal}.
 Este cumple el mismo rol que \lstinline{\tyTree_FAVal}, y como ya viene siendo el caso, el constructor solo será reemplazado si el tipo del elemento que introduce está bajo la mónada.
 
-\section{El algoritmo}
+\section{El algoritmo}\label{sec:algoritmo}
 
-Ahora analizaremos la función \lift.
+Ahora definiremos y analizaremos la función \lift.
 
 \begin{lstlisting}[frame=tb,caption={Signatura de \lift},label=lst:tipo_lift]
 Fixpoint lift (m : MTele) (U : ArgsOf m) (T : TyTree) :

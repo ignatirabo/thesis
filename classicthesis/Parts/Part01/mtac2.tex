@@ -15,14 +15,13 @@ Utilizamos la función \lstinline{M : Type -> Prop} para referirnos a la versió
 % Ya habiendo mencionado tácticas, tornaremos nuestra atención a meta-programas.
 Las tácticas de \mtac son metaprogramas.
 Estos programas se caracterizan por ser monádicos, es decir, utilizan mónadas para reflejar efectos secundarios.
-Esto se amplía a muchas características útiles, pero nada es gratis.
+Esto se amplía a muchas características útiles, pero se debe pagar un costo.
 A continuación intentaremos comprender las limitaciones impuestas por el metalenguaje.
 
 Comenzaremos analizando \lstinline{mmatch}. Como ya vimos en Gallina, \lstinline{match} es puro, o sea, cuando lo utilizamos, necesitamos matchear todos los casos del constructor y a su vez no podemos matchear en términos que no sean constructores del tipo.
 Mientras tanto, \lstinline{mmatch} nos permite matchear más libremente.
 Esto significa que podemos matchear en expresiones sintácticas de manera de separarlas muy específicamente para nuestra conveniencia.
 Un ejemplo puede ser el siguiente.
-Imaginemos un programa que a todo número le suma uno, pero específicamente no modifica el número original si este está expresado como una suma. Esto se puede expresar de la siguiente forma en \Mtac.
 
 \begin{lstlisting}
 Definition test_match (n : nat) : M nat :=
@@ -32,6 +31,11 @@ Definition test_match (n : nat) : M nat :=
   | [? n'] S n' => ret (S (S n'))
   end.
 \end{lstlisting}
+
+En el primer caso del \lstinline{mmatch} del programa \lstinline{test_match}, vemos que no estamos matcheando uno de los constructores de \lstinline{nat}.
+Esta es la gran diferencia con el \lstinline{match} de Coq.
+En el \lstinline{match} original de Coq, solo podemos matchear a los constructores del tipo del argumento.
+Mientras tanto, acá estamos analizando \lstinline{add x y}, que tiene tipo \lstinline{nat} pero no es uno de los constructores del tipo.
 
 El único detalle extraño que podemos encontrar es que en dos de los casos tenemos unos corchetes antes de la expresión.
 Esto se utiliza para decirle a \Mtac que estas variables están siendo introducidas al contexto.
@@ -175,6 +179,8 @@ Primero definimos un telescopio \lstinline{m}.
 \begin{lstlisting}
 Definition m := [T : Type ;> l : list T ;> p : length l = 0]$_t$
 \end{lstlisting}
+
+El telescopio tiene tres elementos: el tipo \lstinline{T}, una lista de tipo \lstinline{T} (que ya hemos introducido, por lo tanto podemos utilizar) y una prueba \lstinline{p} de que la lista \lstinline{l} tiene largo cero.
 
 Si ahora inspeccionamos quien es \lstinline{MTele_Sort \Type_sort m} veremos que es lo esperado.
 
