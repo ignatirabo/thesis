@@ -22,10 +22,10 @@ Definition list_max_nat :=
 \end{lstlisting}
 % TODO: Beta dice que hay que usar disjoint sum "x + y" y no el \/ (or).
 
-El último caso de \lstinline{mtmmatch} analiza una expresión que no es un constructor del tipo inductivo \lstinline{list}. Por eso es necesario utilizar el \lstinline{match} monádico.
-Notar que tampoco podemos utilizar \lstinline{mmatch} ya que el tipo que retornamos términos de tipo \lstinline{l' <> nil -> M nat}.
+El último caso de \lstinline{mtmmatch} analiza una expresión que no es un constructor del tipo inductivo \lstinline{list}. Por eso, es necesario utilizar el \lstinline{match} monádico.
+Notar que tampoco podemos utilizar \lstinline{mmatch} ya que deseamos retornar términos de tipo \lstinline{l' <> nil -> M nat}.
 
-Ahora supongamos que deseamos parametrizar $\nat$ y utilizar una función que acepte múltiples conjuntos de nuestro interés.
+Ahora, supongamos que deseamos parametrizar $\nat$ y utilizar una función que acepte múltiples conjuntos de nuestro interés.
 
 \begin{lstlisting}[frame=tb,caption={Función \lstinline{max}},label=lst:max]
 Definition max (S: Set) : M (S -> S -> S) :=
@@ -35,7 +35,7 @@ Definition max (S: Set) : M (S -> S -> S) :=
 \end{lstlisting}
 
 Sea \lstinline{max} en \ref{lst:max}, la función que retorna la relación máximo en un conjunto $S$.
-A primera vista nuestra idea podría funcionar, es decir, intuitivamente no es ilógica.
+A primera vista, nuestra idea podría funcionar, es decir, intuitivamente no es ilógica.
 
 \begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max}},label=lst:list_max]
 Definition list_max (S: Set) :=
@@ -63,10 +63,10 @@ Nuestro \lstinline{mfix} no puede unificarse a \lstinline{M B}, ya que su tipo e
 
 Solucionar esta situación específica no es un problema.
 Una alternativa es introducir los parámetros de la función y beta-expandir la definición del fixpoint.
-Otra es codificar un nuevo \lstinline{bind} que tenga el tipo necesario.
-El problema será que ambas soluciones son específicas al problema, entonces en cada situación debemos volver a implementar alguno de estos operadores.
+Otra, es codificar un nuevo \lstinline{bind} que tenga el tipo necesario.
+El problema será que ambas soluciones son específicas al problema, entonces, en cada situación, debemos volver a implementar alguno de estos operadores.
 
-En nuestra solución suplantamos \lstinline{bind} y \lstinline{ret} por \lstinline{bind^} y \lstinline{ret^}, respectivamente. Llamaremos a estas funciones las versiones \emph{lifteadas} de las originales. Estas poseen el tipo necesario.
+En nuestra solución, suplantamos \lstinline{bind} y \lstinline{ret} por \lstinline{bind^} y \lstinline{ret^}, respectivamente. Llamaremos a estas funciones las versiones \emph{lifteadas} de las originales. Estas poseen el tipo necesario.
 
 Nuestro proyecto es la codificación de un nuevo metaprograma \lift que puede generalizar metaprogramas con las dependencias necesarias para que sea utilizado en el contexto.
 En nuestro ejemplo, utilizando \lift podemos generalizar \lstinline{bind} y \lstinline{ret}, consiguiendo nuevos metaprogramas que se comportan como los originales pero con una signatura distinta, permitiendo su uso.

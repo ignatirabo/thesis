@@ -130,7 +130,7 @@ Definition head_o {A} (l : list A) : option A :=
   end.
 \end{lstlisting}
 
-Esta solución es mejor que la anterior pero sigue sufriendo de una deficiencia. Dado que \lstinline{head_o} retorna un \lstinline{option} no sabemos si el resultado de esta función será realmente un elemento o si será el constructor vacío, por lo que todas las funciones que utilicen a \lstinline{head_o} deben también utilizar \lstinline{option}.
+Esta solución es mejor que la anterior, pero sigue sufriendo de una deficiencia. Dado que \lstinline{head_o} retorna un elemento de tipo \lstinline{option} no sabemos si el resultado de esta función será realmente un elemento o si será el constructor vacío, por lo que todas las funciones que utilicen a \lstinline{head_o} deben también utilizar \lstinline{option}.
 
 Esto nos lleva a nuestra última solución. Esta requiere que nos aseguremos que la lista \lstinline{l} no es vacia, es decir, \lstinline{l <> []}. Para entenderla, debemos ver dos cosas más: $\Sigma$\textit{-types} y \lstinline{Program}.
 Intuitivamente, los $\Sigma$\textit{-types} son duplas donde el argumento de la derecha es dependiente del de la izquierda. También los llamaremos pares dependientes. A continuación, la definición.

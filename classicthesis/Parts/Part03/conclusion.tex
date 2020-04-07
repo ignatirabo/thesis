@@ -2,20 +2,25 @@
 
 \section{Conclusión}\label{sc:conclusion}
 
-En la parte \ref{pt:introduccion} estudiamos al asistente de pruebas Coq y el meta-lenguaje de programación \mtac. Vimos como los tipos dependientes son sumamente importantes y como en \mtac se utilizan mónadas para escribir sus metaprogramas.
+En la Parte \ref{pt:introduccion}, estudiamos al asistente de pruebas Coq y el meta-lenguaje de programación \mtac. Vimos cómo los tipos dependientes son sumamente importantes y cómo en \mtac se utilizan mónadas para escribir sus metaprogramas.
 
-Luego, en la parte \ref{pt:lift} comprendimos el problema que se puede generar al utilizar los operadores monádicos de \mtac y un uso fuerte de tipos dependientes. Analizamos las signaturas de las funciones y se concluyó en que se necesitaban nuevas funciones más generales.
-Consecuentemente, desarrollamos el metaprograma \lift que puede generalizar otros metaprogramas de manera casi automática. Para hacer esto realizamos un análisis caso por caso sobre la signatura de las funciones, y utilizamos telescopios para expresar los argumentos dependientes que deseamos agregar.
+Luego, en la Parte \ref{pt:lift}, comprendimos el problema que se puede generar al utilizar los operadores monádicos de \mtac y un uso fuerte de tipos dependientes. Analizamos las signaturas de las funciones y se concluyó en que se necesitaban nuevas funciones más generales.
+Consecuentemente, desarrollamos el metaprograma \lift que puede generalizar otros metaprogramas de manera casi automática. Para hacer esto, realizamos un análisis caso por caso sobre la signatura de las funciones, y utilizamos telescopios para expresar los argumentos dependientes que deseamos agregar.
+
+Finalmente, en la Sección \ref{sec:algoritmo} pudimos generalizar las funciones \lstinline{bind} y \lstinline{ret}.
+Estas generalizaciones mostraron ser independientes del telescopio que utilizamos y, por lo tanto, observamos que esta solución es efectivamente más general que la propuesta de específicamente definir nuevas versiones de estos operadores monádicos.
+Con las generalizaciones, \lstinline{bind^} y \lstinline{ret^}, logramos codificar la función \lstinline{list_max} del Capítulo \ref{ch:motivacion} como lo deseamos en un principio.
+El único costo fue el de definir los telescopios apropiados para la situación.
 
 \section{Trabajo futuro}\label{sc:futuro}
 
 En algún punto se planea añadir \lift a \mtac como un feature por defecto.
-Pero, principalmente el interés cae en implementar notación inteligente que pueda deducir telescopios.
+Pero, principalmente, el interés cae en implementar notación inteligente que pueda deducir telescopios.
 Como vimos en \ref{ch:motivacion}, las funciones \lstinline{bind} y \lstinline{ret} son funciones que queremos liftear, y probablemente con mayor frecuencia que otras.
-Con Coq podemos inferir el tipo necesario de estos dos operadores (y otros) y de esta manera podemos generar los telescopios, es decir, liftear funciones de manera completamente automática.
+Con Coq podemos inferir el tipo necesario de estos dos operadores (y otros) y, de esta manera, podemos generar los telescopios, es decir, liftear funciones de manera completamente automática.
 
-A través de la notación podemos activar un algoritmo por detrás que hará esta inferencia y generará el telescopio.
-La notación es así.
+A través de la notación, podemos activar un algoritmo por detrás que hará esta inferencia y generará el telescopio.
+La notación es la siguiente.
 
 \begin{lstlisting}
 (* bind de b en c pero con un bind lifteado *)

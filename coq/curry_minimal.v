@@ -317,7 +317,10 @@ Definition rett : to_ty retTyTree := @ret.
 Definition l_ret (m : MTele): m:{T : TyTree & to_ty T} := ltac:(mrun (lift' rett m)).
 
 (* General MTele. Our list_max has arguments T and l which are know at the moment of interest *)
-Definition m_fun := fun (T : Type) (l : list T) => mTele (fun p : l <> nil => mBase).
+(* For ret *)
+Definition n_fun := fun (T : Type) (l : list T) => mTele (fun p : l <> nil => mBase).
+(* For bind *)
+Definition m_fun := fun (T : Type) => mTele (fun l : list T => mTele (fun p : l <> nil => mBase)).
 
 (* Example list, not relevant *)
 Definition l : list nat := cons 3 (cons 1 (cons 10 (cons 7 nil))).
@@ -329,20 +332,22 @@ unfold l. unfold not. intros H. apply eq_sym in H. apply nil_cons in H. apply H.
 Qed.
 
 (* Final MTele *)
-Definition m := m_fun nat l.
+Definition m := m_fun nat.
+Definition n := n_fun nat l.
 Eval cbn in ArgsOf m.
 (* We can now define U *)
-Definition U : ArgsOf m := mexistT _ l_nil tt.
+Definition U : ArgsOf n := mexistT _ l_nil tt.
 
 (* This won't work *)
 (* Definition li_ret : m:{T : TyTree & to_ty T} := ltac:(mrun (lift m U retTyTree ret)). *)
 
 (* This works *)
-Definition li_ret : m:{T : TyTree & to_ty T} := ltac:(mrun (lift' rett m)).
+Definition li_ret : m:{T : TyTree & to_ty T} := ltac:(mrun (lift' rett n)).
 
 (* Check the result of li_ret *)
 Eval cbn in to_ty (mprojT1 li_ret).
 Eval cbn in mprojT2 li_ret.
+Eval cbn in mprojT1 li_ret.
 
 (* Check the result of l_ret *)
 Eval cbn in to_ty (mprojT1 (l_ret m)).
@@ -361,11 +366,11 @@ Definition l_bind (m : MTele): m:{T : TyTree & to_ty T} := ltac:(mrun (lift' bin
 Definition li_bind : m:{T : TyTree & to_ty T} := ltac:(mrun (lift' bindt m)).
 
 (* Check the result of li_bind *)
-Eval cbn in mprojT1 (li_bind).
 Eval cbn in to_ty (mprojT1 li_bind).
 Eval cbn in mprojT2 li_bind.
+Eval cbn in mprojT1 (li_bind).
 
 (* Check the result of l_bind *)
-Eval cbn in mprojT1 (l_bind m).
 Eval cbn in to_ty (mprojT1 (l_bind m)).
 Eval cbn in mprojT2 (l_bind m).
+Eval cbn in mprojT1 (l_bind m).
