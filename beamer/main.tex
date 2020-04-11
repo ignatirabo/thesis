@@ -1,0 +1,109 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{xcolor}
+
+\newcommand{\lift}{{\scshape Lift}}
+
+\definecolor{ao}{rgb}{0.0, 0.5, 0.0}
+\definecolor{applegreen}{rgb}{0.55, 0.71, 0.0}
+\definecolor{asparagus}{rgb}{0.53, 0.66, 0.42}
+\definecolor{auburn}{rgb}{0.43, 0.21, 0.1}
+\definecolor{antiquefuchsia}{rgb}{0.57, 0.36, 0.51}
+\definecolor{airforceblue}{rgb}{0.36, 0.54, 0.66}
+\definecolor{cerulean}{rgb}{0.0, 0.48, 0.65}
+\definecolor{brightmaroon}{rgb}{0.76, 0.13, 0.28}
+
+\usepackage{listings,lstlangcoq,bold-extra}
+\lstset{basicstyle=\ttfamily,language=Coq,showstringspaces=false}
+
+%Information to be included in the title page:
+\title{Generalización de Meta-programas con Tipado Dependiente en Mtac2}
+\author{Ignacio Tiraboschi}
+\institute{Universidad Nacional de Córdoba - FAMAF}
+\date{2020}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{Asistentes de Prueba}
+
+Los asistentes de prueba nos asisten en la demostración de teoremas de múltiples maneras.
+\vspace{\baselineskip}
+
+Existes muchos de ellos:
+% TODO: Poner imágenes de diferentes asistentes de pruebas.
+\vspace{\baselineskip}
+
+Nosotros utilizaremos Coq.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Coq}
+% Coq es un asistente de prueba francés, desarrollado inicialmente por Thierry Coquand
+Coq es uno de los asistentes de prueba más utilizados.
+Podemos especificar \emph{Teoremas} y \emph{probarlos}.
+Estas pruebas se centran en la modificación de metas a través de tácticas.
+\vspace{\baselineskip}
+
+Las tácticas se escriben en el metalenguaje Ltac y luego se concatenan formando una prueba.
+% Ltac es el metalenguaje por defecto de Coq
+\end{frame}
+
+\begin{frame}
+\frametitle{Coq}
+
+Las tácticas modifican metas o \emph{goals} y, pueden generar más metas.
+\vspace{\baselineskip}
+
+Tratemos de probar \lstinline{Definition le_S (n : nat) : n <= S n.}
+% Ejemplo 1. Utiliza induction esto genera dos metas nuevas:
+% caso base y paso inductivo.
+\vspace{\baselineskip}
+
+También podemos definir tipos de manera inductiva con el operador \lstinline{Inductive}.
+\vspace{\baselineskip}
+
+Así, podemos definir, por ejemplo, listas en Coq.
+% Ejemplo definir listas
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Coq}
+
+El poder de Coq reside en su capacidad de taclear problemas grandes.
+\vspace{\baselineskip}
+
+
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Mtac2}
+
+Mtac2 es uno de los metalenguajes de programación disponibles en Coq.
+
+Su gran diferencia son las tácticas tipadas.
+
+% Ejemplo tácticas tipadas?
+\end{frame}
+
+\begin{frame}
+\frametitle{Mtac2}
+
+Definir funciones en Mtac2 es similar a Gallina.
+La única diferencia es el uso de mónadas.
+\vspace{\baselineskip}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Motivación}
+\end{frame}
+
+\end{document}

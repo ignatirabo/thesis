@@ -1,0 +1,11 @@
+{
+    "ltex.ignoreRuleInSentence": [
+        {
+            "rule": "COMMA_PARENTHESIS_WHITESPACE",
+            "sentence": "^\\QEsta nueva función será denominada .\\E$"
+        }
+    ],
+    "ltex.es.disabledRules": [
+        "AUN"
+    ]
+}
