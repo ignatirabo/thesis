@@ -14,3 +14,26 @@ induction n.
 - apply (le_n_S (n) (S n)). exact IHn.
 Qed.
 
+(* Ejemplo 2 *)
+Inductive myList (A : Type) : Type :=
+| myNil : myList A
+| myCons : A -> myList A -> myList A.
+
+Definition head_d {A} (l : myList A) (d : A) : A :=
+  match l with
+  | myNil _ => d
+  | myCons _ x xs => x
+  end.
+
+Definition head_o {A} (l : myList A) : option A :=
+  match l with
+  | myNil _ => None
+  | myCons _ x xs => Some x
+  end.
+
+Program Definition head {A}
+(l : myList A | myNil _ <> l ) : A :=
+  match l with
+  | myNil _ => !
+  | myCons _ x xs => x
+  end.

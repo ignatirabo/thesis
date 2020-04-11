@@ -2,6 +2,13 @@
 
 \usepackage[utf8]{inputenc}
 
+% Comentario de Beta:
+% Beta Ziliani: Es la motivación, esencialmente
+% Beta Ziliani: O sea: Coq, necesitamos meta programas, Mtac, ejemplo en motivación
+% Beta Ziliani: Idea general y vaga de la solución
+% Beta Ziliani: Fin
+
+
 \usepackage{xcolor}
 
 \newcommand{\lift}{{\scshape Lift}}
@@ -54,22 +61,26 @@ Las tácticas se escriben en el metalenguaje Ltac y luego se concatenan formando
 % Ltac es el metalenguaje por defecto de Coq
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{Coq}
 
 Las tácticas modifican metas o \emph{goals} y, pueden generar más metas.
-\vspace{\baselineskip}
+\vskip \baselineskip
 
-Tratemos de probar \lstinline{Definition le_S (n : nat) : n <= S n.}
+Tratemos probar \lstinline{Definition le_S (n : nat) : n <= S n}.
 % Ejemplo 1. Utiliza induction esto genera dos metas nuevas:
 % caso base y paso inductivo.
 \vspace{\baselineskip}
 
-También podemos definir tipos de manera inductiva con el operador \lstinline{Inductive}.
-\vspace{\baselineskip}
-
-Así, podemos definir, por ejemplo, listas en Coq.
-% Ejemplo definir listas
+\pause
+Prueba:
+\begin{lstlisting}
+Proof.
+induction n.
+- apply (le_0_n 1).
+- apply (le_n_S (n) (S n)). exact IHn.
+Qed.
+\end{lstlisting}
 
 \end{frame}
 
@@ -77,28 +88,120 @@ Así, podemos definir, por ejemplo, listas en Coq.
 \frametitle{Coq}
 
 El poder de Coq reside en su capacidad de taclear problemas grandes.
+Esto se debe a que el uso de tácticas puede automatizarse y simplificarse.
 \vspace{\baselineskip}
 
-
-
+Uno de los problemas de Ltac es la falta de tácticas tipadas.
+Estas tienen muchas deficiencias: pueden ser utilizadas en cualquier contexto y, no son fáciles de debuggear.
 \end{frame}
 
 \begin{frame}
 \frametitle{Mtac2}
 
 Mtac2 es uno de los metalenguajes de programación disponibles en Coq.
+Su gran diferencia con Ltac son las tácticas tipadas.
+\vspace{\baselineskip}
 
-Su gran diferencia son las tácticas tipadas.
+Las tacticas tipadas tienen una signatura y solo pueden ser utilizadas en el contexto correcto.
+\vspace{\baselineskip}
 
-% Ejemplo tácticas tipadas?
+También son más fáciles de debuggear!
+% Ejemplo tácticas tipadas? Basicamente ver que podemos llamar cualquier táctica. Solo las tácticas correctas van a funcionar, las otras van a fallar sin decirnos por qué, solo que fallaron.
+% En Mtac2 las tácticas solo son llamadas si encajan bien y, en el caso de fallar, tendremos un error informativo.
 \end{frame}
 
 \begin{frame}
 \frametitle{Mtac2}
 
 Definir funciones en Mtac2 es similar a Gallina.
-La única diferencia es el uso de mónadas.
+La única diferencia es el uso de mónadas y, consiguientemente, el uso de operadores monádicos:
+\begin{itemize}
+    \item \lstinline{bind}: nos permite vincular o \emph{bindear} cómputos.
+    \item \lstinline{ret}: utilizado para introducir un término a la mónada.
+\end{itemize}
 \vspace{\baselineskip}
+
+Al comenzar a desarrollar metaprogramas más complicados, las signaturas se vuelven complicadas y el uso de estos operadores puede resultar en un problema.
+\vskip \baselineskip
+
+Antes de estudiar el problema, estudiemos como escribir metaprogramas.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Mtac2}
+
+\centering
+¿Cómo podemos definir listas?
+\vskip \baselineskip
+
+\pause
+\begin{lstlisting}
+Inductive myList (A : Type) : Type :=
+| myNil : myList A
+| myCons : A -> myList A -> myList A.
+\end{lstlisting}
+
+\pause
+¿Cómo definimos \lstinline{head} de manera correcta?
+
+\pause
+% Debemos utilizar un valor por defecto
+\begin{lstlisting}
+Definition head_d {A} (l : myList A) (d : A) : A :=
+  match l with
+  | myNil _ => d
+  | myCons _ x xs => x
+  end.
+\end{lstlisting}
+
+\pause
+No siempre deseamos usar un valor por defecto.
+% En el caso de los números naturales no existe un valor por defecto que podamos utilizar sin perder información.
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Mtac2}
+
+La otra manera de codificar esta función es utilizando \lstinline{option}.
+
+\begin{lstlisting}
+Definition head_o {A} (l : myList A) : option A :=
+  match l with
+  | myNil _ => None
+  | myCons _ x xs => Some x
+  end.
+\end{lstlisting}
+
+Esto tiene un problema: utilizando \lstinline{option} en \lstinline{head}, estamos obligados a continuar utilizandolo en el resto de las funciones.
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Mtac2}
+
+La ultima solución es mejor, pero recurre a la librería \lstinline{Program}.
+
+\begin{lstlisting}
+Program Definition head {A}
+(l : myList A | myNil _ <> l ) : A :=
+  match l with
+  | myNil _ => !
+  | myCons _ x xs => x
+  end.
+\end{lstlisting}
+
+Esta solución hace uso de tipos dependientes!
+% Se utilizan Sigma-types para añadir información que depende la lista l
+% Esta información nos dice que l no es la lista vacia
+\end{frame}
+
+\begin{frame}
+\frametitle{Motivación}
+
+El problema que nos interesa es el siguiente.
+
+
 
 \end{frame}
 
