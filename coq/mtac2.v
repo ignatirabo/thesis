@@ -71,6 +71,9 @@ Definition list_max_nat :=
       end
     end.
 
+Definition boolMax (b b' : bool) : bool :=
+  if b then b else b'.
+
 Definition max (S: Set) : M (S -> S -> S) :=
   mmatch S in Set as S' return M (S' -> S' -> S') with
   | nat => M.ret Nat.max
