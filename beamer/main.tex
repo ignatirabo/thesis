@@ -110,8 +110,23 @@ Inductive myList (A : Type) : Type :=
 | myNil : myList A
 | myCons : A -> myList A -> myList A.
 \end{lstlisting}
+\vskip \baselineskip
 
 \pause
+Una lista puede ser la siguiente:
+\begin{lstlisting}
+myCons 4 (myCons 2 (myCons 1 myNil)) = [4;2;1]
+\end{lstlisting}
+\vskip \baselineskip
+
+\pause
+¿Cuanto vale \lstinline{hd} de nuestra lista?
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Coq}
+
 ¿Cómo definimos \lstinline{head} de manera correcta?
 
 \pause
@@ -128,13 +143,10 @@ Definition head_d {A} (l : myList A) (d : A) : A :=
 No siempre deseamos usar un valor por defecto.
 % En el caso de los números naturales no existe un valor por defecto que podamos utilizar sin perder información.
 
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Coq}
-
+\pause
 La otra manera de codificar esta función es utilizando \lstinline{option}.
 
+\pause
 \begin{lstlisting}
 Definition head_o {A} (l : myList A) : option A :=
   match l with
@@ -152,6 +164,7 @@ Esto tiene un problema: utilizando \lstinline{option} en \lstinline{head}, estam
 
 La ultima solución es mejor, pero recurre a la librería \lstinline{Program}.
 
+\pause
 \begin{lstlisting}
 Program Definition head {A}
 (l : myList A | myNil _ <> l ) : A :=
@@ -161,6 +174,7 @@ Program Definition head {A}
   end.
 \end{lstlisting}
 
+\pause
 Esta solución hace uso de tipos dependientes!
 % Se utilizan Sigma-types para añadir información que depende la lista l
 % Esta información nos dice que l no es la lista vacia
@@ -275,6 +289,11 @@ Para nuestra motivación utilizaremos dos variantes:
 \item \lstinline{mfix}
 % Variante general de mfix_n
 \end{itemize}
+\vskip \baselineskip
+
+\pause
+\centering
+Estudiemos un último elemento de Mtac2!
 \end{frame}
 
 \begin{frame}[fragile]
@@ -282,6 +301,7 @@ Para nuestra motivación utilizaremos dos variantes:
 \framesubtitle{Telescopios}
 
 Lo último que necesitamos son telescopios.
+\pause
 \begin{lstlisting}
 Inductive MTele : Type :=
 | mBase : MTele
@@ -293,6 +313,7 @@ Esta estructura de dato nos permitirá expresar una secuencia de tipos o valores
 % Este se codifica a través de funciones, lo que permite que sean dependientes, es decir, un telescopio puede tener elementos que dependan de elementos anteriores.
 \vskip \baselineskip
 
+\pause
 Utilizaremos notación para referirnos a elementos de este tipo:
 \begin{itemize}
   \item \lstinline{mBase = [$\;$]$_t$}
@@ -308,6 +329,7 @@ Específicamente, estamos interesados en las funciones de telescopios.
 Estas permiten observar un estilo de jerarquía.
 \vskip \baselineskip
 
+\pause
 Necesitaremos la estructura de datos \lstinline{Sort}:
 \begin{lstlisting}
 Inductive Sort : Type := \Prop_sort | \Type_sort.
@@ -328,6 +350,7 @@ Definition m := [T : Type ;> l : list T ;> p : length l = 0]$_t$
 \end{lstlisting}
 \vskip \baselineskip
 
+\pause
 La expresión \lstinline{MTele_Sort \Type_sort m} se evalúa al tipo correspondiente:
 \begin{lstlisting}
 \forall (T : Type) (l : list T), length l = 0 -> Type : Type
@@ -357,7 +380,7 @@ El elemento \lstinline{Tm} también es un tipo!
 Podemos definir el siguiente teorema y probarlo.
 
 \begin{lstlisting}
-Definition Tm_ex : forall T (l : list T) (p : (length l) = 0),
+Definition Tm_ex : forall T (l : list T) (p : length l = 0),
   l = nil.
 Proof.
 intros T l p. by apply length_zero_iff_nil.
@@ -448,17 +471,27 @@ La primera opción es generalizar a \lstinline{bind}.
 En ese caso, debemos hacer que su retorno se asemeje al punto fijo. Es decir, que permita retornar una función.
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \section{Lift}
 \frametitle{Lift}
 
 Nosotros decidimos abordar una alternativa mucho más general.
-Esta es la de la generalización casi automática de funciones.
+Esta es la de la generalización casi automática de metafunciones.
 Utilizando telescopios, podemos indicar las dependencias de interés y generalizar.
 \vskip \baselineskip
 
-Esta generalización se hace a través del análisis recursivo en el tipo de la función.
-Para eso utilizaremos una estructura de datos adicional: \lstinline{TyTree}.
+
+Esta generalización se hace a través del análisis recursivo en el tipo de la función. Retornamos un $\Sigma$-type con la nueva función y su signatura.
+
+\begin{lstlisting}
+Definition lift' {T : TyTree} (f : to_ty T) :
+  MTele -> M m:{T : TyTree & to_ty T}
+\end{lstlisting}
+\vskip \baselineskip
+% Introducir la función to_ty, hacer pie a TyTree
+
+\pause
+Esta signatura utiliza una estructura de datos adicional: \lstinline{TyTree} (y sus respectivas funciones).
 
 \end{frame}
 
@@ -478,8 +511,7 @@ Inductive TyTree : Type :=
 | \tyTree_FATeleType$\!$ (m : MTele) (F : \forall (T : MTele_Ty m), TyTree) : TyTree
 | \tyTree_FAVal$\!$ (T : Type) (F : T -> TyTree) : TyTree
 | \tyTree_FAType$\!$ (F : Type -> TyTree) : TyTree
-| \tyTree_base$\!$ (T : Type) : TyTree
-.
+| \tyTree_base$\!$ (T : Type) : TyTree.
 \end{lstlisting}
 \end{frame}
 
@@ -525,6 +557,61 @@ Definition bindTyTree :=
 \begin{center}
 Estamos listos para liftear \lstinline{bind}!
 \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lift}
+
+Para ejecutar \emph{LIFT} debemos utilizar el siguiente comando:
+\begin{lstlisting}
+Definition li_bind : m:{T : TyTree & to_ty T} :=
+  ltac:(mrun (lift' bindt m)).
+\end{lstlisting}
+% Con mrun ejectutamos metaprogramas
+\vskip \baselineskip
+
+\pause
+Luego, podemos inspeccionar \lstinline{li_bind} para ver la nueva signatura y función:
+\begin{lstlisting}
+Eval cbn in to_ty (mprojT1 li_ret).
+Eval cbn in mprojT2 li_ret.
+Eval cbn in mprojT1 li_ret.
+\end{lstlisting}
+\vskip \baselineskip
+
+\pause
+\centering
+Veamosló en vivo!
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lift}
+
+Como vimos, la signatura de \lstinline{bind^} es:
+\begin{lstlisting}
+bind^ : \forall (A B : \forall l (p : l <> nil), Type),
+  \forall l p, M (A l p) ->
+  \forall l p, (A l p -> M (B l p)) ->
+  \forall l p, M (B l p)
+\end{lstlisting}
+\vskip \baselineskip
+
+\pause
+Y su implementación:
+\begin{lstlisting}
+bind^ := fun A B x f y => bind (x l p) (f l p)
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}
+\centering
+
+Así concluimos la presentación.
+\vskip \baselineskip
+
+\huge
+Gracias!
 \end{frame}
 
 \end{document}
