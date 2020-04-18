@@ -82,7 +82,7 @@ ret^ := mprojT2 (lift ret (n l))
 
 Finalmente, nuestro programa quedaría de la siguiente forma.
 
-\begin{lstlisting}[float=h,frame=tb,caption={Lifteando \lstinline{ret} y \lstinline{bind}}]
+\begin{lstlisting}[float=h,frame=tb,caption=Versión final de \lstinline{list_max}]
 Definition list_max_lifted (S: Set) :=
 max <^- max S; (* notacion para bind^ *)
 mfix f (l: list S) : l' <> nil -> M S :=
