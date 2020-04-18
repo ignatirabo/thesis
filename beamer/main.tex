@@ -41,7 +41,7 @@
 Los asistentes de prueba nos asisten en la demostración de teoremas de múltiples maneras.
 \vspace{\baselineskip}
 
-Existes muchos de ellos:
+Existes muchos de ellos: Coq, Isabelle, Agda, Lean, HOL4.
 % TODO: Poner imágenes de diferentes asistentes de pruebas.
 \vspace{\baselineskip}
 
@@ -53,27 +53,29 @@ Nosotros utilizaremos Coq.
 \frametitle{Coq}
 % Coq es un asistente de prueba francés, desarrollado inicialmente por Thierry Coquand
 Coq es uno de los asistentes de prueba más utilizados.
-Podemos especificar \emph{Teoremas} y \emph{probarlos}.
+Podemos especificar \emph{teoremas} y \emph{probarlos}.
+\vspace{\baselineskip}
+
 Estas pruebas se centran en la modificación de metas a través de tácticas.
 \vspace{\baselineskip}
 
 Las tácticas se escriben en el metalenguaje Ltac y luego se concatenan formando una prueba.
 % Ltac es el metalenguaje por defecto de Coq
+% Veamos qué son las tácticas
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Coq}
 
-Las tácticas modifican metas o \emph{goals} y, pueden generar más metas.
+Las tácticas modifican metas (también llamadas \emph{goals}) y, pueden generar más metas.
 \vskip \baselineskip
 
-Tratemos probar \lstinline{Definition le_S (n : nat) : n <= S n}.
+% Centremosnos en el siguiente teorema.
+\lstinline{Definition le_S (n : nat) : n <= S n.}
+% Este teoema nos dice que un número natural es menor a su sucesor.
 % Ejemplo 1. Utiliza induction esto genera dos metas nuevas:
 % caso base y paso inductivo.
-\vspace{\baselineskip}
-
 \pause
-Prueba:
 \begin{lstlisting}
 Proof.
 induction n.
@@ -81,6 +83,7 @@ induction n.
 - apply (le_n_S (n) (S n)). exact IHn.
 Qed.
 \end{lstlisting}
+% Veamos esta prueba en vivo.
 
 \end{frame}
 
@@ -91,8 +94,10 @@ El poder de Coq reside en su capacidad de taclear problemas grandes.
 Esto se debe a que el uso de tácticas puede automatizarse y simplificarse.
 \vspace{\baselineskip}
 
+\pause
 Uno de los problemas de Ltac es la falta de tácticas tipadas.
 Estas tienen muchas deficiencias: pueden ser utilizadas en cualquier contexto y, no son fáciles de debuggear.
+% Veamos un ejemplo en vivo: ejemplo sintipar?
 \end{frame}
 
 \begin{frame}
@@ -100,14 +105,19 @@ Estas tienen muchas deficiencias: pueden ser utilizadas en cualquier contexto y,
 
 Mtac2 es uno de los metalenguajes de programación disponibles en Coq.
 Su gran diferencia con Ltac son las tácticas tipadas.
+% Otros disponibles son Ltac2, Rtac, Template-Coq y Coq-Elpi, aparte de Ltac obviamente.
+% La gran diferencia entre estos meta-lenguajes con Mtac2 es que no tienen tácticas tipadas. Brindan menos garantías.
 \vspace{\baselineskip}
 
+\pause
 Las tacticas tipadas tienen una signatura y solo pueden ser utilizadas en el contexto correcto.
 \vspace{\baselineskip}
 
+\pause
 También son más fáciles de debuggear!
 % Ejemplo tácticas tipadas? Basicamente ver que podemos llamar cualquier táctica. Solo las tácticas correctas van a funcionar, las otras van a fallar sin decirnos por qué, solo que fallaron.
 % En Mtac2 las tácticas solo son llamadas si encajan bien y, en el caso de fallar, tendremos un error informativo.
+% Podemos utilizar prints y excepciones.
 \end{frame}
 
 \begin{frame}
@@ -121,6 +131,7 @@ La única diferencia es el uso de mónadas y, consiguientemente, el uso de opera
 \end{itemize}
 \vspace{\baselineskip}
 
+\pause
 Al comenzar a desarrollar metaprogramas más complicados, las signaturas se vuelven complicadas y el uso de estos operadores puede resultar en un problema.
 \vskip \baselineskip
 
