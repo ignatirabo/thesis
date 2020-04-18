@@ -1,7 +1,14 @@
 Require Import Program.
 Require Import Coq.Lists.List.
 Require Import Coq.Bool.Bool.
+Require Import Coq.Init.Nat.
 Require Import Coq.Arith.PeanoNat.
+
+From Mtac2 Require Import Base Mtac2 Specif Sorts MTele MFixDef MTeleMatch MFix.
+Import Sorts.S.
+Import M.notations.
+Import M.M.
+From Coq Require Import ssreflect ssrfun ssrbool.
 
 (* Ejemplo: metasytaticas - Coq *)
 Check le_n_S.
@@ -46,3 +53,32 @@ Program Definition head {A}
   | myNil _ => !
   | myCons _ x xs => x
   end.
+
+(* Mtac2 *)
+
+About bind.
+About ret.
+
+Definition arith_eval : nat -> M nat :=
+  mfix1 f (n : nat) : M nat :=
+    mmatch n with
+    | [? y] add O y =>
+      y <- f y;
+      ret y
+    | [? x] add x O =>
+      x <- f x;
+      ret x
+    | [? x y] add x y =>
+      x <- f x;
+      y <- f y;
+      ret (add x y)
+    | _ => ret n
+  end.
+
+Definition test : nat := ltac:(mrun (arith_eval (3+1))).
+Eval compute in test.
+
+(* Motivacion *)
+
+Definition boolMax (b b' : bool) : bool :=
+  if b then b else b'.
