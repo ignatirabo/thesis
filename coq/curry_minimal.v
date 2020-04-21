@@ -366,9 +366,9 @@ Definition l_bind (m : MTele): m:{T : TyTree & to_ty T} := ltac:(mrun (lift' bin
 Definition li_bind : m:{T : TyTree & to_ty T} := ltac:(mrun (lift' bindt m)).
 
 (* Check the result of li_bind *)
+Eval cbn in mprojT1 (li_bind).
 Eval cbn in to_ty (mprojT1 li_bind).
 Eval cbn in mprojT2 li_bind.
-Eval cbn in mprojT1 (li_bind).
 
 (* Check the result of l_bind *)
 Eval cbn in to_ty (mprojT1 (l_bind m)).

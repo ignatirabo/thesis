@@ -1,15 +1,17 @@
 \chapter{Mtac2}\label{ch:mtac2}
 
-\Mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} es un metalenguaje de programación para Coq. Esto quiere decir que complementa a Coq, permitiendo ``hacer Coq'' de una manera distinta. En el trabajo, nos centramos en ampliar \Mtac y, por eso, es importante que veamos que nos permite hacer y cómo.
+\Mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} es un metalenguaje de programación para Coq. Esto quiere decir que complementa a Coq, permitiendo ``usar Coq'' de una manera distinta. En el trabajo, nos centramos en ampliar \Mtac y, por eso, es importante que veamos que nos permite hacer y cómo.
 
 \section{Mónadas}
 
 Las mónadas son uno los métodos que utilizan los lenguajes de programación funcional para la representación de efectos secundarios.
-\Mtac define una mónada que es la que permite añadir una serie de características muy útiles a la hora de desarrollar metaprogramas.
+\Mtac define una mónada \lstinline{M} que es la que permite añadir una serie de características muy útiles a la hora de desarrollar metaprogramas.
 Las tácticas presentes en \mtac son metaprogramas monádicos.
 
+% Tiene operaciones para la metaprogramaicon, tiene excepciones, manejo de contexto, de variables, fixpoint infinito.
+
 % Cuidado con \lstinline{bind}compone, en este caso está bien pq justo la palabra termina ahí.
-Utilizamos la función \lstinline{M : Type -> Prop} para referirnos a la versión monádica de un tipo cualquiera. A partir de los tipos monádicos, pasamos a tener elementos monádicos. Estos elementos reflejan pasos computacionales y se construyen a través de dos funciones: \lstinline{bind}compone pasos computacionales y \lstinline{return} o \lstinline{ret} los envuelve en la mónada. Por ejemplo, podemos tener el tipo \lstinline{M nat} que expresa posibles valores de números naturales. La expresión \lstinline{ret 5} expresa un valor de \lstinline{M nat}.
+Con la mónada \lstinline{M : Type -> Prop} podemos referirnos a la versión monádica de un tipo cualquiera. A partir de los tipos monádicos, pasamos a tener elementos monádicos. Estos elementos reflejan pasos computacionales y se construyen a través de dos funciones: \lstinline{bind}compone pasos computacionales y \lstinline{return} o \lstinline{ret} los envuelve en la mónada. Por ejemplo, podemos tener el tipo \lstinline{M nat} que expresa posibles valores de números naturales. La expresión \lstinline{ret 5} expresa un valor de \lstinline{M nat}.
 
 \section{Confección de Metaprogramas}
 

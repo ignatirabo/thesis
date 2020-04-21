@@ -2,11 +2,13 @@
 
 En este capítulo introduciremos las características más relevantes del asistente de prueba interactivo Coq. El objetivo aquí, es introducir todos los conceptos que utilizaremos más adelante.
 
-El desarrollo de Coq comenzó en 1984 con el apoyo de INRIA como el trabajo de Gérard Huet y Thierry Coquand. En ese momento, Coquand estaba implementado un lenguaje llamado \emph{Calculus of Constructions} \cite{DBLP:journals/iandc/CoquandH88}.
+El desarrollo de Coq comenzó en 1984 como el trabajo de Gérard Huet y Thierry Coquand. En ese momento, Coquand estaba implementado un lenguaje llamado \emph{Calculus of Constructions} \cite{DBLP:journals/iandc/CoquandH88}.
 En 1991, Coquand creó una derivación del trabajo anterior, \emph{Calculus of Inductive Constructions} \cite{CIC}. Esta teoría comenzó a ser desarrollada y el producto final es lo que hoy llamamos Coq.
 
-Ahora mismo Coq es desarrollado por más de 40 personas de forma activa y es reconocido como unos de los asistentes de prueba principales.
-Como un asistente de prueba, la orientación de Coq es la de permitir la escritura totalmente formal de teoremas y pruebas, asegurandonos de su correción. Parte de lo que se denomina \textit{kernel}, el núcleo de Coq, que es el que verifica que la prueba corresponde al teorema, es decir, que sea correcta. De esta forma, el humano no está encargado de verificar la prueba, solo de escribirla.
+Ahora mismo Coq es desarrollado por más de 40 personas de forma activa y es reconocido como unos de los principales asistentes de prueba.
+Como un asistente de prueba, la orientación de Coq es la de permitir la escritura totalmente formal de teoremas y pruebas, asegurándonos de su correción.
+Coq utiliza un pequeño \textit{kernel}, o núcleo, que verifica las pruebas desarrolladas por el humano.
+De esta forma, el humano no está encargado de verificar la prueba, solo de escribirla.
 
 El ejemplo más conocido de formalización en Coq es el teorema de los cuatro colores \cite{DBLP:conf/ascm/Gonthier07} hecho por \citeauthor{DBLP:conf/ascm/Gonthier07} en \citeyear{DBLP:conf/ascm/Gonthier07}.
 
@@ -59,7 +61,20 @@ Definition is_true (b:bool) : Prop :=
   end.
 \end{lstlisting}
 
-La definición de \ref{lst:Is_true} es muy importante. Nos muestra claramente que \lstinline{true} y \lstinline{True} no son lo mismo. Como vimos, \lstinline{true} representa el valor de verdad booleano. Mientras que \lstinline{True} representa la verdad en las proposiciones, es decir, algo que siempre tiene una prueba. De la misma forma, \lstinline{False} representa a los teoremas que nunca podremos probar. En caso de probar \lstinline{False}, sin ninguna hipótesis, estaríamos mostrando que Coq es \emph{inconsistente}.
+La definición del Listing \ref{lst:Is_true} es muy importante. Nos muestra claramente que \lstinline{true} y \lstinline{True} no son lo mismo.
+Como vimos, \lstinline{true} representa el valor de verdad booleano.
+En Coq, las proposiciones son representadas por tipos, y sus pruebas como programas de ese tipo.
+El tipo \lstinline{True} es un término de tipo \lstinline{Prop}, es decir, una proposición y, las proposiciones se consideran verdaderas si hay términos de ese tipo. Cómo su nombre lo indica, \lstinline{True} representa la proposición siempre verdadera.
+La función \lstinline{Is_true} nos permite ver esa diferencia lógica entre proposiciones y expresiones booleanas. 
+
+El tipo \lstinline{False} representa a la proposición que siempre es falsa, es decir, que nunca podremos probar. En caso de probar \lstinline{False}, sin ninguna hipótesis, estaríamos mostrando que Coq es \emph{inconsistente}.
+
+\begin{lstlisting}[frame=tb,caption={Definición de \lstinline{True} y \lstinline{False}},label=lst:TrueFalse]
+Inductive True : Prop :=
+  I : True.
+
+Inductive False : Prop :=.
+\end{lstlisting}
 
 Ahora, veamos un tipo inductivo recursivo.
 
@@ -69,17 +84,17 @@ Inductive nat : Set :=
   | S : nat -> nat.
 \end{lstlisting}
 
-Notemos que el constructor \lstinline{S}, que representa "Siguiente", es una función que recibe un término de tipo {nat}, es decir, \lstinline{nat} es un tipo \emph{recursivo}, a diferencia de \lstinline{bool}. Por ejemplo, el término \lstinline{S (S O)} es de tipo \lstinline{nat} y representa al número 2.
+Notemos que el constructor \lstinline{S}, que representa "sucesor", es una función que recibe un término de tipo {nat}, es decir, \lstinline{nat} es un tipo \emph{recursivo}, a diferencia de \lstinline{bool}. Por ejemplo, el término \lstinline{S (S O)} es de tipo \lstinline{nat} y representa al número 2.
 
 Para continuar con este desarrollo, veamos el tipo de \lstinline{list} que, aparte de ser recursivo, es polimórfico.
 
 \begin{lstlisting}
 Inductive list (A : Type) : Type :=
   | nil : list A
-  | cons : A -> list A -> list .
+  | cons : A -> list A -> list A.
 \end{lstlisting}
 
-Este tipo es un tipo polimórfico dado que requiere de un \lstinline{A : Type} para ser un tipo. Antes de conocer ese \lstinline{A}, \lstinline{list} es una función. Por ejemplo, una posible lista es \lstinline{cons (S O) \; nil : list nat} que representa a la lista con un único elemento 1 de tipo \lstinline{nat}.
+Este tipo es un tipo polimórfico dado que requiere de un \lstinline{A : Type} para ser un tipo. Antes de conocer ese \lstinline{A}, \lstinline{list} es una función de \lstinline{Type} en \lstinline{Type}. Por ejemplo, una posible lista es \lstinline{cons (S O) \; nil : list nat} que representa a la lista con un único elemento 1 de tipo \lstinline{nat}.
 
 Ahora tratemos de definir una función polimórfica.
 Definiremos una función que añade un elemento a una lista.
@@ -101,12 +116,15 @@ match l with
 end.
 \end{lstlisting}
 
-En Coq utilizamos el comando \lstinline{Fixpoint} para poder definir funciones recursivas. Recordemos que las funciones en Coq son puras. Aquí Coq está encontrando el argumento decreciente de la función \lstinline{len}, asegurándose de la terminación de \lstinline{len}.
+En Coq, utilizamos el comando \lstinline{Fixpoint} para poder definir funciones recursivas.
+Para que Coq pueda verificar la correción de las pruebas, es necesario que las funciones que forman parte de la definición de las tácticas utilizadas, sean totales.
+Para garantizar su totalidad, Coq impone restricciones en la definición de funciones recursivas: las llamadas recursivas deben ser sobre argumentos decrecientes.
+Aquí, Coq está encontrando el argumento decreciente de la función \lstinline{len}, verificando la terminación de \lstinline{len}.
 El cuerpo de la función inspecciona a \lstinline{l} y lo \textit{matchea} con el caso correspondiente. Utilizamos \lstinline{S} y \lstinline{O}, los constructores de \lstinline{nat}, para expresar el valor de retorno.
 
 \section{Tipos dependientes}
 
-Una de las herramientas más importantes de Coq son los tipos dependientes. Estos nos permiten hablar de elementos que dependen de otros anteriores. Por ejemplo, puede ser de nuestro interés hablar de números positivos, más formalmente, \lstinline{x : nat} tal que \lstinline{x <> O}. En este caso, \lstinline{x <> O} es una prueba que depende de \lstinline{x} y solo existirá cuando \lstinline{x} sea mayor a cero.
+Una de las herramientas más importantes de Coq son los tipos dependientes. Estos nos permiten hablar de elementos que dependen de otros anteriores. Por ejemplo, puede ser de nuestro interés hablar de números positivos, más formalmente, \lstinline{x : nat} tal que \lstinline{x <> O}. En este caso, \lstinline{x <> O} es una proposición que depende de \lstinline{x} y, será verdadera solo cuando \lstinline{x} sea mayor a cero.
 
 Para hablar de un ejemplo práctico de tipos dependientes, hemos elegido la función \lstinline{head} que retorna la cabeza de una lista. Comencemos con la versión más simple, donde utilizamos un valor ``default'' \lstinline{d} para el caso en que la lista sea vacía.
 
@@ -118,9 +136,9 @@ Definition head_d {A} (l : list A) (d : A) : A :=
   end.
 \end{lstlisting}
 
-El problema de esta solución es que a excepción de que \lstinline{d} sea un valor único o reservado, no hay manera de saber si la función retornó realmente la cabeza de la lista.
+El problema de esta solución es que a excepción de que \lstinline{d} sea un valor único, no hay manera de saber si la función retornó realmente la cabeza de la lista.
 
-La segunda opción es utilizar el tipo \lstinline{option}. Este tipo tiene dos constructores, uno que nos permite guardar un valor y otro que representa el error. De esta forma, podemos escribir la siguiente función.
+La segunda opción es utilizar el tipo \lstinline{option}. Este tipo es una mónada y tiene dos constructores, uno que nos permite indicar que tenemos un valor y otro que representa el error. De esta forma, podemos escribir la siguiente función.
 
 \begin{lstlisting}
 Definition head_o {A} (l : list A) : option A :=
@@ -130,7 +148,8 @@ Definition head_o {A} (l : list A) : option A :=
   end.
 \end{lstlisting}
 
-Esta solución es mejor que la anterior, pero sigue sufriendo de una deficiencia. Dado que \lstinline{head_o} retorna un elemento de tipo \lstinline{option} no sabemos si el resultado de esta función será realmente un elemento o si será el constructor vacío, por lo que todas las funciones que utilicen a \lstinline{head_o} deben también utilizar \lstinline{option}.
+Esta solución es mejor que la anterior, pero sigue sufriendo de una deficiencia.
+Dado que \lstinline{head_o} retorna un elemento de tipo \lstinline{option} no sabemos si el resultado de esta función será realmente un elemento o si será el constructor vacío hasta que inspeccionemos al valor, por lo que todas las funciones que utilicen a \lstinline{head_o} deben también utilizar la mónada \lstinline{option}.
 
 Esto nos lleva a nuestra última solución. Esta requiere que nos aseguremos que la lista \lstinline{l} no es vacia, es decir, \lstinline{l <> []}. Para entenderla, debemos ver dos cosas más: $\Sigma$\textit{-types} y \lstinline{Program}.
 Intuitivamente, los $\Sigma$\textit{-types} son duplas donde el argumento de la derecha es dependiente del de la izquierda. También los llamaremos pares dependientes. A continuación, la definición.
@@ -145,14 +164,14 @@ Se utiliza la notación \lstinline|{x : A \| P x}| para expresar \lstinline{sig 
 La librería \lstinline{Program} permite programar en Coq como si fuera un lenguaje de programación funcional mientras que, por detrás, se utiliza una especificación tan fuerte como se desee y probando que el código cumple la especificación de manera automática. En nuestro caso, utilizaremos \lstinline{Program} para codificar \lstinline{head} de una manera casi transparente.
 \begin{lstlisting}
 Program Definition head {A}
-(l : {l : list A | [] <> l} ) : A :=
-  match proj1_sig l with
+(l : list A | [] <> l ) : A :=
+  match l with
   | [] => !
   | x :: xs => x
   end.
 \end{lstlisting}
 
-En la signatura de \lstinline{head} podemos ver el uso del $\Sigma$-tipo. En el caso de la lista vacía, utilizamos \lstinline{!} para expresar que este caso es inalcanzable en esta situación. De esta forma, \lstinline{Program} genera la prueba correspondiente \lstinline{[] <> l}. En esta versión, podemos claramente ver la utilidad de los tipos dependientes. Solo podemos utilizar esta función en caso de que la lista sea no vacía.
+En la signatura de \lstinline{head} podemos ver el uso del $\Sigma$-tipo. En el caso de la lista vacía, utilizamos \lstinline{!} para expresar que este caso es inalcanzable, permitiendo que \lstinline{Program} genere una obligación. En esta versión, podemos claramente ver la utilidad de los tipos dependientes. Solo podemos utilizar esta función en caso de que la lista sea no vacía.
 
 \section{Tácticas}
 
@@ -163,7 +182,10 @@ Lemma sub_0_r : forall n, n - 0 = n.
 Proof. intro n. case n; [ | intro n']; reflexivity. Qed. 
 \end{lstlisting}
 
-En \ref{lst:sub_0_r}, definimos un lema enunciando que restar cero a cualquier número $n$ da como resultado $n$. Ya que la resta está definida por pattern matching en el primer argumento, esta igualdad no es automáticamente cierta computando. Por eso, debemos hacer análisis por casos.
+En el Listing \ref{lst:sub_0_r}, definimos un lema enunciando que restar cero a cualquier número $n$ da como resultado $n$.
+La resta está definida por recursión en el primer argumento y, al ser \lstinline{n} una variable, no es posible reducir la expresión \lstinline{(n - 0)}; por lo tanto, la prueba de este teorema no es inmediata.
+Sería distinto en el caso de que el primer argumento fuera el número 0 y el segundo \lstinline{n}: 0-n; esta prueba sería trivial dada la definición de la resta.
+Ya que la resta está definida por pattern matching en el primer argumento, esta igualdad no es automáticamente cierta computando. Por eso, debemos hacer análisis por casos.
 
 El código comienza con el comando \lstinline{Lemma}, donde efectivamente especificamos lo que queremos probar.
 Luego, utilizamos el comando \lstinline{Proof} para indicar el inicio de la prueba, la cual será resuelta a través de la concatenación de tácticas de Ltac. Estas tácticas transforman el \textit{proof-state} incrementalmente construyendo un \textit{proof-term}, la prueba. Podemos pensar al proof-state como el estado parcial de la prueba. Aplicando tácticas podemos modificar este estado, y al mismo tiempo ir creando nuestra prueba, generalmente llamada proof-term.
@@ -184,7 +206,7 @@ Notemos que el comando \lstinline{Theorem} se utiliza para definir teoremas.
 Theorem le_S (n : nat) : n <= S n.
 \end{lstlisting}
 
-Para hacer la prueba de el teorema, utilizaremos dos lemas ya definidos en Coq.
+Para escribir la prueba del teorema, utilizaremos dos lemas ya definidos en Coq.
 
 \begin{lstlisting}[frame=tb,caption={Teoremas \lstinline{le_0_n} y \lstinline{le_n_S}}]
 le_0_n : forall n : nat, 0 <= n
@@ -232,7 +254,7 @@ Coq cuenta con muchos comandos que se usan constantemente. Estos comandos son pa
   \hline
   \end{tabular}
   \end{center}
-  \item[Print] Podemos pensar a \texttt{Print} como un \texttt{About} que ademáß nos muestra la definición completa. Con este, podemos inspeccionar elementos ya definidos.
+  \item[Print] Podemos pensar a \texttt{Print} como un \texttt{About} que además nos muestra la definición completa. De esta manera, podemos inspeccionar elementos ya definidos.
   \begin{center}
   \begin{tabular}{| l | l |}
   \hline

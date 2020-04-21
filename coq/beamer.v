@@ -10,16 +10,25 @@ Import M.notations.
 Import M.M.
 From Coq Require Import ssreflect ssrfun ssrbool.
 
-(* Ejemplo 1 *)
+(* Ejemplo: metasytaticas - Coq *)
 Check le_n_S.
 Check le_0_n.
 
-Definition le_S (n : nat) : n <= S n.
+Theorem le_S (n : nat) : n <= S n.
 Proof.
 induction n.
 - apply (le_0_n 1).
 - apply (le_n_S (n) (S n)). exact IHn.
 Qed.
+
+Print le_S.
+
+(* Ejemplo: sintipar - Coq *)
+Theorem le_S' (n : nat) : n <= S n.
+Proof.
+intros. induction n.
+- apply (le_0_n 1).
+- induction n. reflexivity.
 
 (* Ejemplo 2 *)
 Inductive myList (A : Type) : Type :=

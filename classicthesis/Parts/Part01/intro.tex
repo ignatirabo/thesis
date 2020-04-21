@@ -52,7 +52,6 @@ Aunque esta táctica pueda resultar muy poderosa, también conlleva muchos probl
 \section{Mtac2}
 
 El metalenguaje \Mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} tiene como objetivo reemplazar a Ltac.
-\graffito{TODO: falta citar a Ltac2}
 En este sentido, es uno de tantos que intentan lo mismo: Ltac2~(Cap.~Ltac2 en Manual de Referencia de Coq 8.11 \cite{Coq}), Template-Coq \cite{DBLP:conf/itp/AnandBCST18}, Rtac \cite{DBLP:conf/esop/MalechaB16} y Coq-Elpi \cite{tassi:hal-01637063}.
 
 Volviendo a CoqHammer, esta táctica presenta varias deficiencias.
@@ -76,10 +75,10 @@ Primero introduciremos los diferentes lenguajes que residen en Coq, donde dos de
 Veremos como las tácticas de Coq, definidas en Ltac, nos permiten codificar pruebas matemáticas.
 En cuanto a Gallina, lo utilizaremos para poder definir nuestras funciones y tipos.
 En esta introducción, cubriremos tipos inductivos, recursivos y dependientes.
-Utilizaremos $\Sigma$-tipos para poder expresar dependencias en los tipos y definir funciones más fuertes.
+Utilizaremos $\Sigma$-tipos para poder expresar dependencias en los tipos y definir funciones que ofrezcan más certezas al depender de pruebas.
 Además, discutiremos cuales son las consecuencias de que Coq sea un lenguaje puro.
 
-De la misma forma, en el Capítulo \ref{ch:mtac2} encontraremos una introducción a \Mtac.
+En el Capítulo \ref{ch:mtac2} encontraremos una introducción a \Mtac.
 Primero, introduciremos el concepto de mónadas, ya que \mtac define una mónada para reflejar efectos secundarios.
 Hablaremos de la creación de metaprogramas, cubriendo las versiones monádicas de pattern matching y recursión.
 Luego, discutiremos la falta de garantías que estos metaprogramas proveen en comparación con programas puros de Coq.
