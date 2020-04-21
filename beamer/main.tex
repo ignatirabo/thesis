@@ -370,17 +370,18 @@ Tenemos la siguiente función que calcula el máximo de una lista de números na
 Definition list_max_nat :=
   mfix f (l: list nat) : l <> nil -> M nat :=
     mtmmatch l as l' return l' <> nil -> M nat with
-    | [? e] [e] =m> fun P => M.ret e
-    | [? e1 e2 l'] (e1 :: e2 :: l') =m> fun P =>
+    | [? e] [e] => fun P => M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
       let x := Nat.max e1 e2 in
       f (x :: l') _
-    | [? l' r'] app l' r' =m> fun P =>
+    | [? l' r'] app l' r' => fun P =>
       match app_not_nil l' r' P with
       | inl P' => f l' P'
       | inr P' => f r' P'
       end
     end.
 \end{lstlisting}
+% Explicar un poco pero sin meterme en los detalles de la prueba.
 
 \end{frame}
 
@@ -514,6 +515,47 @@ Definition bindTyTree :=
 \begin{center}
 Estamos listos para liftear \lstinline{bind}!
 \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lift}
+ 
+Para ejecutar \lift\ con \lstinline{bind} ejecutamos el siguiente comando:
+\begin{lstlisting}
+Definition li_bind : m:{T : TyTree & to_ty T} :=
+  ltac:(mrun (lift' bind m)).
+\end{lstlisting}
+\pause
+Como la signatura muestra, \lstinline{li_bind} es un $\Sigma$-type que contiene al resultado.
+\vskip \baselineskip
+
+\pause
+Con los siguientes comandos podemos extraer la signatura y la función resultante:
+\begin{lstlisting}
+Eval cbn in mprojT1 (li_bind).
+Eval cbn in to_ty (mprojT1 li_bind).
+Eval cbn in mprojT2 li_bind.
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lift}
+
+Respuesta de \lstinline{Eval cbn in to_ty (mprojT1 li_bind)}:
+\begin{lstlisting}
+\forall A B : \forall l : list nat, l <> nil -> Type,
+  (\forall (l : list nat) (p : l <> nil), M (A l p)) ->
+  (\forall (l : list nat) (p : l <> nil), A l p -> M (B l p)) ->
+  \forall (l : list nat) (p : l <> nil), M (B l p)
+\end{lstlisting}
+\vskip \baselineskip
+
+\pause
+Respuesta de \lstinline{Eval cbn in mprojT2 li_bind}:
+\begin{lstlisting}
+fun A B x f l p => bind (A l p) (B l p) (x l p) (f l p)
+\end{lstlisting}
+
 \end{frame}
 
 \end{document}
