@@ -1,0 +1,255 @@
+\chapter{Definición de Lift}\label{ch:technical}
+
+En este capítulo, mostraremos en detalles las herramientas necesarias para la definición de \lift, la cual se hará en la sección \ref{sec:algoritmo}.
+Su código se encuentra en el apéndice \ref{ch:apendice}.
+
+\section{El tipo TyTree}
+
+En términos generales, \lift es un fixpoint sobre un telescopio con un gran análisis por casos sobre los tipos.
+Entonces, surge un problema: ¿cómo podemos hacer \textit{pattern matching} en los tipos de manera sintáctica?
+La solución es utilizar un reflejo de los mismos, de manera de que podamos expresarlos de manera inductiva.
+
+\graffito{Los nombres de los constructores están simplificados para la facilidad del lector. En el apéndice podemos encontrar la verdadera definición.}
+\begin{lstlisting}[float=h,frame=tb,caption={El tipo inductivo \lstinline{TyTree}},label=lst:tytree]
+Inductive TyTree : Type :=
+| \tyTree_val$\!$ {m : MTele} (T : MTele_Ty m) : TyTree
+| \tyTree_M$\!$ (T : Type) : TyTree
+| \tyTree_MFA$\!$ {m : MTele} (T : MTele_Ty m) : TyTree
+| \tyTree_In$\!$ (s : Sort) {m : MTele} (F : accessor m -> s) : TyTree
+| \tyTree_imp$\!$ (T : TyTree) (R : TyTree) : TyTree
+| \tyTree_FATeleVal$\!$ {m : MTele} (T : MTele_Ty m)
+  (F : \forall t : MTele_val T, TyTree) : TyTree
+| \tyTree_FATeleType$\!$ (m : MTele) (F : \forall (T : MTele_Ty m), TyTree) : TyTree
+| \tyTree_FAVal$\!$ (T : Type) (F : T -> TyTree) : TyTree
+| \tyTree_FAType$\!$ (F : Type -> TyTree) : TyTree
+| \tyTree_base$\!$ (T : Type) : TyTree
+.
+\end{lstlisting}
+
+Notemos que el constructor \lstinline{\tyTree_M} es distinto a \lstinline{M}. En este trabajo, podemos diferenciarlos por el color. Veremos que ambos representan lo mismo, solo que uno es la versión reflejada del otro.
+
+Con los constructores de este tipo podemos expresar todas las signaturas que nos interesan. Varios de los constructores, como por ejemplo \lstinline{\tyTree_MFA} o \lstinline{\tyTree_FATeleVal}, tendrán sentido más adelante.
+
+Ahora, veamos algunos ejemplos simples de cómo podemos reescribir signaturas con este nuevo tipo.
+
+\begin{lstlisting}[frame=tb,caption={Ejemplos de \lstinline{TyTree}},label=lst:exmp_tytree]
+ret : \forall A, A -> M A.
+ret_r : \tyTree_FAType$\!$ (fun A => \tyTree_imp$\!$ (\tyTree_base A) (\tyTree_M A)).
+bind : \forall A B, M A -> (A -> M B) -> M B.
+bind_r : \tyTree_FAType$\!$ (fun A => \tyTree_FAType$\!$ (fun B => \tyTree_imp$\!$ (\tyTree_M A) (\tyTree_imp$\!$ (\tyTree_imp$\!$ (\tyTree_base A) (\tyTree_M B)) (\tyTree_M B)))).
+f : \forall (n : nat), 0 <= n -> M nat.
+f_r : \tyTree_FAVal$\!$ nat (fun n => \tyTree_imp$\!$ (\tyTree_base (0 <= n)) (\tyTree_M nat)).
+\end{lstlisting}
+
+A primera vista, los tipos pueden escribirse de múltiples formas ya que \lstinline{\tyTree_FAVal} es más fuerte que \lstinline{\tyTree_imp}. La clave está en que nuestra función \lift hará una separación muy específica entre cada caso, por lo tanto, la forma en que reescribamos la signatura de las funciones es sumamente importante.
+%Más adelante veremos cómo analizamos cada caso de forma quelos tratamos de manera distinta y por eso podemos plantear una biyección entre \lstinline{Type} y \lstinline{TyTree}.
+
+Utilizaremos la función \lstinline{to_ty : TyTree -> Type} para transformar un \lstinline{TyTree} en su \lstinline{Type} correspondiente. Notar que esta función no es monádica y eso es principal, ya que nos permite utilizarla en las signaturas que definimos. En cambio, la función \lstinline{to_tree : Type -> M TyTree}, que es análoga a \lstinline{to_ty}, necesariamente será monádica ya que debemos hacer un análisis sintáctico en los tipos de Coq.
+
+Se puede encontrar la definición de \lstinline{to_ty} y \lstinline{to_tree} en el apéndice \ref{ch:apendice}.
+
+\section{TyTrees monádicos}
+
+En esta sección, nos centraremos en cómo representar funciones lifteadas con \lstinline{TyTree}.
+Esto significa entender aún más detalles de los tipos dependientes de telescopios.
+
+En este caso, observamos el tipo de \lstinline{ret} lifteado, donde la función está parametrizada por un telescopio \lstinline{m}.
+Esto significa que podemos liftear una función sin un telescopio \lstinline{m} predefinido y luego instanciarlo.
+
+\begin{lstlisting}[frame=tb,caption={\lstinline{ret} lifteado},label=lst:ret_lift_m]
+fun m : MTele =>
+  \tyTree_FATeleType$\,$ m
+    (fun A : MTele_Ty m =>
+      \tyTree_imp$\,$ (\tyTree_In \Type_sort (fun a : accessor m => acc_sort a A))
+      (\tyTree_MFA A))
+\end{lstlisting}
+
+Podemos encontrar en rojo todos los constructores de \lstinline{TyTree} que se utilizan.
+A continuación, definiremos todos los elementos desconocidos de esta signatura presentada.
+
+Con \lstinline{\tyTree_FATeleType} podemos introducir tipos telescopios, es la versión telescopica de \lstinline{\tyTree_FAType}. Esto signfica que en la signatura de la función, si \lstinline{\tyTree_FAType} introduce un tipo que se encuentra bajo la mónada, este constructor se reemplazará por \lstinline{\tyTree_FATeleType}.
+En caso contrario, no debemos reemplazar este constructor en la signatura.
+
+La función \lstinline{MTele_In} nos permite adentrarnos a un tipo telescópico, momentáneamente introduciendo todos los argumentos con un \lstinline{accessor} y trabajando sobre el tipo de manera directa.
+
+Un \lstinline{accessor} es un par de funciones llamadas \lstinline{acc_sort} y \lstinline{acc_val}.
+Se comportan de la siguiente forma:
+\begin{itemize}
+  \item \lstinline{acc_sort} convierte \lstinline{MTele_Sort s n} en \lstinline{stype_of s}.
+  \item \lstinline{acc_val} convierte \lstinline{MTele_val T} en \lstinline{acc_sort T}.
+\end{itemize}
+
+Con la función \lstinline{acc_sort}, podemos transformar el tipo telescopico \lstinline{MTele_Sort s n} en \lstinline{stype_of s}, es decir, en \lstinline{Type} o en \lstinline{Prop} si \lstinline{s} es \lstinline{\Type_sort} o \lstinline{Prop_sort}, respectivamente. Esto representa añadir al contexto todas las depedencias y referirnos al tipo base. Mientras tanto, con la segunda función, conseguimos un elemento de ese tipo que \lstinline{acc_sort} nos concede.
+% \lstinline{\forall x$_1$ ... x$_n$, A x$_1$ ... x$_n$}.
+% Dado que no tenemos interés real es usar estos argumentos del telescopio, no tenemos que hacer demasiado trabajo, simplemente generamos tipos de manera trivial, es decir, ignorando los argumentos. Esto es expresado por \lstinline{acc_sort a A} que en verdad está produciendo el tipo \lstinline{\forall x$_1$ ... x$_n$, A x$_1$ ... x$_n$}.
+Intuitivamente, \lstinline{accessor} nos permite ``acceder'' al tipo con todos los argumentos ya presentes en el contexto.
+
+Utilizamos \lstinline{\tyTree_MFA} para representar tipos monádicos cuantificados. % Definimos \lstinline{MFA} en Mtac2 de la siguiente manera.
+
+\begin{lstlisting}[frame=tb,caption={Definición de \lstinline{MFA}},label=lst:mfa]
+Definition MFA {t} (T : MTele_Ty t) := (MTele_val
+  (MTele_C Type_sort Prop_sort M T)).
+\end{lstlisting}
+
+Con \lstinline{MFA} representamos tipos monádicos con argumentos cuantificados. 
+Sea \lstinline{(t : MTele)} de largo $n$ y \lstinline{(T : MTele_Ty t)}, \lstinline{MFA T} representará \lstinline{\forall x$_1$ ... x$_n$, M (T x$_1$ ... x$_n$)}.
+% Finalmente, en el caso anterior, interpretando los tipos de una manera más matemática, tomamos un valor \lstinline{\forall x$_1$ ... x$_n$, A x$_1$ ... x$_n$} y retornamos \lstinline{\forall x$_1$ ... x$_n$, M (T x$_1$ ... x$_n$)}.
+
+En el caso del Listing \ref{lst:ret_lift_m}, la signatura \lstinline{(\tyTree_In \; \Type_sort (fun a : accessor m => acc_sort a A))} es simplemente equivalente a \lstinline{(\tyTree_val \; A)} pero Coq no puede inferir esto directamente.
+La forma en que hemos definido \lift utiliza esta forma más general en todos los casos.
+
+Si concretizamos el telescopio, conseguiremos una signatura más similar a la matemática y la función resultante será muy simple. Por eso, utilizemos el telescopio \lstinline{n} de nuestra motivación, situado en el Listing \ref{lst:list_max_tele}.
+% Para mostrar esto supongamos que tenemos un telescopio \lstinline{t := [x$_1$ : T$_1$;> x$_2$ : T$_2$;> x$_3$ : T$_3$]$_t$}. Luego,
+
+\begin{lstlisting}[frame=tb,caption={Ejemplo de \lstinline{ret^}},label=lst:exmp_ret]
+ret^ : \forall A : l <> nil -> Type,
+  (\forall p : l <> nil, A p) ->
+  \forall p : l <> nil, M (A p) :=
+  fun A x p => ret (x p)
+\end{lstlisting}
+
+Notemos que esta solución efectivamente se puede utilizar en la función del Listing \ref{lst:list_max_lifted}. Podemos observar también la signatura en forma \lstinline{TyTree} y notar que se corresponde con lo esperado.
+
+\begin{lstlisting}[frame=tb,caption={Signatura en \lstinline{TyTree} de \lstinline{ret^}},label=lst:exmp_ret_tytree]
+\tyTree_FATeleType \; n
+  (fun A : l <> nil -> Type =>
+    \tyTree_imp \; (\tyTree_In \Type_sort (fun a : accessor n => acc_sort a A))
+      (\tyTree_MFA A))
+\end{lstlisting}
+
+Si concretizamos el telescopio para \lstinline{bind^}, tendremos el siguiente resultado.
+
+\begin{lstlisting}[frame=tb,caption={Ejemplo de \lstinline{bind^}},label=lst:exmp_bind]
+bind^ : \forall A B : \forall l : list nat, l <> nil -> Type,
+  (\forall (l : list nat) (p : l <> nil), M (A l p)) ->
+  (\forall (l : list mat) (p : l <> nil), A l p -> M (B l p)) ->
+  \forall (l : list nat) (p : l <> nil), M (B l p) :=
+  fun A B x f y => bind (x l p) (f l p)
+\end{lstlisting}
+
+El único constructor que no hemos utilizado es \lstinline{\tyTree_FATeleVal}.
+Este cumple el mismo rol que \lstinline{\tyTree_FAVal} y, como ya viene siendo el caso, el constructor solo será reemplazado si el tipo del elemento que introduce está bajo la mónada.
+
+\section{El algoritmo}\label{sec:algoritmo}
+
+Aquí definiremos y analizaremos la función \lift.
+
+\begin{lstlisting}[frame=tb,caption={Signatura de \lift},label=lst:tipo_lift]
+Fixpoint lift (m : MTele) (U : ArgsOf m) (T : TyTree) :
+  \forall (f : to_ty T), M m:{ T : TyTree & to_ty T}.
+\end{lstlisting}
+
+Dentro de esta signatura tenemos múltiples elementos conocidos:
+\begin{itemize}
+  \item El \textsf{telescopio} \lstinline{m} que describe las dependencias a agregar.
+  \item El \textsf{TyTree} \lstinline{T} con la signatura de la función.
+  \item La \textsf{función} \lstinline{f : to_ty T}. La función a liftear.
+\end{itemize}
+
+\lift retorna un par dependiente (o $\Sigma$-type) que contiene la nueva función junto con el \lstinline{TyTree} que describe su tipo.
+
+El argumento restante es \lstinline{U : ArgsOf m}.
+
+\begin{lstlisting}[frame=tb,caption={Definición de \lstinline{ArgsOf}},label=lst:ArgsOf]
+Fixpoint ArgsOf (m : MTele) : Type :=
+  match m with
+  | mBase => unit
+  | mTele f => msigT (fun x => ArgsOf (f x))
+  end.
+\end{lstlisting}
+
+Este contiene los argumentos que el telescopio añade de manera descurrificada.
+Esto quiere decir que transporta los argumentos del telescopio en un ``contenedor''.
+% Es nuestro truco para poder hacer funcionar \lift ya que podemos transportar los argumentos empaquetados.
+Cuando encontramos un tipo \lstinline{A} cualquiera en nuestra función, este tipo puede o no estar bajo la mónada.
+Si no lo está, no debemos realizar ninguna tarea.
+En el caso contrario, debemos modificarlo. Esto signfica reemplazar al tipo original \lstinline{A} por \lstinline{A : MTele_Ty t} con \lstinline{t : MTele}.
+Notemos que \lstinline{A} puede ser cualquier tipo.
+Con la función \lstinline{apply_sort}, podemos aplicar a \lstinline{U} en \lstinline{A}. La función generará un nuevo tipo: \lstinline{\forall v$_1$ ... v$_n$, A v$_1$ ... v$_n$}.
+
+Cuando en \lift encontramos una implicación, debemos liftear el lado izquierdo para luego poder liftear el derecho.
+Para hacer esto, utilizamos la función \lstinline{lift_in}.
+A través de otras funciones auxiliares, \lstinline{lift_in} nos permitirá reemplazar nuestro tipo \lstinline{apply_sort A U} por un otro tipo equivalente: \lstinline{F (uncurry_in_acc U)} donde \lstinline{F := fun a => a.(acc_sort) A}.
+La función \lstinline{uncurry_in_acc} toma nuestro \lstinline{U : ArgsOf m} y nos devuelve un \lstinline{accessor m}.
+De esta forma, \lstinline{F (uncurry_in_acc U)} se traduce a \lstinline{(uncurry_in_acc U).(acc_sort) A}, lo que representa el tipo \lstinline{A} con los argumentos de \lstinline{U}.
+
+Necesitamos codificarlo de esta forma para que sea aceptado por \lstinline{MTele_In} y, además, \lstinline{lift_in} nos provee del tipo junto con una prueba de equivalencia entre ambos. De esta forma, podemos reemplazarlo sin problema y podemos liftear así al elemento de la izquierda de la implicación.
+
+% TODO: se puede hacer sección de funciones auxiliares aunque creo que no es necesario.
+% TODO: hablar de contains_m para explicar como vemos estas cosas como el T de arriba?
+
+\subsection{Caso de estudio: \texttt{ret}}
+
+A continuación, haremos un recorrido paso a paso de cómo es lifteado \lstinline{ret}.
+
+\begin{enumerate}
+    \item Matcheamos \lstinline{\tyTree_FAType \; F} donde \lstinline{F : Type -> TyTree}. Generamos un tipo arbritario \lstinline{A} para, entonces, poder verificar si, en \lstinline{F A}, \lstinline{A} se encuentra bajo la mónada. Realizamos esta verificación con la función auxiliar \lstinline{is_m}. Esta función retornará \lstinline{true} ya que efectivamente el tipo \lstinline{A} se encuentra bajo la mónada. Entonces, generamos un nuevo \lstinline{A : MTele_Ty t}, es decir, una versión telescopica de \lstinline{A}. Utilizamos \lstinline{MTele_Ty} como notación para \lstinline{MTele_Sort \Type_sort}. Recordemos que \lstinline{MTele_Sort} se utiliza para referirse a tipos que tengan las depedencias del telescopio.
+    
+    Luego, aplicamos \lift de manera recursiva sobre \lstinline{F (apply_sort A U)}. Aquí utilizamos la función \lstinline{apply_sort} de manera de aplicar los argumentos de \lstinline{U} en el tipo \lstinline{A}.
+    % TODO: que sucede si da false?
+    \item Ahora, debemos liftear algo del siguiente tipo.
+    \begin{lstlisting}
+\tyTree_imp \; (\tyTree_base (apply_sort A U)) (\tyTree_M (apply_sort A U)))
+    \end{lstlisting}
+    Nuestra expresión matcheará con el caso \lstinline{\tyTree_imp} de \lift. Dado que ya hemos introducido todos los tipos cuantificados, sabemos cómo tratar a cada uno. En este caso, eso es muy importante dado que se realiza un chequeo para saber si el lado izquierdo de la implicación contiene un tipo telescópico. Si no lo hay, el lado izquierdo de la implicación será ``final'', es decir, no necesitará más modificaciones. Pero, en nuestro caso, reemplazamos \lstinline{A} por \lstinline{apply_sort A U}. Realizamos este chequeo con la función auxiliar \lstinline{contains_u}. Esto nos lleva a tener que utilizar \lstinline{lift_in}.
+    % TODO: Hablar del tipo de lift_in
+    \item La función \lstinline{lift_in} se utiliza para liftear argumentos que se encuentran a la izquierda de una implicación.
+    A través de múltiples funciones auxiliares, \lstinline{lift_in} nos permitirá reemplazar \lstinline{apply_sort A U} por un tipo equivalente: \lstinline{F (uncurry_in_acc U)}. La función \lstinline{F} utilizará a \lstinline{uncurry_in_acc U} para ``acceder'' al tipo. Un \lstinline{accessor} nos permite expresar el ``tener acceso'' a los valores para cada argumento del telescopio.
+    Podemos pensar que todo esto es la concretización del lifteo del lado izquierdo de la implicación, donde conseguimos esta función \lstinline{F}.
+    % Tendremos una llamada \lstinline{lift_in U (\tyTree_base \; (apply_sort A U))} matcheando el caso correspondiente. 
+    % En \lstinline{lift_in}, con la función \lstinline{uncurry_in_acc} valuada en \lstinline{U} conseguimos un \lstinline{accessor m} que usaremos para un nuevo \lstinline{\Type_sort}.
+    % TODO: explicar accessor y Type_sort?
+    % Esta función retornará un $\Sigma$-Type con un valor \lstinline{F : accessor t -> \Type_sort} y una prueba de que el tipo \lstinline{\tyTree_base \; (apply_sort A U)} es igual a \lstinline{F (uncurry_in_acc U)}. Todo esto parece suena muy técnico pero la idea intuitiva es que \lstinline{uncurry_in_acc U} nos retorna el accessor trivial de \lstinline{U}. Lo importante es que sabemos que \lstinline{F (uncurry_in_acc U)} es igual al lado izquierdo de la implicación de \lstinline{ret}.
+    Esto nos es útil porque ahora podemos generar un valor \lstinline{x : X'}en \lift, donde \lstinline{X'} es \lstinline{MTele_val (MTele_In \Type_sort F)}.
+    Es decir, \lstinline{x} es una variable del tipo resultante de liftear \lstinline{X} en el lado izquierdo de la implicación. Lo que resta es tomar nuestra función \lstinline{f} de tipo \lstinline{X'-> Y} y liftearla. Esto signfica liftear \lstinline{f x}.
+    \item El último paso es ejecutar \lstinline{lift t U Y (f x)}, ya sabiendo que \lstinline{Y = \tyTree_M$\,$ (apply_sort A U)}.
+    Este caso es particular porque no tiene llamadas recursivas.
+    Primero, debemos abstraer a \lstinline{U} de \lstinline{f} obteniendo una función dependiente de esta variable.
+    % TODO: quien es curry?
+    Luego, currificamos a \lstinline{f} con respecto a \lstinline{U}. Esto se realiza a través de la función \lstinline{curry} de \textsc{Mtac2} y, de esta manera, la función pasa a tener tipo \lstinline{to_ty (\tyTree_MFA$\,$ A)}.
+%     \begin{lstlisting}
+% f : \forall x$_1$ ... x$_n$ => \tyTree_MFA (A x$_1$ ... x$_n$)
+%     \end{lstlisting}
+    \item Finalmente, \lift retorna un \lstinline{T' : TyTree} y \lstinline{ret^ : to_ty (T')} con
+    \begin{lstlisting}
+T' = \tyTree_FATeleType$\,$ (fun A => \tyTree_imp$\,$ (\tyTree_val$\,$ A) (\tyTree_MFA$\,$ A)).
+    \end{lstlisting}
+\end{enumerate}
+
+
+\subsection{Caso de estudio: \texttt{bind}}
+
+A continuación, haremos un recorrido paso a paso de cómo es lifteado \lstinline{bind}.
+
+\begin{enumerate}
+    \item Matcheamos \lstinline{\tyTree_FAType \; F} donde \lstinline{F : Type -> TyTree}. Generamos un tipo arbritario \lstinline{A} para entonces poder verificar si, en \lstinline{F A}, \lstinline{A} se encuentra bajo la mónada. Realizamos esta verificación con la función auxiliar \lstinline{is_m}. Esta función retornará \lstinline{true} ya que efectivamente el tipo \lstinline{A} se encuentra bajo la mónada. Entonces, generamos un nuevo \lstinline{A : MTele_Ty t}, es decir, una versión telescopica de \lstinline{A}. Utilizamos \lstinline{MTele_Ty} como notación para \lstinline{MTele_Sort \Type_sort}. Recordemos que \lstinline{MTele_Sort} se utiliza para referirse a tipos que tengan las depedencias del telescopio.
+    
+    Luego, aplicamos \lift de manera recursiva sobre \lstinline{F (apply_sort A U)}. Aquí utilizamos la función \lstinline{apply_sort} de manera de aplicar los argumentos de \lstinline{U} en el tipo \lstinline{A}.
+
+    Dado que \lstinline{bind} introduce dos tipos (\lstinline{A} y \lstinline{B}), repetimos el paso anterior para reemplazar al tipo \lstinline{B} cualquiera, por uno telescopico.
+    \item Ahora nos queda: \lstinline{M A -> (A -> M B) -> M B}. Dado que esto es una implicación matcheamos el caso de \lstinline{\tyTree_imp}, y llamamos a \lstinline{lift_in} en el lado izquierdo.
+    \item Tenemos que liftear \lstinline{M A} con \lstinline{lift_in}. Esto será muy similar al caso de que vemos en \lstinline{ret}, con la diferencia de que la función \lstinline{F} que se utiliza en \lstinline{lift_in} es de la siguiente forma: \lstinline{F := fun a => M (a.(acc_sort) A)}. Terminamos reemplazando \lstinline{\tyTree_base A} por \lstinline{\tyTree_In \Type_sort (fun a : accessor m => M (acc_sort a A))}. Recordemos que esto termina siendo equivalente a \lstinline{\tyTree_MFA A}.
+    \item A continuación, podemos utilizar el lado izquierdo ya lifteado para liftear el lado derecho. Como el lado derecho también es una implicación, volvemos a correr \lstinline{lift_in} pero ahora el argumento es de tipo \lstinline{(A -> M B)}, es decir, una función.
+    \item Al correr \lstinline{lift_in}, matcheamos el caso de la implicación. La diferencia también es la función \lstinline{F}. Sea \lstinline{X := A} y \lstinline{Y := M B}. Entonces, \lstinline{F} se define de la siguiente forma: \lstinline{F := fun a => FX a -> FY a}, donde \lstinline{FX} y \lstinline{FY}, son el resultado de ejecutar \lstinline{lift_in} sobre \lstinline{X} e \lstinline{Y} respectivamente.
+    \item Finalmente, ya hemos calculado el lado el lado izquierdo de la implicación, nos queda liftear el lado derecho: \lstinline{M B}.
+    Como en \lstinline{ret}, abstraemos a \lstinline{U} de \lstinline{f} obteniendo una función dependiente de esta variable y currificamos a \lstinline{f} con respecto a \lstinline{U}.
+    
+    Terminamos con un \lstinline{\tyTree_MFA \; B} y finalmente el tipo de \lstinline{bind^} queda de la siguiente forma.
+    \begin{lstlisting}
+\tyTree_FATeleType \; m
+  (\fun A : l <> nil -> Type =>
+    \tyTree_FATeleType \; m
+      (\fun B : l <> nil -> Type =>
+        \tyTree_imp
+          (\tyTree_In \Type_sort (\fun a : accessor m => M (acc_sort a A)))
+          (\tyTree_imp
+            (\tyTree_In \Type_sort
+              (\fun a : accessor m =>
+                acc_sort a A -> M (acc_sort a B))) 
+            (\tyTree_MFA B))))
+    \end{lstlisting}
+\end{enumerate}
+
+Hemos visto dos aplicaciones paso a paso de la función \lift, que nos permiten generar las versiones generalizadas de \lstinline{ret} y \lstinline{bind} tal como las necesitamos para nuestro ejemplo del Listing \ref{lst:list_max_lifted}.
+
+Aquí concluimos la discusión técnica, pero antes reiteramos que en el Apéndice \ref{ch:apendice} se encuentra a disposición del lector el código de la función \lift.

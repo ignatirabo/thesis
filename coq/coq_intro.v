@@ -13,6 +13,7 @@ rewrite Nat.add_comm. reflexivity.
 Qed.
 
 Check le_n_S.
+Check le_0_n.
 
 Definition le_S (n : nat) : n <= S n.
 Proof.
@@ -22,6 +23,18 @@ induction n.
 Qed.
 
 Lemma sub_0_r : forall n, n - 0 = n.
-Proof. intro n. case n.
+Proof. intro n. case n. Abort.
 
-[ | intro n']. reflexivity. Qed. 
+Check S O.
+Check nat.
+
+About S.
+About list.
+
+Print list.
+
+Locate bool.
+
+Eval compute in 1 + 1.
+Eval cbv in (fun x => x * (x + 1)) 2.
+Eval cbn in (fun x => x * (x + 1)) 2.

@@ -1,0 +1,217 @@
+\chapter{Mtac2}\label{ch:mtac2}
+
+\Mtac \cite{DBLP:journals/pacmpl/KaiserZKRD18} es un metalenguaje de programación para Coq. Esto quiere decir que complementa a Coq, permitiendo ``usar Coq'' de una manera distinta. En el trabajo, nos centramos en ampliar \Mtac y, por eso, es importante que veamos que nos permite hacer y cómo.
+
+\section{Mónadas}
+
+Las mónadas son uno los métodos que utilizan los lenguajes de programación funcional para la representación de efectos secundarios.
+\Mtac define una mónada \lstinline{M} que es la que permite añadir una serie de características muy útiles a la hora de desarrollar metaprogramas.
+Las tácticas presentes en \mtac son metaprogramas monádicos.
+
+% Tiene operaciones para la metaprogramaicon, tiene excepciones, manejo de contexto, de variables, fixpoint infinito.
+
+% Cuidado con \lstinline{bind}compone, en este caso está bien pq justo la palabra termina ahí.
+Con la mónada \lstinline{M : Type -> Prop} podemos referirnos a la versión monádica de un tipo cualquiera. A partir de los tipos monádicos, pasamos a tener elementos monádicos. Estos elementos reflejan pasos computacionales y se construyen a través de dos funciones: \lstinline{bind}compone pasos computacionales y \lstinline{return} o \lstinline{ret} los envuelve en la mónada. Por ejemplo, podemos tener el tipo \lstinline{M nat} que expresa posibles valores de números naturales. La expresión \lstinline{ret 5} expresa un valor de \lstinline{M nat}.
+
+\section{Confección de Metaprogramas}
+
+% Ya habiendo mencionado tácticas, tornaremos nuestra atención a meta-programas.
+Las tácticas de \mtac son metaprogramas.
+Estos programas se caracterizan por ser monádicos, es decir, utilizan mónadas para reflejar efectos secundarios.
+Esto se amplía a muchas características útiles, pero se debe pagar un costo.
+A continuación, intentaremos comprender las limitaciones impuestas por el metalenguaje.
+
+Comenzaremos analizando \lstinline{mmatch}. Como ya vimos en Gallina, \lstinline{match} es puro, o sea, cuando lo utilizamos, necesitamos matchear todos los casos del constructor y a su vez no podemos matchear en términos que no sean constructores del tipo.
+Mientras tanto, \lstinline{mmatch} nos permite matchear más libremente.
+Esto significa que podemos matchear en expresiones sintácticas de manera de separarlas muy específicamente para nuestra conveniencia.
+Un ejemplo puede ser el siguiente.
+
+\begin{lstlisting}
+Definition test_match (n : nat) : M nat :=
+  mmatch n with
+  | [? x y] add x y => ret n
+  | O => ret (S O)
+  | [? n'] S n' => ret (S (S n'))
+  end.
+\end{lstlisting}
+
+En el primer caso del \lstinline{mmatch} del programa \lstinline{test_match}, vemos que no estamos matcheando uno de los constructores de \lstinline{nat}.
+Esta es la gran diferencia con el \lstinline{match} de Coq.
+En el \lstinline{match} original de Coq, solo podemos matchear a los constructores del tipo del argumento.
+Mientras tanto, acá estamos analizando \lstinline{add x y}, que tiene tipo \lstinline{nat}, pero no es uno de los constructores del tipo.
+
+El único detalle extraño que podemos encontrar es que en dos de los casos tenemos unos corchetes antes de la expresión.
+Esto se utiliza para decirle a \Mtac que estas variables están siendo introducidas al contexto.
+
+Para hacer programas recursivos utilizaremos \lstinline{mfix}. Existen múltiples variantes para una cantidad distinta de argumentos recursivos: \lstinline{mfix1}, \lstinline{mfix2}, etcetera.
+
+Un ejemplo puede ser el de \lstinline{map}.
+
+\begin{lstlisting}
+Definition map {A} {B} (t : A -> B) : \forall (l : list A), M (list B) :=
+mfix1 m (l : list A) : M list B :=
+  mmatch l with
+  | nil => ret nil
+  | [? x xs] x::xs => xs' <- m xs;
+                            ret ((t x)::xs')
+  end.
+\end{lstlisting}
+
+En \lstinline{map} solo tenemos un argumento recursivo, que será la lista que estamos mapeando.
+En el ejemplo, también vemos el uso de la notación \lstinline{<-}.
+Esta indica que estamos \emph{bindeando} a la variable \lstinline{xs'} con el cómputo \lstinline{m xs}, es decir, utilizando la función \lstinline{bind} para conectar estos cómputos.
+En otros ejemplos es posible que veamos otra notación: \lstinline{;;}.
+Está notación también indica el uso de \lstinline{bind}, con la diferencia de que no nos interesa el valor que estamos vinculando.
+Usualmente, lo observaremos al utilizar la función \lstinline{print}, ya que esta función retorna un argumento de tipo \lstinline{M unit}.
+
+Los últimos dos elementos que necesitamos entender son \lstinline{mtmmatch} y \lstinline{mfix}.
+Estas son versiones de \lstinline{mmatch} y \lstinline{mfix$_n$}, respectivamente.
+
+En primer lugar, utilizaremos \lstinline{mtmmatch} para realizar pattern matching monádico, con la diferencia de que los valores de retorno pueden ser dependientes, es decir, podemos retornar funciones que computan mónadas.
+
+Por último, \lstinline{mfix} es una versión general de la recursión monádica, esta puede tomar una cantidad arbitraria de argumentos. Está motivada por la limitación de \lstinline{mfix1}, \lstinline{mfix2} y \lstinline{mfix3}.
+Aún así, su uso no es estándar porque todavía está en desarrollo.
+
+\section{El costo de la mónada}
+
+Como mencionamos anteriormente, las funcionalidades de \Mtac tienen un coste.
+Imaginemos que estamos calculando el cociente entre dos números enteros, siendo el divisor igual a cero.
+En este caso, el programa no puede calcular el cociente y debe fallar.
+Esto nos muestra la gran diferencia entre un programa de Coq y uno de \mtac: un programa monádico puede fallar.
+Mientras tanto, en el mundo de Coq este concepto no existe.
+Un programa que retorna un número entero, debe retornar un entero y, más aún, un programa que tiene el tipo de una proposición, efectivamente es una prueba de la misma.
+Supongamos esa proposición es \lstinline{P : Prop}.
+Ahora, para probarla monádicamente necesitamos un programa \lstinline{p : M P}, pero para cualquier \lstinline{P} podemos escribir dar un programa con esa signatura y que no sea una prueba.
+
+\begin{lstlisting}
+Definition univ (P : Prop): M P :=
+  raise MyException.
+\end{lstlisting}
+
+Con \lstinline{raise} podemos levantar una excepción, en este caso \lstinline{MyException} es una excepción definida por nosotros.
+Sin la presencia de la mónada esto no sería posible.
+La mónada nos quita garantías que, si no, tendríamos en Coq.
+
+Dada esta limitación, todas las funciones nativas de Coq pueden ser utilizadas en los tipos de las funciones, pero no sucede lo mismo con las funciones monádicas.
+Esto hace que el desarrollo de metaprogramas se tenga que pensar de manera estratégica: qué funciones serán monádicas y cuales serán nativas de Coq.
+
+\section{Alternativas}
+% TODO: referencias https://popl19.sigplan.org/details/CoqPL-2019/8/Ltac2-Tactical-Warfare
+
+\Mtac no es el único metalenguaje de programación para Coq. 
+Un ejemplo de otro metalenguaje es \emph{Ltac2} \cite{Ltac2}.
+Este funciona como un \emph{wrapper} alrededor del \emph{proof engine} de Coq.
+Implementa una $\alpha$ táctica de tipo monádico en OCaml y trata de conservar la mayor parte de Ltac posible, busca la mayor retrocompatibilidad.
+Otras alternativas pueden ser Template-Coq \cite{DBLP:conf/itp/AnandBCST18}, Rtac \cite{DBLP:conf/esop/MalechaB16} y Coq-Elpi \cite{tassi:hal-01637063}.
+La gran diferencia entre estos metalenguajes es que \Mtac es \emph{shallowly embedded}, mientras que los otros no. A diferencia de \Mtac, los objetos de estas alternativas son términos de un tipo inductivo \lstinline{Term}, o sea, no tienen un tipo informativo. Es decir, en \Mtac un programa \lstinline{M A} está garantizado que, si termina correctamente, retorna un término de tipo \lstinline{A}. Sin embargo, en los lenguajes \emph{deeply embedded}, como los mencionados, nada garantiza que el término retornado tenga un tipo dado, puede retornarse cualquier elemento de cualquier tipo, incluso términos mal construidos.
+
+\section{Telescopios}
+
+Los \emph{telescopios} son una estructura de datos inductiva % de \Mtac
+que permite expresar una secuencia de tipos o valores, posiblemente dependientes, y de largo arbitrario.
+Los telescopios, junto con las funciones que lo acompañan, serán claves a la hora de poder expresar nuestro problema y consecuente solución.
+
+\begin{lstlisting}[float=h,frame=tb,caption={Definición de telescopio},label=lst:MTele]
+Inductive MTele : Type :=
+| mBase : MTele
+| mTele {X : Type} (F : X -> MTele) : MTele.
+\end{lstlisting}
+
+El tipo \lstinline{MTele} crea una cadena de abstracciones.
+Este se codifica a través de funciones, lo que permite que sean dependientes, es decir, un telescopio puede tener elementos que dependan de elementos anteriores.
+
+Definiremos la siguiente notación para poder referirnos a los telescopios de una manera más accesible.
+El constructor \lstinline{mBase} representa el telescopio vacío o de largo cero. Representaremos con \lstinline{[$\;$]$_t$} a \lstinline{mBase}.
+
+Para un telescopio de largo $n$, tenemos al constructor \lstinline{mTele} anidado $n$ veces. Dado que podemos pensar al telescopio como una secuencia dependiente de tipos, un posible comienzo es \lstinline{[T$_0$ : Type ;> ...]$_t$}. Ahora, todos argumentos siguientes del telescopio pueden depender de \lstinline{T$_0$}. Luego, \lstinline{[T$_0$ : Type ;> T$_1$ : T$_0$ -> Type ;> ...]$_t$} tiene sentido, y el tipo \lstinline{T$_1$} depende de \lstinline{T$_0$}.
+Notar que podría ocurrir que ningún argumento dependa de \lstinline{T$_0$}.
+
+\begin{lstlisting}[frame=tb,caption={Notación de telescopios},label=lst:not_tele]
+(* ej 1 *) mBase $\equiv$ [$\;$]$_t$
+(* ej 2 *) mTele (fun T : Type => mTele R : T -> Type) $\equiv$
+[T : Type ;> R : (T -> Type)]$_t$
+(* ej 3 *) mTele (fun T : Type => mTele t : T) $\equiv$
+[T : Type ;> t : T]$_t$
+\end{lstlisting}
+
+Para comenzar a estudiar a este tipo, podemos pensar que existen jerarquías.
+La primera jerarquía sería la de los telescopios en sí, elementos de tipo \lstinline{MTele}.
+Ahora, dado un \lstinline{m : MTele}, la segunda jerarquía es la de los tipos generados por el telescopio \lstinline{m}.
+Luego, el último nivel es el de los elementos de este nuevo tipo telescopico.
+
+Veremos esto en mayor profundidad, pero, para eso, debemos primero definir el tipo \lstinline{Sort}.
+
+\begin{lstlisting}[frame=tb,caption={Definición de \lstinline{Sort}},label=lst:Sort]
+Inductive Sort : Type := \Prop_sort | \Type_sort.
+\end{lstlisting}
+
+Más adelante en esta sección, utilizaremos \lstinline{Sort} para abstraer el concepto de tipo y proposición, y poder aplicar ciertas funciones telescópicas.
+
+\begin{itemize}
+  \item En el nivel superior, definimos nuestro telescopio \lstinline{m} de largo $n$ con dependencias arbitrarias. Esto es simplemente utilizando los constructores de \lstinline{MTele}.
+  \item Ya con \lstinline{m} definido, podemos utilizar la función \lstinline{MTele_Sort} para computar un tipo derivado del telescopio. Sea \lstinline{(s : Sort)}, es decir, \lstinline{s} es \lstinline{\Type_sort} o \lstinline{\Prop_sort}, la expresión \lstinline{(MTele_Sort s m)} es un tipo y, específicamente, es el tipo \lstinline{\forall x$_1$ x$_2$ ... x$_n$, s}.
+  \item Como dijimos, \lstinline{(MTele_Sort s m)} es un tipo, por lo tanto, podemos tener elementos de ese tipo. Esta sería la última jerarquía.
+  
+  Para esto, utilizamos la función \lstinline{MTele_val}. Esta función toma un valor de \lstinline{(MTele_Sort s m)} y retorna un valor de tipo \lstinline{s}. Por cómo es el tipo, se deduce que un valor del mismo es algo de la forma \lstinline{(fun x$_1$ x$_2$ ... x$_n$ => T x$_1$ x$_2$ ... x$_n$)} para algún \lstinline{T}. Luego, \lstinline{MTele_val} retornará un valor de tipo \lstinline{s}, es decir, \lstinline{T y$_1$ y$_2$ ... y$_n$} para algunos \lstinline{y$_i$}.
+\end{itemize}
+
+Utilizaremos \lstinline{MTele_Ty} y \lstinline{MTele_Prop} para expresar \lstinline{MTele_Sort \Type_sort} y \lstinline{MTele_Sort \Prop_sort} respectivamente.
+
+\subsection{Funciones extra}
+
+Los telescopios de \Mtac traen consigo muchas funciones que son las que le dan el poder expresivo que los hace útiles. 
+
+La función \lstinline{MTele_C} permite mapear a un \lstinline{MTele_Sort} con una función constante.
+Por ejemplo, la mónada que hemos observado antes: \lstinline{M}, en realidad es una función de \lstinline{Type} en \lstinline{Prop}.
+Entonces, podríamos tomar un tipo \lstinline{\forall x$_1$ ... x$_n$, T x$_1$ ... x$_n$} y transformalo en \lstinline{\forall x$_1$ ... x$_n$, M (T x$_1$ ... x$_n$)}
+
+Con \lstinline{MTele_In}, podemos ganar acceso a múltiples tipos y valores telescopios al mismo tiempo, siendo así capaces de computar un nuevo tipo telescópico.
+Al momento de utilizarlo lo estudiaremos en más profundidad.
+
+\subsection{Ejemplo}
+
+Para que los conceptos queden claros, vamos a plantear un ejemplo de telescopios.
+
+Primero, definimos un telescopio \lstinline{m}.
+
+\begin{lstlisting}
+Definition m := [T : Type ;> l : list T ;> p : length l = 0]$_t$
+\end{lstlisting}
+
+El telescopio tiene tres elementos: el tipo \lstinline{T}, una lista de tipo \lstinline{T} (que ya hemos introducido, por lo tanto podemos utilizar) y una prueba \lstinline{p} de que la lista \lstinline{l} tiene largo cero.
+
+Si ahora inspeccionamos quien es \lstinline{MTele_Sort \Type_sort m}, veremos que es lo esperado.
+
+\begin{lstlisting}
+Eval cbn in MTele_Ty m.
+= \forall (T : Type) (l : list T), length l = 0 -> Type : Type
+\end{lstlisting}
+
+El próximo paso es hablar de elementos de este tipo.
+
+\begin{lstlisting}
+Definition Tm : MTele_Ty m := fun T l p => l = nil.
+\end{lstlisting}
+
+Donde tenemos \lstinline{l = nil} podemos poner cualquier tipo.
+Podríamos tener \lstinline{nat} pero, para hacerlo más interesante definimos un tipo que contenga algún significado lógico.
+Lo importante es que Coq acepta la definición de \lstinline{Tm}, lo que implica que esta definición efectivamente tiene el tipo esperado.
+Si este no fuera el caso, el type-checker de Coq no lo aceptaría.
+El próximo paso es definir un elemento del tipo \lstinline{Tm}.
+
+Podemos definir el siguiente teorema y probarlo.
+
+\begin{lstlisting}
+Definition test_Tm : forall T (l : list T) (p : List.length l = 0), l = nil.
+intros T l p. by apply length_zero_iff_nil.
+Qed.
+\end{lstlisting}
+
+El truco es que, al conocer \lstinline{Tm} sabemos que esta función tiene ese tipo.
+Finalmente, podemos definir lo siguiente.
+
+\begin{lstlisting}
+Definition vm : MTele_val tm := test_Tm.
+\end{lstlisting}
+
+Efectivamente, \lstinline{test_Tm} tiene tipo \lstinline{MTele_val tm}.

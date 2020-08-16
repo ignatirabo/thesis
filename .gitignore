@@ -1,9 +1,19 @@
+## Core latex/pdflatex auxiliary files:
 *.aux
-*.pdf
-*.fdb_latexmk
-*.fls
+*.lof
 *.log
+*.lot
+*.lol
+*.fls
 *.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+*.fdb_latexmk
+
 *.a
 *.cma
 *.cmi
@@ -11,8 +21,7 @@
 *.cmx
 *.cmxa
 *.cmxs
-*.glob
-*.ml.d
+*.glob 
 *.ml4.d
 *.mli.d
 *.mllib.d
@@ -39,3 +48,13 @@ _minted-main
 auto
 curry.v
 main.toc
+
+## Bibliography auxiliary files (bibtex/biblatex/biber):
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+tex/main.pdf
+classicthesis/ClassicThesis.pdf

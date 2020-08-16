@@ -1,0 +1,618 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+
+\usetheme{Madrid}
+
+% Comentario de Beta:
+% Beta Ziliani: Es la motivación, esencialmente
+% Beta Ziliani: O sea: Coq, necesitamos meta programas, Mtac, ejemplo en motivación
+% Beta Ziliani: Idea general y vaga de la solución
+% Beta Ziliani: Fin
+
+
+\usepackage{xcolor}
+
+\newcommand{\lift}{{\scshape Lift}}
+
+\definecolor{ao}{rgb}{0.0, 0.5, 0.0}
+\definecolor{applegreen}{rgb}{0.55, 0.71, 0.0}
+\definecolor{asparagus}{rgb}{0.53, 0.66, 0.42}
+\definecolor{auburn}{rgb}{0.43, 0.21, 0.1}
+\definecolor{antiquefuchsia}{rgb}{0.57, 0.36, 0.51}
+\definecolor{airforceblue}{rgb}{0.36, 0.54, 0.66}
+\definecolor{cerulean}{rgb}{0.0, 0.48, 0.65}
+\definecolor{brightmaroon}{rgb}{0.76, 0.13, 0.28}
+
+\usepackage{listings,lstlangcoq,bold-extra}
+\lstset{basicstyle=\ttfamily,language=Coq,showstringspaces=false}
+
+%Information to be included in the title page:
+\title[Generalización de Meta-programas]{Generalización de Meta-programas con Tipado Dependiente en Mtac2}
+\author{Ignacio Tiraboschi}
+\institute{UNC - FAMAF}
+\date{2020}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{Tabla de contenidos}
+\tableofcontents
+\end{frame}
+
+\begin{frame}
+\section{Coq}
+\frametitle{Coq}
+\framesubtitle{Asistentes de Prueba}
+
+Los asistentes de prueba nos asisten en la demostración de teoremas de múltiples maneras.
+\vspace{\baselineskip}
+
+Existes muchos de ellos: Coq, Isabelle, Agda, Lean, HOL4.
+% TODO: Poner imágenes de diferentes asistentes de pruebas.
+\vspace{\baselineskip}
+
+Nosotros utilizaremos Coq.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Coq}
+% Coq es un asistente de prueba francés, desarrollado inicialmente por Thierry Coquand
+Coq es uno de los asistentes de prueba más utilizados.
+Podemos especificar \emph{teoremas} y \emph{probarlos}.
+\vspace{\baselineskip}
+
+Estas pruebas se centran en la modificación de metas a través de tácticas.
+\vspace{\baselineskip}
+
+Las tácticas se escriben en el metalenguaje Ltac y luego se concatenan formando una prueba.
+% Ltac es el metalenguaje por defecto de Coq
+% Veamos qué son las tácticas
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Coq}
+
+Las tácticas modifican metas (también llamadas \emph{goals}) y, pueden generar más metas.
+\vskip \baselineskip
+
+% Centremosnos en el siguiente teorema.
+\lstinline{Definition le_S (n : nat) : n <= S n.}
+% Este teoema nos dice que un número natural es menor a su sucesor.
+% Ejemplo 1. Utiliza induction esto genera dos metas nuevas:
+% caso base y paso inductivo.
+\pause
+\begin{lstlisting}
+Proof.
+induction n.
+- apply (le_0_n 1).
+- apply (le_n_S (n) (S n)). exact IHn.
+Qed.
+\end{lstlisting}
+% Veamos esta prueba en vivo.
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Coq}
+
+\centering
+Ahora veamos como definir programas en Coq.
+\vskip \baselineskip
+
+¿Cómo podemos definir listas?
+\pause
+\begin{lstlisting}
+Inductive myList (A : Type) : Type :=
+| myNil : myList A
+| myCons : A -> myList A -> myList A.
+\end{lstlisting}
+\vskip \baselineskip
+
+\pause
+Una lista puede ser la siguiente:
+\begin{lstlisting}
+myCons 4 (myCons 2 (myCons 1 myNil)) = [4;2;1]
+\end{lstlisting}
+\vskip \baselineskip
+
+\pause
+¿Cuanto vale \lstinline{hd} de nuestra lista?
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Coq}
+
+¿Cómo definimos \lstinline{head} de manera correcta?
+
+\pause
+% Debemos utilizar un valor por defecto
+\begin{lstlisting}
+Definition head_d {A} (l : myList A) (d : A) : A :=
+  match l with
+  | myNil _ => d
+  | myCons _ x xs => x
+  end.
+\end{lstlisting}
+
+\pause
+No siempre deseamos usar un valor por defecto.
+% En el caso de los números naturales no existe un valor por defecto que podamos utilizar sin perder información.
+
+\pause
+La otra manera de codificar esta función es utilizando \lstinline{option}.
+
+\pause
+\begin{lstlisting}
+Definition head_o {A} (l : myList A) : option A :=
+  match l with
+  | myNil _ => None
+  | myCons _ x xs => Some x
+  end.
+\end{lstlisting}
+
+Esto tiene un problema: utilizando \lstinline{option} en \lstinline{head}, estamos obligados a continuar utilizandolo en el resto de las funciones.
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Coq}
+
+La ultima solución es mejor, pero recurre a la librería \lstinline{Program}.
+
+\pause
+\begin{lstlisting}
+Program Definition head {A}
+(l : myList A | myNil _ <> l ) : A :=
+  match l with
+  | myNil _ => !
+  | myCons _ x xs => x
+  end.
+\end{lstlisting}
+
+\pause
+Esta solución hace uso de tipos dependientes!
+% Se utilizan Sigma-types para añadir información que depende la lista l
+% Esta información nos dice que l no es la lista vacia
+\end{frame}
+
+\begin{frame}
+\section{Mtac2}
+\frametitle{Mtac2}
+
+El poder de Coq reside en su capacidad de taclear problemas grandes.
+Esto se debe a que el uso de tácticas puede automatizarse y simplificarse.
+\vspace{\baselineskip}
+
+\pause
+Sin embargo, las tácticas de Ltac no son tipadas.
+Estas tienen muchas deficiencias: pueden ser ejecutadas en cualquier contexto y, no son fáciles de debuggear.
+% Veamos un ejemplo en vivo: ejemplo sintipar?
+\end{frame}
+
+\begin{frame}
+\frametitle{Mtac2}
+
+Mtac2 es uno de los metalenguajes de programación disponibles en Coq.
+Su gran diferencia con Ltac son las tácticas tipadas.
+% Otros disponibles son Ltac2, Rtac, Template-Coq y Coq-Elpi, aparte de Ltac obviamente.
+% La gran diferencia entre estos meta-lenguajes con Mtac2 es que no tienen tácticas tipadas. Brindan menos garantías.
+\vspace{\baselineskip}
+
+\pause
+Las tacticas tipadas tienen una signatura y solo pueden ser utilizadas en el contexto correcto.
+\vspace{\baselineskip}
+
+\pause
+También son más fáciles de debuggear!
+% Ejemplo tácticas tipadas? Basicamente ver que podemos llamar cualquier táctica. Solo las tácticas correctas van a funcionar, las otras van a fallar sin decirnos por qué, solo que fallaron.
+% En Mtac2 las tácticas solo son llamadas si encajan bien y, en el caso de fallar, tendremos un error informativo.
+% Podemos utilizar prints y excepciones.
+\end{frame}
+
+\begin{frame}
+\frametitle{Mtac2}
+
+Definir funciones en Mtac2 es similar a Gallina.
+La única diferencia es el uso de mónadas y, consiguientemente, el uso de operadores monádicos:
+\begin{itemize}
+  \item \lstinline{bind}: nos permite vincular o \emph{bindear} cómputos.
+  \item \lstinline{ret}: utilizado para introducir un término a la mónada.
+\end{itemize}
+\vspace{\baselineskip}
+
+\pause
+Al comenzar a desarrollar metaprogramas más complicados, las signaturas se vuelven complicadas y el uso de estos operadores puede resultar en un problema.
+\vskip \baselineskip
+
+Antes de estudiar el problema, veamos como escribir metaprogramas.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Mtac2}
+Utilizando \lstinline{bind} y \lstinline{ret} podemos armar nuestros cómputos.
+
+\lstinline{bind : \forall A B : Type, M A -> (A -> M B) -> M B}
+\lstinline{ret : \forall A : Type, A -> M A}
+\vskip \baselineskip
+
+También utilizaremos versiones monádicas de \lstinline{match} y del Fixpoint.
+\vskip \baselineskip
+
+Veamos el siguiente ejemplo.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Mtac2}
+
+Este metaprograma evalúa números naturales.
+Si están expresados como una suma podemos quitar las sumas con cero.
+
+\begin{lstlisting}
+Definition arith_eval : nat -> M nat :=
+  mfix1 f (n : nat) : M nat :=
+    mmatch n with
+    | [? y] add O y =>
+      y <- f y;
+      ret y
+    | [? x] add x O =>
+      x <- f x;
+      ret x
+    | [? x y] add x y =>
+      x <- f x;
+      y <- f y;
+      ret (add x y)
+    | _ => ret n
+  end.
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+\frametitle{Mtac2}
+
+Gracias a \lstinline{mmatch} podemos matchear en expresiones que no son constructores del tipo.
+% En Coq solo podemos matchear en los constructores del tipo.
+\vskip \baselineskip
+
+Utilizamos \lstinline{mfix1} para expresar funciones recursivas en un argumento.
+% También tenemos otras variantes: mfix2 y mfix3.
+\vskip \baselineskip
+
+Para nuestra motivación utilizaremos dos variantes:
+\begin{itemize}
+\item \lstinline{mtmmatch}
+% Nos permite tener cuantificadores en la signatura retornada
+\item \lstinline{mfix}
+% Variante general de mfix_n
+\end{itemize}
+\vskip \baselineskip
+
+\pause
+\centering
+Estudiemos un último elemento de Mtac2!
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Mtac2}
+\framesubtitle{Telescopios}
+
+Lo último que necesitamos son telescopios.
+\pause
+\begin{lstlisting}
+Inductive MTele : Type :=
+| mBase : MTele
+| mTele {X : Type} (F : X -> MTele) : MTele.
+\end{lstlisting}
+
+Esta estructura de dato nos permitirá expresar una secuencia de tipos o valores, posiblemente dependientes, y de largo arbitrario.
+% El tipo \lstinline{MTele} crea una cadena de abstracciones.
+% Este se codifica a través de funciones, lo que permite que sean dependientes, es decir, un telescopio puede tener elementos que dependan de elementos anteriores.
+\vskip \baselineskip
+
+\pause
+Utilizaremos notación para referirnos a elementos de este tipo:
+\begin{itemize}
+  \item \lstinline{mBase = [$\;$]$_t$}
+  \item \lstinline{[T$_0$ : Type ;> T$_1$ : T$_0$ -> Type ;> ...]$_t$}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Mtac2}
+\framesubtitle{Telescopios}
+
+Específicamente, estamos interesados en las funciones de telescopios.
+Estas permiten observar un estilo de jerarquía.
+\vskip \baselineskip
+
+\pause
+Necesitaremos la estructura de datos \lstinline{Sort}:
+\begin{lstlisting}
+Inductive Sort : Type := \Prop_sort | \Type_sort.
+\end{lstlisting}
+% Esta estructura es un reflejo de Prop y Sort, la utilizaremos como una abstracción
+\vskip \baselineskip
+
+También utilizaremos la función \lstinline{MTele_Sort}. Esta función derivará el tipo correspondiente al telescopio.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Mtac2}
+\framesubtitle{Telescopios}
+
+Supongamos que tenemos un telescopio \lstinline{m}:
+\begin{lstlisting}
+Definition m := [T : Type ;> l : list T ;> p : length l = 0]$_t$
+\end{lstlisting}
+\vskip \baselineskip
+
+\pause
+La expresión \lstinline{MTele_Sort \Type_sort m} se evalúa al tipo correspondiente:
+\begin{lstlisting}
+\forall (T : Type) (l : list T), length l = 0 -> Type : Type
+\end{lstlisting}
+% Retorna Type porque usamos Type_sort.
+\lstinline{MTele_Sort} retorna un tipo!
+\vskip \baselineskip
+
+\pause
+\centering
+¿Qué término es una expresión del tipo?
+\pause
+\begin{lstlisting}
+Definition Tm : MTele_Ty m := fun T l p => l = nil.
+\end{lstlisting}
+% l = nil podría ser cualquier tipo, no es necesario que dependa de los argumentos.
+% Lo importante es que Coq acepta la definición de \lstinline{Tm}, lo que implica que esta definición efectivamente tiene el tipo esperado.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Mtac2}
+\framesubtitle{Telescopios}
+
+El elemento \lstinline{Tm} también es un tipo!
+\vskip \baselineskip
+
+Podemos definir el siguiente teorema y probarlo.
+
+\begin{lstlisting}
+Definition Tm_ex : forall T (l : list T) (p : length l = 0),
+  l = nil.
+Proof.
+intros T l p. by apply length_zero_iff_nil.
+Qed.
+\end{lstlisting}
+
+Entonces, la prueba \lstinline{Tm_ex} es un valor de \lstinline{Tm}.
+Utilizando la función \lstinline{MTele_val} podemos especificarlo en Coq.
+\begin{lstlisting}
+Definition vm : MTele_val Tm := Tm_ex.
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\section{Motivación}
+\frametitle{Motivación}
+
+Tenemos la siguiente función que calcula el máximo de una lista de números naturales.
+\begin{lstlisting}
+Definition list_max_nat :=
+  mfix f (l: list nat) : l <> nil -> M nat :=
+    mtmmatch l as l' return l' <> nil -> M nat with
+    | [? e] [e] => fun P => M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
+      let x := Nat.max e1 e2 in
+      f (x :: l') _
+    | [? l' r'] app l' r' => fun P =>
+      match app_not_nil l' r' P with
+      | inl P' => f l' P'
+      | inr P' => f r' P'
+      end
+    end.
+\end{lstlisting}
+% Explicar un poco pero sin meterme en los detalles de la prueba.
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Motivación}
+
+Supongamos que deseamos una función general, que funciones con múltiples tipos de listas.
+\vskip \baselineskip
+
+Sea \lstinline{max} la función que retorna la función que calcula el máximo entre dos elementos de un cierto tipo \lstinline{S}.
+\begin{lstlisting}
+Definition max (S: Set) : M (S -> S -> S) :=
+  mmatch S in Set as S' return M (S' -> S' -> S') with
+  | nat => ret Nat.max
+  | bool => ret (fun b b' => if b then b else b')
+  | _ => ret (fun x _ => x)
+  end.
+\end{lstlisting}
+
+Ahora, podemos intentar integrar esta función a \lstinline{list_max_nat}.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Motivación}
+
+Nueva versión:
+\begin{lstlisting}
+Definition list_max (S: Set) :=
+  max <- max S; (* error! *)
+  mfix f (l: list S) : l <> nil -> M S :=
+    mtmmatch l as l' return l' <> nil -> M S with
+    | [? e] [e] => fun P => M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
+      m <- max e1 e2;
+      f (m :: l') _
+    | ...
+    end.
+\end{lstlisting}
+
+Tenemos un problema de tipos!
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Motivación}
+
+La signatura de \lstinline{max S} es \lstinline{M (S -> S -> S)}, mientras que la del fixpoint es \lstinline{f : forall (l: list S),  l' <> nil -> M S}.
+\vskip \baselineskip
+
+Dado que \lstinline{bind : \forall (A B : Type), M A -> (A -> M B) -> M B} es imposible que vinculemos a \lstinline{max S} con el punto fijo.
+\vskip \baselineskip
+
+Debemos pensar una nueva forma de hacer esto.
+La primera opción es generalizar a \lstinline{bind}.
+En ese caso, debemos hacer que su retorno se asemeje al punto fijo. Es decir, que permita retornar una función.
+\end{frame}
+
+\begin{frame}[fragile]
+\section{Lift}
+\frametitle{Lift}
+
+Nosotros decidimos abordar una alternativa mucho más general.
+Esta es la de la generalización casi automática de metafunciones.
+Utilizando telescopios, podemos indicar las dependencias de interés y generalizar.
+\vskip \baselineskip
+
+
+Esta generalización se hace a través del análisis recursivo en el tipo de la función. Retornamos un $\Sigma$-type con la nueva función y su signatura.
+
+\begin{lstlisting}
+Definition lift' {T : TyTree} (f : to_ty T) :
+  MTele -> M m:{T : TyTree & to_ty T}
+\end{lstlisting}
+\vskip \baselineskip
+% Introducir la función to_ty, hacer pie a TyTree
+
+\pause
+Esta signatura utiliza una estructura de datos adicional: \lstinline{TyTree} (y sus respectivas funciones).
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Motivación}
+
+El tipo \lstinline{TyTree} es un reflejo de los tipos de Coq.
+\begin{lstlisting}
+Inductive TyTree : Type :=
+| \tyTree_val$\!$ {m : MTele} (T : MTele_Ty m) : TyTree
+| \tyTree_M$\!$ (T : Type) : TyTree
+| \tyTree_MFA$\!$ {m : MTele} (T : MTele_Ty m) : TyTree
+| \tyTree_In$\!$ (s : Sort) {m : MTele} (F : accessor m -> s) : TyTree
+| \tyTree_imp$\!$ (T : TyTree) (R : TyTree) : TyTree
+| \tyTree_FATeleVal$\!$ {m : MTele} (T : MTele_Ty m)
+  (F : \forall t : MTele_val T, TyTree) : TyTree
+| \tyTree_FATeleType$\!$ (m : MTele) (F : \forall (T : MTele_Ty m), TyTree) : TyTree
+| \tyTree_FAVal$\!$ (T : Type) (F : T -> TyTree) : TyTree
+| \tyTree_FAType$\!$ (F : Type -> TyTree) : TyTree
+| \tyTree_base$\!$ (T : Type) : TyTree.
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lift}
+
+La función \lift\ toma una función \lstinline{f}, un elemento \lstinline{TyTree} que describe su tipo, y un telescopio \lstinline{m}.
+Con estos elementos es capaz de agregar las dependencias de \lstinline{m} en \lstinline{f}.
+\vskip \baselineskip
+
+En el caso de la motivación, deseamos liftear \lstinline{bind} y podemos definir un telescopio adecuado:
+\begin{lstlisting}
+m : MTele := [l : list S ;> p : l <> nil]$_t$
+\end{lstlisting}
+
+Como vimos antes, el fixpoint de \lstinline{list_max} tiene signatura:
+\begin{lstlisting}
+f : forall (l: list S),  l' <> nil -> M S
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lift}
+
+La signatura de la función \lstinline{bind} es:
+\begin{lstlisting}
+bind : \forall (A B : Type), M A -> (A -> M B) -> M B
+\end{lstlisting}
+Reescribiendo la signatura con \lstinline{TyTree} conseguimos:
+\begin{lstlisting}
+Definition bindTyTree :=
+  tyTree_FAType (fun A : Type =>
+    tyTree_FAType (fun B : Type =>
+      tyTree_imp
+        (tyTree_M A)
+        (tyTree_imp
+          (tyTree_imp (tyTree_base A) (tyTree_M B))
+          (tyTree_M B)))).
+\end{lstlisting}
+\vskip \baselineskip
+
+\pause
+\begin{center}
+Estamos listos para liftear \lstinline{bind}!
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lift}
+
+Para ejecutar \emph{LIFT} debemos utilizar el siguiente comando:
+\begin{lstlisting}
+Definition li_bind : m:{T : TyTree & to_ty T} :=
+  ltac:(mrun (lift' bindt m)).
+\end{lstlisting}
+% Con mrun ejectutamos metaprogramas
+\vskip \baselineskip
+
+\pause
+Luego, podemos inspeccionar \lstinline{li_bind} para ver la nueva signatura y función:
+\begin{lstlisting}
+Eval cbn in to_ty (mprojT1 li_ret).
+Eval cbn in mprojT2 li_ret.
+Eval cbn in mprojT1 li_ret.
+\end{lstlisting}
+\vskip \baselineskip
+
+\pause
+\centering
+Veamosló en vivo!
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Lift}
+
+Como vimos, la signatura de \lstinline{bind^} es:
+\begin{lstlisting}
+bind^ : \forall (A B : \forall l (p : l <> nil), Type),
+  \forall l p, M (A l p) ->
+  \forall l p, (A l p -> M (B l p)) ->
+  \forall l p, M (B l p)
+\end{lstlisting}
+\vskip \baselineskip
+
+\pause
+Y su implementación:
+\begin{lstlisting}
+bind^ := fun A B x f y => bind (x l p) (f l p)
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}
+\centering
+
+Así concluimos la presentación.
+\vskip \baselineskip
+
+\huge
+Gracias!
+\end{frame}
+
+\end{document}

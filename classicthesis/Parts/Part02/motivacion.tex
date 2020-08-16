@@ -1,0 +1,87 @@
+\chapter{Motivación}\label{ch:motivacion}
+
+% Se asume que se explicó que es Mtac2 en la introducción y todas las cosas que
+% se pueden hacer.
+\textsc{Mtac2} nos permite definir funciones monádicas. Estas cuentan con ciertas ventajas.
+La siguiente función calcula el máximo de una lista de números \lstinline{nat : Set} y utiliza \lstinline{mtmmatch} para hacer un análisis sintáctico, a diferencia de \lstinline{match}.
+
+\begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max_nat}},label=lst:list_max_nat]
+Definition list_max_nat :=
+  mfix f (l: list nat) : l <> nil -> M nat :=
+    mtmmatch l as l' return l' <> nil -> M nat with
+    | [? e] [e] => fun P => M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
+      let x := Nat.max e1 e2 in
+      f (x :: l') _
+    | [? l' r'] app l' r' => fun P =>
+      match app_not_nil l' r' P with
+      | inl P' => f l' P'
+      | inr P' => f r' P'
+      end
+    end.
+\end{lstlisting}
+% TODO: Beta dice que hay que usar disjoint sum "x + y" y no el \/ (or).
+
+El último caso de \lstinline{mtmmatch} analiza una expresión que no es un constructor del tipo inductivo \lstinline{list}. Por eso, es necesario utilizar el \lstinline{match} monádico.
+Notar que tampoco podemos utilizar \lstinline{mmatch} ya que deseamos retornar términos de tipo \lstinline{l' <> nil -> M nat}.
+
+Ahora, supongamos que deseamos parametrizar $\nat$ y utilizar una función que acepte múltiples conjuntos de nuestro interés.
+
+\begin{lstlisting}[frame=tb,caption={Función \lstinline{max}},label=lst:max]
+Definition max (S: Set) : M (S -> S -> S) :=
+  mmatch S in Set as S' return M (S' -> S' -> S') with
+  | nat => M.ret Nat.max
+  end.
+\end{lstlisting}
+
+Sea \lstinline{max} en \ref{lst:max}, la función que retorna la relación máximo en un conjunto $S$.
+A primera vista, nuestra idea podría funcionar, es decir, intuitivamente no es ilógica.
+
+\begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max}},label=lst:list_max]
+Definition list_max (S: Set) :=
+  max <- max S; (* error! *)
+  mfix f (l: list S) : l <> nil -> M S :=
+    mtmmatch l as l' return l' <> nil -> M S with
+    | [? e] [e] => fun P => M.ret e
+    | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
+      m <- max e1 e2;
+      f (m :: l') _
+    | ...
+    end.
+\end{lstlisting}
+
+Al intentar que Coq interprete la función veremos que esta función no tipa.
+Esto es debido a que \lstinline{bind} no tiene la signatura necesaria.
+
+\begin{lstlisting}
+bind : forall A B, M A -> (A -> M B) -> M B
+\end{lstlisting}
+
+Nuestro \lstinline{mfix} no puede unificarse a \lstinline{M B}, ya que su tipo es una implicación: \lstinline{(f : forall (l: list S),  l' <> nil -> M S)}.
+% Es decir, tenemos \lstinline{A = (S -> S -> S)} y \lstinline{B = forall (l: list S)  l' <> nil -> M S} entonces no podemos utilizar \lstinline{bind}.
+% TODO: En la motivación usar el ret lifteando antes del fun/lambda y el bind lifteado para el max.
+
+Solucionar esta situación específica no es un problema.
+Una alternativa es introducir los parámetros de la función y beta-expandir la definición del fixpoint.
+Otra, es codificar un nuevo \lstinline{bind} que tenga el tipo necesario.
+El problema será que ambas soluciones son específicas al problema, entonces, en cada situación, debemos volver a implementar alguno de estos operadores.
+
+En nuestra solución, suplantamos \lstinline{bind} y \lstinline{ret} por \lstinline{bind^} y \lstinline{ret^}, respectivamente. Llamaremos a estas funciones las versiones \emph{lifteadas} de las originales. Estas poseen el tipo necesario.
+
+Nuestro proyecto es la codificación de un nuevo metaprograma \lift que puede generalizar metaprogramas con las dependencias necesarias para que sea utilizado en el contexto.
+En nuestro ejemplo, utilizando \lift podemos generalizar \lstinline{bind} y \lstinline{ret}, consiguiendo nuevos metaprogramas que se comportan como los originales pero con una signatura distinta, permitiendo su uso.
+
+\begin{lstlisting}[frame=tb,caption={Función \lstinline{list_max} lifteada},label=lst:list_max_lifted]
+Definition list_max_lifted (S: Set) :=
+max <^- max S; (* notacion para bind^ *)
+mfix f (l: list S) : l <> nil -> M S :=
+    mtmmatch l as l' return l' <> nil -> M S with
+    | [? e] [e] => ret^ (fun _ => e)
+    | [? e1 e2 l'] (e1 :: e2 :: l') => fun P =>
+      m <- max e1 e2;
+      f (m :: l') _
+    | ...
+    end.
+\end{lstlisting}
+
+Veremos que la función \lift requiere pequeño esfuerzo para ser utilizada.
